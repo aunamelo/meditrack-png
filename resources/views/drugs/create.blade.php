@@ -1,0 +1,220 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Enter New Drug
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <!-- Breadcrumb -->
+                    <nav class="flex mb-6" aria-label="Breadcrumb">
+                        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                            <li class="inline-flex items-center">
+                                <a href="{{ getDashboardDrugRoute('index') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-[#0f766e]">
+                                    Drugs
+                                </a>
+                            </li>
+                            <li>
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Create</span>
+                                </div>
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <!-- Form -->
+                    <form action="{{ getDashboardDrugRoute('store') }}" method="POST">
+                        @csrf
+
+                        @if ($errors->any())
+                            <div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-red-800">There were some errors with your submission.</h3>
+                                        <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Drug Name -->
+                            <div>
+                                <label for="drug_name" class="block text-sm font-medium text-gray-700 mb-1">Drug Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="drug_name" id="drug_name" value="{{ old('drug_name') }}" required
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., Paracetamol">
+                                @error('drug_name')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Batch Number -->
+                            <div>
+                                <label for="batch_number" class="block text-sm font-medium text-gray-700 mb-1">Batch Number <span class="text-red-500">*</span></label>
+                                <input type="text" name="batch_number" id="batch_number" value="{{ old('batch_number') }}" required
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., BATCH-2024-001">
+                                @error('batch_number')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Expiry Date -->
+                            <div>
+                                <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="text-red-500">*</span></label>
+                                <input type="date" name="expiry_date" id="expiry_date" value="{{ old('expiry_date') }}" required min="{{ date('Y-m-d') }}"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                @error('expiry_date')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Quantity Received -->
+                            <div>
+                                <label for="quantity_received" class="block text-sm font-medium text-gray-700 mb-1">Quantity Received <span class="text-red-500">*</span></label>
+                                <input type="number" name="quantity_received" id="quantity_received" value="{{ old('quantity_received') }}" required min="1"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., 100">
+                                @error('quantity_received')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Dosage -->
+                            <div>
+                                <label for="dosage" class="block text-sm font-medium text-gray-700 mb-1">Dosage <span class="text-red-500">*</span></label>
+                                <input type="text" name="dosage" id="dosage" value="{{ old('dosage') }}" required
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., 500mg">
+                                @error('dosage')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Dosage Form -->
+                            <div>
+                                <label for="dosage_form" class="block text-sm font-medium text-gray-700 mb-1">Dosage Form <span class="text-red-500">*</span></label>
+                                <select name="dosage_form" id="dosage_form" required
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                    <option value="">Select form...</option>
+                                    <option value="tablet" {{ old('dosage_form') == 'tablet' ? 'selected' : '' }}>Tablet</option>
+                                    <option value="injection" {{ old('dosage_form') == 'injection' ? 'selected' : '' }}>Injection</option>
+                                    <option value="syrup" {{ old('dosage_form') == 'syrup' ? 'selected' : '' }}>Syrup</option>
+                                    <option value="cream" {{ old('dosage_form') == 'cream' ? 'selected' : '' }}>Cream</option>
+                                    <option value="ointment" {{ old('dosage_form') == 'ointment' ? 'selected' : '' }}>Ointment</option>
+                                    <option value="other" {{ old('dosage_form') == 'other' ? 'selected' : '' }}>Other</option>
+                                </select>
+                                @error('dosage_form')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Unit -->
+                            <div>
+                                <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unit <span class="text-red-500">*</span></label>
+                                <input type="text" name="unit" id="unit" value="{{ old('unit') }}" required
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., tablets, ml, vials">
+                                @error('unit')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Supplier -->
+                            <div>
+                                <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                                <input type="text" name="supplier" id="supplier" value="{{ old('supplier') }}"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., Pfizer Pharmaceuticals">
+                                @error('supplier')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Cost Per Unit -->
+                            <div>
+                                <label for="cost_per_unit" class="block text-sm font-medium text-gray-700 mb-1">Cost Per Unit</label>
+                                <input type="number" name="cost_per_unit" id="cost_per_unit" value="{{ old('cost_per_unit') }}" step="0.01" min="0"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., 5.50">
+                                @error('cost_per_unit')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Storage Location -->
+                            <div>
+                                <label for="storage_location" class="block text-sm font-medium text-gray-700 mb-1">Storage Location</label>
+                                <input type="text" name="storage_location" id="storage_location" value="{{ old('storage_location') }}"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., Shelf A1">
+                                @error('storage_location')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Reorder Point -->
+                            <div>
+                                <label for="reorder_point" class="block text-sm font-medium text-gray-700 mb-1">Reorder Point</label>
+                                <input type="number" name="reorder_point" id="reorder_point" value="{{ old('reorder_point') ?? 100 }}" min="1"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="e.g., 100">
+                                @error('reorder_point')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Description -->
+                            <div class="md:col-span-2">
+                                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea name="description" id="description" rows="3"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="Enter drug description...">{{ old('description') }}</textarea>
+                                @error('description')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="md:col-span-2">
+                                <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea name="notes" id="notes" rows="3"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    placeholder="Enter any additional notes...">{{ old('notes') }}</textarea>
+                                @error('notes')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="mt-6 flex items-center justify-end gap-4">
+                            <a href="{{ getDashboardDrugRoute('index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200 focus:outline-none focus:border-gray-500 focus:ring ring-gray-500 disabled:opacity-25 transition ease-in-out duration-150">
+                                Cancel
+                            </a>
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59] focus:outline-none focus:border-[#0f766e] focus:ring ring-[#0f766e] disabled:opacity-25 transition ease-in-out duration-150">
+                                Save Drug
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>

@@ -26,7 +26,13 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    {{ __("You're logged in as NDoH Admin.") }}
+                    <p class="mb-6">{{ __("You're logged in as NDoH Admin.") }}</p>
+                    <a href="{{ route('admin.dashboard.drugs.index') }}" class="inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59] focus:outline-none focus:border-[#0f766e] focus:ring ring-[#0f766e] transition ease-in-out duration-150">
+                        View Drug Inventory
+                    </a>
+                    <a href="{{ route('procurement.dashboard.orders.index') }}" class="ml-3 inline-flex items-center px-4 py-2 bg-white border border-[#0f766e] rounded-md font-semibold text-xs text-[#0f766e] uppercase tracking-widest hover:bg-teal-50 transition ease-in-out duration-150">
+                        View Procurement Orders
+                    </a>
                 </div>
             </div>
         </div>

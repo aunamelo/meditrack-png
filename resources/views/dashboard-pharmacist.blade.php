@@ -26,7 +26,10 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    {{ __("You're logged in as Pharmacist.") }}
+                    <p class="mb-6">{{ __("You're logged in as Pharmacist.") }}</p>
+                    <a href="{{ route('pharmacist.dashboard.drugs.index') }}" class="inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59] focus:outline-none focus:border-[#0f766e] focus:ring ring-[#0f766e] transition ease-in-out duration-150">
+                        View Drug Inventory
+                    </a>
                 </div>
             </div>
         </div>
