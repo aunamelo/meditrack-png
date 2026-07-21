@@ -6,7 +6,7 @@
     <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>{{ config('app.name', 'meditrack') }} | Role Selection</title>
+    <title>MediTrack | Role Selection</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -56,16 +56,16 @@
                 <div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
                     <div>
                         <div class="mb-5 sm:mb-8">
-                            <span class="inline-flex items-center gap-1.5 rounded-full border border-[#d7ecec] bg-[#eef7f7] px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-[#0d5f59] mb-4">
+                            <span class="inline-flex items-center gap-1.5 rounded-full border border-[#d7ecec] bg-[#eef7f7] px-3 py-1.5 text-sm font-semibold uppercase tracking-wide text-[#0d5f59] mb-4">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
                                 Secure Portal
                             </span>
-                            <h1 class="mb-2 font-semibold text-gray-800 text-2xl dark:text-white/90">
-                                Welcome to MediTrack PNG
+                            <h1 class="mb-3 font-bold text-gray-800 text-3xl dark:text-white/90">
+                                Welcome to MediTrack
                             </h1>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                            <p class="text-base text-gray-500 dark:text-gray-400">
                                 Please select your role to continue
                             </p>
                         </div>
@@ -75,13 +75,13 @@
                                 <div class="space-y-5">
                                     <!-- Role Selection -->
                                     <div>
-                                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                        <label class="mb-2 block text-base font-medium text-gray-700 dark:text-gray-400">
                                             Login as <span class="text-red-500">*</span>
                                         </label>
                                         <div x-data="{ isOptionSelected: false }" class="relative z-20 bg-transparent">
                                             <select id="userRole" name="userRole" required
                                                 @change="isOptionSelected = $event.target.value !== ''"
-                                                class="z-20 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-[#0f766e] focus:outline-none focus:ring-3 focus:ring-[#0f766e]/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-[#0f766e]"
+                                                class="z-20 h-12 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-3 text-base text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-[#0f766e] focus:outline-none focus:ring-3 focus:ring-[#0f766e]/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-[#0f766e]"
                                                 :class="isOptionSelected && 'text-gray-800 dark:text-white/90'">
                                                 <option value="" disabled selected>-- Login as --</option>
                                                 <option value="admin">NDoH Admin</option>
@@ -102,7 +102,7 @@
                                     <!-- Button -->
                                     <div>
                                         <button type="submit"
-                                            class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-[#0f766e] shadow-sm hover:bg-[#0d5f59]">
+                                            class="flex items-center justify-center w-full px-4 py-3.5 text-base font-semibold text-white transition rounded-lg bg-[#0f766e] shadow-sm hover:bg-[#0d5f59]">
                                             Continue to Login
                                         </button>
                                     </div>
@@ -128,19 +128,19 @@
                         <div class="flex flex-col gap-3 items-center">
                             <div class="flex flex-wrap gap-4 md:gap-6 justify-center">
                                 <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-[#0f766e] text-sm transition-colors">
-                                    Contact Us
+                                    About MediTrack
                                 </a>
                                 <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-[#0f766e] text-sm transition-colors">
-                                    Terms and Conditions
+                                    User Guide
                                 </a>
                                 <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-[#0f766e] text-sm transition-colors">
-                                    Privacy Policy
+                                    Support
                                 </a>
                                 <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-[#0f766e] text-sm transition-colors">
-                                    Cancellation &amp; Refund
+                                    Data Security
                                 </a>
                                 <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-[#0f766e] text-sm transition-colors">
-                                    Shipping &amp; Delivery
+                                    NDoH Portal
                                 </a>
                             </div>
                             <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
@@ -155,18 +155,38 @@
 
             <!-- Visual / branding panel -->
             <div class="relative items-center hidden w-full h-full lg:grid lg:w-1/2"
-                 style="background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.14), transparent 55%), linear-gradient(160deg, #0f766e 0%, #0a4b46 100%);">
+                 style="background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.14), transparent 55%), linear-gradient(160deg, #0d5f59 0%, #0a4b46 100%);">
                 <div class="flex items-center justify-center z-1">
-                    <div class="flex flex-col items-center max-w-xs text-center px-6">
-                        <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 border border-white/25 mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"></path>
+                    <div class="flex flex-col items-center max-w-sm text-center px-6">
+                        <div class="flex items-center justify-center w-20 h-20 rounded-2xl bg-white/15 border border-white/25 mb-6">
+                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                         </div>
-                        <span class="text-3xl font-bold text-white tracking-tight mb-3">MediTrack PNG</span>
-                        <p class="text-white/80 text-sm leading-relaxed">
-                            Papua New Guinea's National medicines &amp; supply chain management platform
+                        <span class="text-4xl font-bold text-white tracking-tight mb-4">MediTrack PNG</span>
+                        <p class="text-white/90 text-base leading-relaxed mb-6">
+                            Papua New Guinea's National Health Information System
                         </p>
+                        <div class="flex flex-col gap-3 w-full">
+                            <div class="flex items-center gap-3 text-white/80 text-sm">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Medicine Management</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-white/80 text-sm">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Supply Chain Tracking</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-white/80 text-sm">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Healthcare Analytics</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

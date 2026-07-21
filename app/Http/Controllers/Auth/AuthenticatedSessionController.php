@@ -98,7 +98,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         // Shown as a fading toast on the dashboard right after redirect.
-        $request->session()->flash('login_success', 'Login successful! Redirecting you to your dashboard.');
+        $request->session()->flash('login_success', 'Login successful!');
 
         return redirect()->route($routeName);
     }
