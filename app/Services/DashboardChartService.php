@@ -18,21 +18,16 @@ class DashboardChartService
             'admin' => [
                 self::orderStatusChart(),
                 self::ordersTrendChart(),
-                self::shipmentStatusChart(),
             ],
             'procurement_officer' => [
                 self::orderStatusChart($userId),
                 self::ordersTrendChart($userId),
-                self::procurementSpendChart($userId),
             ],
             'store_manager' => [
                 self::inventoryHealthChart($inventoryLevel ?? 'lae_ams'),
-                self::shipmentStatusChart('lae_ams'),
-                self::topStockChart($inventoryLevel ?? 'lae_ams'),
             ],
             'pharmacy_manager', 'pharmacist' => [
                 self::inventoryHealthChart($inventoryLevel ?? 'modilon_hospital'),
-                self::topStockChart($inventoryLevel ?? 'modilon_hospital'),
             ],
             default => [],
         };
@@ -61,8 +56,8 @@ class DashboardChartService
         return [
             'id' => 'order-status-'.($userId ?? 'all'),
             'type' => 'doughnut',
-            'title' => $userId ? 'My order pipeline' : 'Procurement pipeline',
-            'subtitle' => 'Orders grouped by current status',
+            'title' => $userId ? 'My orders by status' : 'Orders by status',
+            'subtitle' => 'Current procurement pipeline',
             'labels' => $labels,
             'datasets' => [[
                 'data' => $data,
@@ -103,8 +98,8 @@ class DashboardChartService
         return [
             'id' => 'orders-trend-'.($userId ?? 'all'),
             'type' => 'bar',
-            'title' => $userId ? 'My procurement activity' : 'Procurement volume',
-            'subtitle' => 'New orders created over the last '.$months.' months',
+            'title' => $userId ? 'My order activity' : 'Order activity',
+            'subtitle' => 'Last 6 months',
             'labels' => $labels,
             'datasets' => [[
                 'label' => 'Orders',
@@ -176,7 +171,7 @@ class DashboardChartService
             'id' => 'inventory-health-'.$level,
             'type' => 'doughnut',
             'title' => 'Inventory health',
-            'subtitle' => 'Stock batches at your level',
+            'subtitle' => 'Stock condition overview',
             'labels' => ['Healthy', 'Low stock', 'Expiring soon', 'Expired'],
             'datasets' => [[
                 'data' => [$active, $low, $expiring, $expired],
@@ -201,18 +196,18 @@ class DashboardChartService
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $labels = ['Sent', 'Received', 'Cancelled'];
+        $labels = ['In transit by road', 'Received', 'Cancelled'];
         $keys = ['sent', 'received', 'cancelled'];
         $data = array_map(fn (string $key) => (int) ($counts[$key] ?? 0), $keys);
 
         return [
             'id' => 'shipment-status-'.($toLevel ?? 'all'),
             'type' => 'bar',
-            'title' => 'Shipment status',
-            'subtitle' => $toLevel ? 'Lae AMS warehouse transfers' : 'NDoH → Lae AMS logistics',
+            'title' => 'Road delivery status',
+            'subtitle' => $toLevel ? 'Lae AMS warehouse deliveries' : 'NDoH → Lae AMS by road',
             'labels' => $labels,
             'datasets' => [[
-                'label' => 'Shipments',
+                'label' => 'Road deliveries',
                 'data' => $data,
                 'backgroundColor' => ['#3b82f6', '#10b981', '#ef4444'],
                 'borderRadius' => 8,

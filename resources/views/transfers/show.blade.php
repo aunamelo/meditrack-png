@@ -9,7 +9,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Shipment {{ $transfer->transfer_number }}
+            Road Delivery {{ $transfer->transfer_number }}
         </h2>
     </x-slot>
 
@@ -23,7 +23,7 @@
             @endif
 
             <div class="flex items-center justify-between">
-                <a href="{{ getDashboardTransferRoute('index') }}" class="inline-flex items-center text-sm text-gray-600 hover:text-[#0f766e]">← Back to Shipments</a>
+                <a href="{{ getDashboardTransferRoute('index') }}" class="inline-flex items-center text-sm text-gray-600 hover:text-[#0f766e]">← Back to Road Deliveries</a>
                 @if(canReceiveTransfers() && $transfer->canReceive())
                     <form action="{{ getDashboardTransferRoute('receive', $transfer) }}" method="POST" class="inline-flex items-center gap-3">
                         @csrf
@@ -35,17 +35,18 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Shipment Details</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Delivery Details</h3>
                     <p class="text-2xl font-bold text-[#0f766e] mb-2">{{ $transfer->transfer_number }}</p>
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $statusClasses[$transfer->status] ?? 'bg-gray-100 text-gray-800' }}">{{ ucfirst($transfer->status) }}</span>
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $statusClasses[$transfer->status] ?? 'bg-gray-100 text-gray-800' }}">{{ logisticsTransferStatusLabel($transfer->status) }}</span>
                     <dl class="mt-4 space-y-3 text-sm">
-                        <div><dt class="text-gray-500">Date Sent</dt><dd class="font-medium">{{ $transfer->formatSentDate() }}</dd></div>
-                        <div><dt class="text-gray-500">Sent By</dt><dd class="font-medium">{{ $transfer->sender->name ?? 'N/A' }}</dd></div>
+                        <div><dt class="text-gray-500">Date Dispatched</dt><dd class="font-medium">{{ $transfer->formatSentDate() }}</dd></div>
+                        <div><dt class="text-gray-500">Dispatched By</dt><dd class="font-medium">{{ $transfer->sender->name ?? 'N/A' }}</dd></div>
                         @if($transfer->receiver)
                             <div><dt class="text-gray-500">Received By</dt><dd class="font-medium">{{ $transfer->receiver->name }}</dd></div>
                             <div><dt class="text-gray-500">Received At</dt><dd class="font-medium">{{ $transfer->received_at?->format('M d, Y g:i A') ?? 'N/A' }}</dd></div>
                         @endif
-                        <div><dt class="text-gray-500">Route</dt><dd class="font-medium">NDoH → Lae AMS</dd></div>
+                        <div><dt class="text-gray-500">Route</dt><dd class="font-medium">NDoH → Lae AMS (by road)</dd></div>
+                        <div><dt class="text-gray-500">Transport</dt><dd class="font-medium">Land — car/truck</dd></div>
                     </dl>
                 </div>
 

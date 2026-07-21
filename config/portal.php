@@ -60,6 +60,9 @@ return [
         'inventory' => 'Inventory',
         'procurement' => 'Procurement',
         'logistics' => 'Logistics',
+        'hospital' => 'Hospital Supply',
+        'reports' => 'Reports',
+        'administration' => 'Administration',
     ],
 
     /*

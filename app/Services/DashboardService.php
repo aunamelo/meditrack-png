@@ -66,10 +66,9 @@ class DashboardService
         return [
             'roleMeta' => $meta,
             'stats' => [
-                self::stat('Pending approvals', (string) $pendingCount, 'Orders awaiting your sign-off', 'amber', getDashboardOrderRoute('index').'?status=pending'),
-                self::stat('NDoH stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'Active inventory at central store', 'teal', getDashboardDrugRoute('index')),
-                self::stat('In-transit shipments', (string) StockTransfer::sent()->toLevel('lae_ams')->count(), 'Awaiting Lae AMS receipt', 'blue', getDashboardTransferRoute('index').'?status=sent'),
-                self::stat('Unread alerts', (string) $user->unreadNotifications()->count(), 'New system notifications', 'slate', getDashboardOrderRoute('index')),
+                self::stat('Pending approvals', (string) $pendingCount, 'Awaiting sign-off', 'amber', getDashboardOrderRoute('index').'?status=pending'),
+                self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'NDoH inventory', 'teal', getDashboardDrugRoute('index')),
+                self::stat('In transit', (string) StockTransfer::sent()->toLevel('lae_ams')->count(), 'Road deliveries to Lae AMS', 'blue', getDashboardTransferRoute('index').'?status=sent'),
             ],
             'alerts' => $pendingCount > 0 ? [[
                 'tone' => 'amber',
@@ -90,9 +89,9 @@ class DashboardService
             'quickActions' => self::quickActions([
                 ['label' => 'Review orders', 'description' => 'Approve pending procurement', 'url' => getDashboardOrderRoute('index'), 'primary' => true],
                 ['label' => 'Drug inventory', 'description' => 'NDoH central stock', 'url' => getDashboardDrugRoute('index')],
-                ['label' => 'Track shipments', 'description' => 'NDoH → Lae AMS logistics', 'url' => getDashboardTransferRoute('index')],
+                ['label' => 'Track deliveries', 'description' => 'NDoH → Lae AMS by road', 'url' => getDashboardTransferRoute('index')],
             ]),
-            'recentItems' => Order::latest()->limit(5)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
+            'recentItems' => Order::latest()->limit(4)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
             'supplyChainHighlight' => 'ndoh',
             'charts' => DashboardChartService::forRole('admin'),
         ];
@@ -111,19 +110,18 @@ class DashboardService
         return [
             'roleMeta' => $meta,
             'stats' => [
-                self::stat('My pending orders', (string) $myPending, 'Awaiting NDoH approval', 'amber', getDashboardOrderRoute('index').'?status=pending'),
-                self::stat('Total orders', (string) $myOrders, 'All procurement requests', 'teal', getDashboardOrderRoute('index')),
-                self::stat('NDoH drug batches', (string) Drug::atLevel($level)->count(), 'Registered medicine types', 'slate', getDashboardDrugRoute('index')),
-                self::stat('Shipments in transit', (string) StockTransfer::sent()->fromLevel('ndoh')->count(), 'Sent to Lae AMS', 'blue', getDashboardTransferRoute('index')),
+                self::stat('Pending', (string) $myPending, 'Awaiting approval', 'amber', getDashboardOrderRoute('index').'?status=pending'),
+                self::stat('My orders', (string) $myOrders, 'Total submitted', 'teal', getDashboardOrderRoute('index')),
+                self::stat('In transit', (string) StockTransfer::sent()->fromLevel('ndoh')->count(), 'Sent to Lae AMS', 'blue', getDashboardTransferRoute('index')),
             ],
             'alerts' => [],
             'quickActions' => self::quickActions([
                 ['label' => 'New order', 'description' => 'Compare suppliers & create PO', 'url' => getDashboardOrderRoute('create'), 'primary' => true],
                 ['label' => 'My orders', 'description' => 'Track approval status', 'url' => getDashboardOrderRoute('index')],
-                ['label' => 'Record shipment', 'description' => 'Send stock to Lae AMS', 'url' => getDashboardTransferRoute('create')],
+                ['label' => 'Record delivery', 'description' => 'Dispatch stock by road to Lae AMS', 'url' => getDashboardTransferRoute('create')],
                 ['label' => 'Drug catalog', 'description' => 'NDoH medicine types', 'url' => getDashboardDrugRoute('index')],
             ]),
-            'recentItems' => Order::where('created_by', $user->id)->latest()->limit(5)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
+            'recentItems' => Order::where('created_by', $user->id)->latest()->limit(4)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
             'supplyChainHighlight' => 'ndoh',
             'charts' => DashboardChartService::forRole('procurement_officer', $user->id),
         ];
@@ -137,18 +135,31 @@ class DashboardService
     {
         $level = $meta['inventory_level'];
         $pendingShipments = StockTransfer::sent()->toLevel('lae_ams')->count();
+        $pendingHospitalOrders = \App\Models\HospitalOrder::pending()->count();
         $lowStock = Drug::atLevel($level)->lowStock()->count();
 
         $alerts = [];
 
+        if ($pendingHospitalOrders > 0) {
+            $alerts[] = [
+                'tone' => 'amber',
+                'title' => 'Hospital orders awaiting review',
+                'message' => $pendingHospitalOrders === 1
+                    ? '1 Modilon Hospital request needs your approval.'
+                    : "{$pendingHospitalOrders} Modilon Hospital requests need your approval.",
+                'action_label' => 'Review orders',
+                'action_url' => getDashboardHospitalOrderRoute('index').'?status=pending',
+            ];
+        }
+
         if ($pendingShipments > 0) {
             $alerts[] = [
                 'tone' => 'blue',
-                'title' => 'Incoming shipments from NDoH',
+                'title' => 'Incoming road deliveries from NDoH',
                 'message' => $pendingShipments === 1
-                    ? '1 shipment is awaiting confirmation at Lae AMS.'
-                    : "{$pendingShipments} shipments are awaiting confirmation at Lae AMS.",
-                'action_label' => 'View shipments',
+                    ? '1 road delivery is awaiting confirmation at Lae AMS.'
+                    : "{$pendingShipments} road deliveries are awaiting confirmation at Lae AMS.",
+                'action_label' => 'View deliveries',
                 'action_url' => getDashboardTransferRoute('index').'?status=sent',
                 'badge' => $user->unreadNotifications()->count() ?: null,
                 'items' => TransferNotificationService::pendingShipmentsForStoreManager()->map(fn (StockTransfer $transfer) => [
@@ -163,22 +174,21 @@ class DashboardService
         return [
             'roleMeta' => $meta,
             'stats' => [
-                self::stat('Awaiting receipt', (string) $pendingShipments, 'Incoming from NDoH', 'blue', getDashboardTransferRoute('index').'?status=sent'),
-                self::stat('Lae AMS batches', (string) Drug::atLevel($level)->inInventory()->count(), 'Warehouse stock on hand', 'teal', getDashboardDrugRoute('index')),
-                self::stat('Low stock alerts', (string) $lowStock, 'Below reorder point', 'amber', getDashboardDrugRoute('index').'?filter=low_stock'),
-                self::stat('Expiring soon', (string) Drug::atLevel($level)->expiring()->count(), 'Within 90 days', 'red', getDashboardDrugRoute('index').'?filter=expiring'),
+                self::stat('Hospital orders', (string) $pendingHospitalOrders, 'Awaiting approval', 'amber', getDashboardHospitalOrderRoute('index').'?status=pending'),
+                self::stat('Awaiting receipt', (string) $pendingShipments, 'NDoH → Lae AMS', 'blue', getDashboardTransferRoute('index').'?status=sent'),
+                self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'On hand at Lae AMS', 'teal', getDashboardDrugRoute('index')),
             ],
             'alerts' => $alerts,
             'quickActions' => self::quickActions([
-                ['label' => 'Confirm shipments', 'description' => 'Receive NDoH deliveries', 'url' => getDashboardTransferRoute('index'), 'primary' => true],
-                ['label' => 'Warehouse stock', 'description' => 'Lae AMS inventory', 'url' => getDashboardDrugRoute('index')],
-                ['label' => 'View orders', 'description' => 'Upstream procurement', 'url' => getDashboardOrderRoute('index')],
+                ['label' => 'Hospital orders', 'description' => 'Approve Modilon requests', 'url' => getDashboardHospitalOrderRoute('index'), 'primary' => true],
+                ['label' => 'Confirm NDoH receipts', 'description' => 'Receive national deliveries', 'url' => getDashboardTransferRoute('index')],
+                ['label' => 'Regional report', 'description' => 'Lae AMS summary', 'url' => getDashboardRegionalReportRoute('index')],
             ]),
-            'recentItems' => StockTransfer::toLevel('lae_ams')->latest()->limit(5)->get()->map(fn (StockTransfer $transfer) => [
-                'title' => $transfer->transfer_number,
-                'subtitle' => ($transfer->drug->drug_name ?? 'Unknown').' · '.number_format($transfer->quantity_sent).' units',
-                'meta' => ucfirst($transfer->status),
-                'url' => getDashboardTransferRoute('show', $transfer),
+            'recentItems' => \App\Models\HospitalOrder::latest()->limit(4)->get()->map(fn ($order) => [
+                'title' => $order->order_number,
+                'subtitle' => $order->drug_name.' · '.number_format($order->quantity_requested).' units requested',
+                'meta' => hospitalOrderStatusLabel($order->status),
+                'url' => getDashboardHospitalOrderRoute('show', $order),
             ])->all(),
             'supplyChainHighlight' => 'lae_ams',
             'charts' => DashboardChartService::forRole('store_manager', null, $level),
@@ -196,17 +206,17 @@ class DashboardService
         return [
             'roleMeta' => $meta,
             'stats' => [
-                self::stat('Hospital batches', (string) Drug::atLevel($level)->inInventory()->count(), 'Modilon pharmacy stock', 'teal', getDashboardDrugRoute('index')),
+                self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'Hospital inventory', 'teal', getDashboardDrugRoute('index')),
                 self::stat('Low stock', (string) Drug::atLevel($level)->lowStock()->count(), 'Needs replenishment', 'amber', getDashboardDrugRoute('index')),
-                self::stat('Expiring soon', (string) Drug::atLevel($level)->expiring()->count(), 'Review before expiry', 'red', getDashboardDrugRoute('index')),
-                self::stat('Procurement orders', (string) Order::received()->count(), 'Upstream supply reference', 'slate', getDashboardOrderRoute('index')),
+                self::stat('Expiring soon', (string) Drug::atLevel($level)->expiring()->count(), 'Within 6 months', 'red', getDashboardDrugRoute('index')),
             ],
             'alerts' => [],
             'quickActions' => self::quickActions([
-                ['label' => 'Hospital inventory', 'description' => 'Manage Modilon stock', 'url' => getDashboardDrugRoute('index'), 'primary' => true],
-                ['label' => 'Track orders', 'description' => 'National procurement status', 'url' => getDashboardOrderRoute('index')],
+                ['label' => 'Request from Lae AMS', 'description' => 'Submit hospital order', 'url' => getDashboardHospitalOrderRoute('create'), 'primary' => true],
+                ['label' => 'Hospital inventory', 'description' => 'Manage Modilon stock', 'url' => getDashboardDrugRoute('index')],
+                ['label' => 'Incoming deliveries', 'description' => 'Track Lae AMS road deliveries', 'url' => getDashboardHospitalShipmentRoute('index')],
             ]),
-            'recentItems' => Drug::atLevel($level)->latest()->limit(5)->get()->map(fn (Drug $drug) => [
+            'recentItems' => Drug::atLevel($level)->latest()->limit(4)->get()->map(fn (Drug $drug) => [
                 'title' => $drug->drug_name.' ('.$drug->dosage.')',
                 'subtitle' => 'Batch '.$drug->batch_number.' · '.number_format($drug->quantity_on_hand).' on hand',
                 'meta' => ucfirst(str_replace('_', ' ', $drug->status ?? 'active')),
@@ -228,17 +238,16 @@ class DashboardService
         return [
             'roleMeta' => $meta,
             'stats' => [
-                self::stat('Available batches', (string) Drug::atLevel($level)->inInventory()->count(), 'Ready for dispensing', 'teal', getDashboardDrugRoute('index')),
-                self::stat('Low stock', (string) Drug::atLevel($level)->lowStock()->count(), 'Inform pharmacy manager', 'amber', getDashboardDrugRoute('index')),
-                self::stat('Expiring soon', (string) Drug::atLevel($level)->expiring()->count(), 'Use or quarantine', 'red', getDashboardDrugRoute('index')),
-                self::stat('Order reference', (string) Order::whereIn('status', ['ordered', 'shipped', 'received'])->count(), 'Supply pipeline', 'slate', getDashboardOrderRoute('index')),
+                self::stat('Available stock', (string) Drug::atLevel($level)->inInventory()->count(), 'Ready to dispense', 'teal', getDashboardDrugRoute('index')),
+                self::stat('Low stock', (string) Drug::atLevel($level)->lowStock()->count(), 'Review with manager', 'amber', getDashboardDrugRoute('index')),
+                self::stat('Expiring soon', (string) Drug::atLevel($level)->expiring()->count(), 'Within 6 months', 'red', getDashboardDrugRoute('index')),
             ],
             'alerts' => [],
             'quickActions' => self::quickActions([
                 ['label' => 'View inventory', 'description' => 'Check stock before dispensing', 'url' => getDashboardDrugRoute('index'), 'primary' => true],
                 ['label' => 'Procurement status', 'description' => 'Track incoming supply', 'url' => getDashboardOrderRoute('index')],
             ]),
-            'recentItems' => Drug::atLevel($level)->inInventory()->latest()->limit(5)->get()->map(fn (Drug $drug) => [
+            'recentItems' => Drug::atLevel($level)->inInventory()->latest()->limit(4)->get()->map(fn (Drug $drug) => [
                 'title' => $drug->drug_name.' ('.$drug->dosage.')',
                 'subtitle' => number_format($drug->quantity_on_hand).' '.$drug->unit.' · '.$drug->storage_location,
                 'meta' => 'Batch '.$drug->batch_number,

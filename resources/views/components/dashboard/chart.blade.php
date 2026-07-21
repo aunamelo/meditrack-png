@@ -1,16 +1,14 @@
 @props(['config'])
 
-<div {{ $attributes->merge(['class' => 'surface-panel p-6']) }} x-data="dashboardChart(@js($config))">
-    <div class="mb-4 flex items-start justify-between gap-3">
-        <div>
-            <h3 class="heading-section">{{ $config['title'] }}</h3>
-            @if(! empty($config['subtitle']))
-                <p class="mt-1 text-sm font-medium text-muted">{{ $config['subtitle'] }}</p>
-            @endif
-        </div>
+<div {{ $attributes->merge(['class' => 'surface-panel px-5 py-4']) }} x-data="dashboardChart(@js($config))">
+    <div class="mb-3">
+        <h3 class="text-sm font-semibold text-ink dark:text-zinc-100">{{ $config['title'] }}</h3>
+        @if(! empty($config['subtitle']))
+            <p class="mt-0.5 text-xs text-muted">{{ $config['subtitle'] }}</p>
+        @endif
     </div>
 
-    <div class="relative h-64 sm:h-72">
+    <div class="relative h-52">
         <canvas x-ref="canvas" aria-label="{{ $config['title'] }}"></canvas>
     </div>
 </div>

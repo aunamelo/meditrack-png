@@ -1,15 +1,20 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiscrepancyReportController;
 use App\Http\Controllers\DrugController;
+use App\Http\Controllers\HospitalOrderController;
+use App\Http\Controllers\HospitalShipmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RegionalReportController;
 use App\Http\Controllers\StockTransferController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
 
 // Fallback dashboard — only reached if a logged-in user has none of the
 // 5 portal roles assigned. Keeps things safe rather than erroring out.
@@ -59,6 +64,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::resource('orders', OrderController::class);
     Route::resource('transfers', StockTransferController::class)->only(['index', 'show']);
+    Route::resource('users', UserController::class)->except(['show']);
 });
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {
@@ -70,17 +76,28 @@ Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('pro
 });
 
 Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-manager')->name('store-manager.dashboard.')->group(function () {
-    Route::resource('drugs', DrugController::class);
-    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::resource('drugs', DrugController::class)->only(['index', 'show']);
     Route::post('transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
     Route::resource('transfers', StockTransferController::class)->only(['index', 'show']);
+    Route::resource('hospital-orders', HospitalOrderController::class)->only(['index', 'show']);
+    Route::post('hospital-orders/{hospitalOrder}/approve', [HospitalOrderController::class, 'approve'])->name('hospital-orders.approve');
+    Route::post('hospital-orders/{hospitalOrder}/reject', [HospitalOrderController::class, 'reject'])->name('hospital-orders.reject');
+    Route::post('hospital-orders/{hospitalOrder}/ship', [HospitalOrderController::class, 'ship'])->name('hospital-orders.ship');
+    Route::resource('hospital-shipments', HospitalShipmentController::class)->only(['index', 'show'])->parameters(['hospital-shipments' => 'transfer']);
+    Route::resource('discrepancies', DiscrepancyReportController::class)->only(['index', 'show']);
+    Route::post('discrepancies/{discrepancy}/resolve', [DiscrepancyReportController::class, 'resolve'])->name('discrepancies.resolve');
+    Route::get('reports/regional', [RegionalReportController::class, 'index'])->name('reports.regional.index');
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharmacy-manager')->name('pharmacy-manager.dashboard.')->group(function () {
     Route::resource('drugs', DrugController::class);
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::resource('users', UserController::class)->except(['show']);
+    Route::resource('hospital-orders', HospitalOrderController::class)->only(['index', 'create', 'store', 'show']);
+    Route::post('hospital-orders/{hospitalOrder}/receive', [HospitalOrderController::class, 'receive'])->name('hospital-orders.receive');
+    Route::resource('hospital-shipments', HospitalShipmentController::class)->only(['index', 'show'])->parameters(['hospital-shipments' => 'transfer']);
+    Route::resource('discrepancies', DiscrepancyReportController::class)->only(['index', 'create', 'store', 'show']);
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')->name('pharmacist.dashboard.')->group(function () {

@@ -34,7 +34,7 @@
                         View Procurement Orders
                     </a>
                     <a href="{{ getDashboardTransferRoute('index') }}" class="ml-3 inline-flex items-center px-4 py-2 bg-white border border-[#0f766e] rounded-md font-semibold text-xs text-[#0f766e] uppercase tracking-widest hover:bg-teal-50 transition ease-in-out duration-150">
-                        Lae AMS Shipments
+                        Lae AMS Road Deliveries
                     </a>
                 </div>
             </div>

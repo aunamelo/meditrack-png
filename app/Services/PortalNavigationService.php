@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\DiscrepancyReport;
+use App\Models\HospitalOrder;
 use App\Models\Order;
 use App\Models\StockTransfer;
 use Illuminate\Support\Facades\Auth;
@@ -71,28 +73,134 @@ class PortalNavigationService
                 icon: 'cube',
             );
 
-            $orderBadge = self::orderNavBadge($user);
+            if ($user->hasRole('store_manager')) {
+                $pendingHospital = HospitalOrder::pending()->count();
 
-            $items[] = self::item(
-                section: 'procurement',
-                label: 'Procurement Orders',
-                description: self::orderNavDescription($user),
-                href: getDashboardOrderRoute('index'),
-                active: request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'),
-                icon: 'clipboard',
-                badge: $orderBadge,
-            );
+                $items[] = self::item(
+                    section: 'hospital',
+                    label: 'Hospital Orders',
+                    description: 'Modilon requests from Lae AMS',
+                    href: getDashboardHospitalOrderRoute('index'),
+                    active: request()->routeIs('*.dashboard.hospital-orders.*'),
+                    icon: 'clipboard',
+                    badge: $pendingHospital > 0 ? $pendingHospital : null,
+                );
+
+                $items[] = self::item(
+                    section: 'logistics',
+                    label: 'NDoH Receipts',
+                    description: 'Confirm incoming national stock by road',
+                    href: getDashboardTransferRoute('index'),
+                    active: request()->routeIs('*.dashboard.transfers.*'),
+                    icon: 'truck',
+                    badge: self::shipmentNavBadge($user),
+                );
+
+                $items[] = self::item(
+                    section: 'logistics',
+                    label: 'Hospital Road Deliveries',
+                    description: 'Lae AMS → Modilon by car',
+                    href: getDashboardHospitalShipmentRoute('index'),
+                    active: request()->routeIs('*.dashboard.hospital-shipments.*'),
+                    icon: 'truck',
+                );
+
+                $openDiscrepancies = DiscrepancyReport::open()->count();
+
+                $items[] = self::item(
+                    section: 'reports',
+                    label: 'Discrepancy Reports',
+                    description: 'Hospital receipt issues',
+                    href: getDashboardDiscrepancyRoute('index'),
+                    active: request()->routeIs('*.dashboard.discrepancies.*'),
+                    icon: 'clipboard',
+                    badge: $openDiscrepancies > 0 ? $openDiscrepancies : null,
+                );
+
+                $items[] = self::item(
+                    section: 'reports',
+                    label: 'Regional Reports',
+                    description: 'Lae AMS warehouse summary',
+                    href: getDashboardRegionalReportRoute('index'),
+                    active: request()->routeIs('*.dashboard.reports.regional.*'),
+                    icon: 'chart',
+                );
+            } elseif ($user->hasRole('pharmacy_manager')) {
+                $items[] = self::item(
+                    section: 'hospital',
+                    label: 'Hospital Orders',
+                    description: 'Request stock from Lae AMS',
+                    href: getDashboardHospitalOrderRoute('index'),
+                    active: request()->routeIs('*.dashboard.hospital-orders.*'),
+                    icon: 'clipboard',
+                );
+
+                $items[] = self::item(
+                    section: 'hospital',
+                    label: 'Incoming Road Deliveries',
+                    description: 'Track Lae AMS deliveries by car',
+                    href: getDashboardHospitalShipmentRoute('index'),
+                    active: request()->routeIs('*.dashboard.hospital-shipments.*'),
+                    icon: 'truck',
+                );
+
+                $items[] = self::item(
+                    section: 'hospital',
+                    label: 'Discrepancy Reports',
+                    description: 'Report receipt issues',
+                    href: getDashboardDiscrepancyRoute('index'),
+                    active: request()->routeIs('*.dashboard.discrepancies.*'),
+                    icon: 'clipboard',
+                );
+
+                $orderBadge = self::orderNavBadge($user);
+
+                $items[] = self::item(
+                    section: 'procurement',
+                    label: 'Procurement Orders',
+                    description: 'Track national supply status',
+                    href: getDashboardOrderRoute('index'),
+                    active: request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'),
+                    icon: 'clipboard',
+                    badge: $orderBadge,
+                );
+            } else {
+                $orderBadge = self::orderNavBadge($user);
+
+                $items[] = self::item(
+                    section: 'procurement',
+                    label: 'Procurement Orders',
+                    description: self::orderNavDescription($user),
+                    href: getDashboardOrderRoute('index'),
+                    active: request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'),
+                    icon: 'clipboard',
+                    badge: $orderBadge,
+                );
+
+                if ($user->hasAnyRole(['admin', 'procurement_officer'])) {
+                    $items[] = self::item(
+                        section: 'logistics',
+                        label: 'Lae AMS Road Deliveries',
+                        description: 'NDoH → Lae warehouse by road',
+                        href: getDashboardTransferRoute('index'),
+                        active: request()->routeIs('*.dashboard.transfers.*'),
+                        icon: 'truck',
+                        badge: self::shipmentNavBadge($user),
+                    );
+                }
+            }
         }
 
-        if ($user->hasAnyRole(['admin', 'procurement_officer', 'store_manager'])) {
+        if (canManageUsers()) {
             $items[] = self::item(
-                section: 'logistics',
-                label: 'Lae AMS Shipments',
-                description: 'NDoH → Lae warehouse transfers',
-                href: getDashboardTransferRoute('index'),
-                active: request()->routeIs('*.dashboard.transfers.*'),
-                icon: 'truck',
-                badge: self::shipmentNavBadge($user),
+                section: 'administration',
+                label: 'User Management',
+                description: $user->hasRole('admin')
+                    ? 'Procurement, store & pharmacy managers'
+                    : 'Pharmacist accounts',
+                href: getDashboardUserRoute('index'),
+                active: request()->routeIs('*.dashboard.users.*'),
+                icon: 'users',
             );
         }
 

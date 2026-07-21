@@ -15,7 +15,7 @@ use Illuminate\View\View;
 class StockTransferController extends Controller
 {
     /**
-     * List shipments — procurement sees transfers they sent; store manager sees incoming to Lae AMS.
+     * List road deliveries — procurement sees transfers they dispatched; store manager sees incoming to Lae AMS.
      */
     public function index(Request $request): View
     {
@@ -55,12 +55,12 @@ class StockTransferController extends Controller
     }
 
     /**
-     * Show form to record a shipment to Lae AMS (Procurement Officer only).
+     * Show form to record a road delivery to Lae AMS (Procurement Officer only).
      */
     public function create(): View
     {
         if (! auth()->user()->hasRole('procurement_officer')) {
-            abort(403, 'Only Procurement Officers can send shipments to Lae AMS.');
+            abort(403, 'Only Procurement Officers can dispatch road deliveries to Lae AMS.');
         }
 
         $drugs = Drug::query()
@@ -75,7 +75,7 @@ class StockTransferController extends Controller
     }
 
     /**
-     * Record shipment: deduct NDoH stock and create Lae AMS inventory entry.
+     * Record road delivery: deduct NDoH stock and create Lae AMS inventory entry.
      */
     public function store(StoreStockTransferRequest $request): RedirectResponse
     {
@@ -134,25 +134,25 @@ class StockTransferController extends Controller
 
         TransferNotificationService::notifyStoreManagersOfShipment($transfer);
 
-        \Log::info("Shipment [{$transfer->transfer_number}] sent to Lae AMS by user ID: ".auth()->id());
+        \Log::info("Road delivery [{$transfer->transfer_number}] dispatched to Lae AMS by user ID: ".auth()->id());
 
         return redirect(getDashboardTransferRoute('show', $transfer))
-            ->with('success', 'Shipment to Lae AMS recorded successfully.');
+            ->with('success', 'Road delivery to Lae AMS recorded successfully.');
     }
 
     /**
-     * Display shipment details.
+     * Display road delivery details.
      */
     public function show(StockTransfer $transfer): View
     {
         $user = auth()->user();
 
         if ($user->hasRole('procurement_officer') && $transfer->sent_by !== $user->id) {
-            abort(403, 'You can only view your own shipments.');
+            abort(403, 'You can only view your own road deliveries.');
         }
 
         if ($user->hasRole('store_manager') && $transfer->to_level !== 'lae_ams') {
-            abort(403, 'You can only view shipments to Lae AMS.');
+            abort(403, 'You can only view road deliveries to Lae AMS.');
         }
 
         if ($user->hasRole('store_manager')) {
@@ -170,21 +170,21 @@ class StockTransferController extends Controller
     public function receive(ReceiveStockTransferRequest $request, StockTransfer $transfer): RedirectResponse
     {
         if ($transfer->to_level !== 'lae_ams') {
-            abort(403, 'This shipment is not destined for Lae AMS.');
+            abort(403, 'This road delivery is not destined for Lae AMS.');
         }
 
         if (! $transfer->canReceive()) {
             return redirect(getDashboardTransferRoute('show', $transfer))
-                ->with('error', 'This shipment has already been received or cancelled.');
+                ->with('error', 'This road delivery has already been received or cancelled.');
         }
 
         $transfer->receive(auth()->id(), $request->notes);
 
         TransferNotificationService::markTransferNotificationsAsRead(auth()->user(), $transfer);
 
-        \Log::info("Shipment [{$transfer->transfer_number}] received at Lae AMS by user ID: ".auth()->id());
+        \Log::info("Road delivery [{$transfer->transfer_number}] received at Lae AMS by user ID: ".auth()->id());
 
         return redirect(getDashboardTransferRoute('show', $transfer))
-            ->with('success', 'Shipment confirmed as received at Lae AMS.');
+            ->with('success', 'Road delivery confirmed as received at Lae AMS.');
     }
 }

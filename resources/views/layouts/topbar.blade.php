@@ -41,12 +41,11 @@
                     {{ __('Profile') }}
                 </x-dropdown-link>
 
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Are you sure you want to log out?')">
                     @csrf
-                    <x-dropdown-link :href="route('logout')"
-                        onclick="event.preventDefault(); if (confirm('Are you sure you want to log out?')) { this.closest('form').submit(); }">
+                    <button type="submit" class="block w-full px-4 py-2.5 text-start text-sm font-medium leading-5 text-ink-secondary transition hover:bg-surface-muted focus:bg-surface-muted focus:outline-none dark:text-zinc-300 dark:hover:bg-zinc-800 dark:focus:bg-zinc-800">
                         {{ __('Log Out') }}
-                    </x-dropdown-link>
+                    </button>
                 </form>
             </x-slot>
         </x-dropdown>

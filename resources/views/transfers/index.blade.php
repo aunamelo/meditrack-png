@@ -10,7 +10,7 @@
     <x-slot name="header">
         <div>
             <p class="text-section-label">Logistics</p>
-            <h2 class="heading-page">Lae AMS Shipments</h2>
+            <h2 class="heading-page">Lae AMS Road Deliveries</h2>
         </div>
     </x-slot>
 
@@ -23,12 +23,12 @@
                 <div class="p-6">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
                         <div>
-                            <h3 class="text-lg font-medium text-gray-900">NDoH → Lae AMS shipments</h3>
-                            <p class="mt-1 text-sm text-gray-500">Track drugs sent from national storage to Lae AMS</p>
+                            <h3 class="text-lg font-medium text-gray-900">NDoH → Lae AMS receipts</h3>
+                            <p class="mt-1 text-sm text-gray-500">Confirm drugs received from national storage into Lae AMS warehouse</p>
                         </div>
                         @if(auth()->user()->hasRole('procurement_officer'))
                             <a href="{{ getDashboardTransferRoute('create') }}" class="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59]">
-                                Record Shipment
+                                Record Road Delivery
                             </a>
                         @endif
                     </div>
@@ -44,7 +44,7 @@
                                 <select name="status" id="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
                                     <option value="">All Statuses</option>
                                     @foreach(['sent', 'received', 'cancelled'] as $status)
-                                        <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ ucfirst($status) }}</option>
+                                        <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ logisticsTransferStatusLabel($status) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -83,7 +83,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $transfer->formatSentDate() }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClasses[$transfer->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                                    {{ ucfirst($transfer->status) }}
+                                                    {{ logisticsTransferStatusLabel($transfer->status) }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
@@ -101,11 +101,11 @@
                         <div class="mt-6">{{ $transfers->appends(request()->except('page'))->links() }}</div>
                     @else
                         <div class="text-center py-12">
-                            <h3 class="text-sm font-medium text-gray-900">No shipments found</h3>
-                            <p class="mt-1 text-sm text-gray-500">Record a shipment when drugs are sent to Lae AMS.</p>
+                            <h3 class="text-sm font-medium text-gray-900">No road deliveries found</h3>
+                            <p class="mt-1 text-sm text-gray-500">Record a road delivery when drugs are dispatched by car to Lae AMS.</p>
                             @if(auth()->user()->hasRole('procurement_officer'))
                                 <div class="mt-6">
-                                    <a href="{{ getDashboardTransferRoute('create') }}" class="inline-flex items-center px-4 py-2 bg-[#0f766e] text-white text-xs font-semibold uppercase rounded-md hover:bg-[#0d5f59]">Record Shipment</a>
+                                    <a href="{{ getDashboardTransferRoute('create') }}" class="inline-flex items-center px-4 py-2 bg-[#0f766e] text-white text-xs font-semibold uppercase rounded-md hover:bg-[#0d5f59]">Record Road Delivery</a>
                                 </div>
                             @endif
                         </div>

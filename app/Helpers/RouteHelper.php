@@ -54,11 +54,14 @@ if (! function_exists('getDashboardDrugRoute')) {
 if (! function_exists('getDashboardOrderRoute')) {
     /**
      * Build a role-scoped Procurement Orders route for the current user.
-     * Uses the same dashboard prefix as drugs, e.g. admin.dashboard.orders.*.
      */
     function getDashboardOrderRoute(string $routeName, mixed $params = null): string
     {
-        if (auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager', 'pharmacist'])) {
+        if (auth()->user()->hasRole('store_manager')) {
+            abort(403, 'Store Managers cannot access national procurement orders.');
+        }
+
+        if (auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'pharmacy_manager', 'pharmacist'])) {
             $prefix = getDashboardRoutePrefix().'orders.';
         } else {
             $prefix = 'dashboard.orders.';
@@ -79,7 +82,7 @@ if (! function_exists('getDashboardTransferRoute')) {
         if (auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager'])) {
             $prefix = getDashboardRoutePrefix().'transfers.';
         } else {
-            abort(403, 'You do not have access to shipments.');
+            abort(403, 'You do not have access to road deliveries.');
         }
 
         $fullRouteName = $prefix.$routeName;
@@ -90,7 +93,7 @@ if (! function_exists('getDashboardTransferRoute')) {
 
 if (! function_exists('canManageTransfers')) {
     /**
-     * Whether the current user can record shipments to Lae AMS.
+     * Whether the current user can record road deliveries to Lae AMS.
      */
     function canManageTransfers(): bool
     {
@@ -125,6 +128,125 @@ if (! function_exists('canReceiveTransfers')) {
     function canReceiveTransfers(): bool
     {
         return auth()->user()->hasRole('store_manager');
+    }
+}
+
+if (! function_exists('getDashboardUserRoute')) {
+    /**
+     * Build a role-scoped User Management route for the current user.
+     */
+    function getDashboardUserRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to user management.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'users.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('canManageUsers')) {
+    /**
+     * Whether the current user can create, edit, or delete portal user accounts.
+     */
+    function canManageUsers(): bool
+    {
+        return \App\Services\UserManagementService::canManageUsers(auth()->user());
+    }
+}
+
+if (! function_exists('getDashboardHospitalOrderRoute')) {
+    function getDashboardHospitalOrderRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['store_manager', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to hospital orders.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'hospital-orders.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardHospitalShipmentRoute')) {
+    function getDashboardHospitalShipmentRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['store_manager', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to hospital road deliveries.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'hospital-shipments.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardDiscrepancyRoute')) {
+    function getDashboardDiscrepancyRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['store_manager', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to discrepancy reports.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'discrepancies.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardRegionalReportRoute')) {
+    function getDashboardRegionalReportRoute(string $routeName = 'index', mixed $params = null): string
+    {
+        if (! auth()->user()->hasRole('store_manager')) {
+            abort(403, 'You do not have access to regional reports.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'reports.regional.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('canManageHospitalOrders')) {
+    function canManageHospitalOrders(): bool
+    {
+        return auth()->user()->hasRole('store_manager');
+    }
+}
+
+if (! function_exists('canRequestHospitalOrders')) {
+    function canRequestHospitalOrders(): bool
+    {
+        return auth()->user()->hasRole('pharmacy_manager');
+    }
+}
+
+if (! function_exists('logisticsTransferStatusLabel')) {
+    function logisticsTransferStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'sent' => 'In transit by road',
+            'received' => 'Received',
+            'cancelled' => 'Cancelled',
+            default => ucfirst(str_replace('_', ' ', $status)),
+        };
+    }
+}
+
+if (! function_exists('hospitalOrderStatusLabel')) {
+    function hospitalOrderStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending' => 'Pending',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+            'shipped' => 'In transit by road',
+            'received' => 'Received',
+            'cancelled' => 'Cancelled',
+            default => ucfirst(str_replace('_', ' ', $status)),
+        };
     }
 }
 

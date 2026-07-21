@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Record Shipment to Lae AMS
+            Record Road Delivery to Lae AMS
         </h2>
     </x-slot>
 
@@ -10,7 +10,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <nav class="flex mb-6" aria-label="Breadcrumb">
-                        <a href="{{ getDashboardTransferRoute('index') }}" class="text-sm font-medium text-gray-700 hover:text-[#0f766e]">Shipments</a>
+                        <a href="{{ getDashboardTransferRoute('index') }}" class="text-sm font-medium text-gray-700 hover:text-[#0f766e]">Road Deliveries</a>
                         <span class="text-sm text-gray-500 mx-2">/</span>
                         <span class="text-sm text-gray-500">Record</span>
                     </nav>
@@ -40,17 +40,17 @@
                             <div class="md:col-span-2">
                                 <label for="drug_id" class="block text-sm font-medium text-gray-700 mb-1">NDoH Drug <span class="text-red-500">*</span></label>
                                 <select name="drug_id" id="drug_id" x-model="drugId" @change="updateMaxQuantity()" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
-                                    <option value="">Select drug to ship...</option>
+                                    <option value="">Select drug to dispatch by road...</option>
                                     @forelse($drugs as $drug)
                                         <option value="{{ $drug->id }}" data-qty="{{ $drug->quantity_on_hand }}" data-batch="{{ $drug->batch_number }}" data-expiry="{{ $drug->formatExpiry() }}" data-name="{{ $drug->drug_name }} ({{ $drug->dosage }})">
                                             {{ $drug->drug_name }} — Batch {{ $drug->batch_number }} ({{ $drug->quantity_on_hand }} available, expires {{ $drug->formatExpiry() }})
                                         </option>
                                     @empty
-                                        <option value="" disabled>No NDoH stock available to ship</option>
+                                        <option value="" disabled>No NDoH stock available to dispatch</option>
                                     @endforelse
                                 </select>
                                 @if($drugs->isEmpty())
-                                    <p class="mt-1 text-sm text-amber-700">No active NDoH batches with stock. Receive a procurement order first, then return here to ship to Lae AMS. <a href="{{ getDashboardOrderRoute('index') }}" class="font-medium text-[#0f766e] underline">View orders →</a></p>
+                                    <p class="mt-1 text-sm text-amber-700">No active NDoH batches with stock. Receive a procurement order first, then return here to dispatch by road to Lae AMS. <a href="{{ getDashboardOrderRoute('index') }}" class="font-medium text-[#0f766e] underline">View orders →</a></p>
                                 @else
                                     <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. Stock is deducted from NDoH and a new batch is created at Lae AMS.</p>
                                 @endif
@@ -82,11 +82,11 @@
                         </div>
 
                         <div class="mt-6 p-4 bg-teal-50 border border-teal-200 rounded-md text-sm text-teal-800">
-                            Sending this shipment will deduct stock from NDoH and create a new inventory entry at Lae AMS. The Store Manager will be notified to confirm receipt.
+                            Dispatching this road delivery will deduct stock from NDoH and create a new inventory entry at Lae AMS. The Store Manager will be notified to confirm receipt upon arrival by car.
                         </div>
 
                         <div class="mt-6 flex gap-3">
-                            <button type="submit" @if($drugs->isEmpty()) disabled @endif class="inline-flex items-center px-4 py-2 bg-[#0f766e] text-white text-xs font-semibold uppercase rounded-md hover:bg-[#0d5f59] disabled:opacity-50 disabled:cursor-not-allowed">Send to Lae AMS</button>
+                            <button type="submit" @if($drugs->isEmpty()) disabled @endif class="inline-flex items-center px-4 py-2 bg-[#0f766e] text-white text-xs font-semibold uppercase rounded-md hover:bg-[#0d5f59] disabled:opacity-50 disabled:cursor-not-allowed">Dispatch to Lae AMS</button>
                             <a href="{{ getDashboardTransferRoute('index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold uppercase rounded-md hover:bg-gray-200">Cancel</a>
                         </div>
                     </form>
@@ -156,11 +156,11 @@
                         const quantity = Number(this.quantitySent);
 
                         if (drugName && batch) {
-                            let line = `Shipment of ${drugName}, batch ${batch}`;
+                            let line = `Road delivery of ${drugName}, batch ${batch}`;
                             if (quantity > 0) {
                                 line += ` — ${quantity.toLocaleString()} units`;
                             }
-                            line += ` from NDoH to Lae AMS.`;
+                            line += ` from NDoH to Lae AMS by car.`;
                             lines.push(line);
                         }
 
@@ -171,7 +171,7 @@
 
                     const sentDate = this.formatDate(this.sentDate);
                     if (sentDate) {
-                        lines.push(`Dispatched on ${sentDate}.`);
+                        lines.push(`Dispatched by road on ${sentDate}.`);
                     }
 
                     return lines.join('\n');

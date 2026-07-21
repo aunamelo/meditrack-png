@@ -23,7 +23,7 @@
                     @endif
                     @if(auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager']))
                         <x-nav-link :href="getDashboardTransferRoute('index')" :active="request()->routeIs('*.dashboard.transfers.*')">
-                            {{ __('Lae AMS Shipments') }}
+                            {{ __('Lae AMS Road Deliveries') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -50,16 +50,11 @@
                         </x-dropdown-link>
 
                         <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Are you sure you want to log out?')">
                             @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                if (confirm('Are you sure you want to log out?')) {
-                                                    this.closest('form').submit();
-                                                }">
+                            <button type="submit" class="block w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-ink-muted transition hover:border-line hover:bg-surface-muted hover:text-ink focus:border-line focus:bg-surface-muted focus:text-ink focus:outline-none dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-200">
                                 {{ __('Log Out') }}
-                            </x-dropdown-link>
+                            </button>
                         </form>
                     </x-slot>
                 </x-dropdown>
@@ -93,7 +88,7 @@
             @endif
             @if(auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager']))
                 <x-responsive-nav-link :href="getDashboardTransferRoute('index')" :active="request()->routeIs('*.dashboard.transfers.*')">
-                    {{ __('Lae AMS Shipments') }}
+                    {{ __('Lae AMS Road Deliveries') }}
                 </x-responsive-nav-link>
             @endif
         </div>
@@ -111,16 +106,11 @@
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Are you sure you want to log out?')">
                     @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        if (confirm('Are you sure you want to log out?')) {
-                                            this.closest('form').submit();
-                                        }">
+                    <button type="submit" class="block w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-ink-muted transition hover:border-line hover:bg-surface-muted hover:text-ink focus:border-line focus:bg-surface-muted focus:text-ink focus:outline-none dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-200">
                         {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+                    </button>
                 </form>
             </div>
         </div>

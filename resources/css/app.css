@@ -84,6 +84,18 @@
     .topbar-shell {
         @apply border-b border-line bg-surface/90 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90;
     }
+
+    .dashboard-shell {
+        @apply mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8;
+    }
+
+    .dashboard-welcome {
+        @apply mb-8 border-b border-line pb-6 dark:border-zinc-800;
+    }
+
+    .stat-health {
+        @apply rounded-lg border border-line bg-surface px-4 py-3.5 dark:border-zinc-800 dark:bg-zinc-900;
+    }
 }
 
 @layer utilities {

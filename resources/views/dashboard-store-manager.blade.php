@@ -37,7 +37,7 @@
             </div>
             <div>
                 <p class="text-sm font-semibold text-blue-900">
-                    {{ session('store_pending_shipments') === 1 ? '1 incoming shipment' : session('store_pending_shipments').' incoming shipments' }}
+                    {{ session('store_pending_shipments') === 1 ? '1 incoming road delivery' : session('store_pending_shipments').' incoming road deliveries' }}
                 </p>
                 <p class="mt-1 text-sm text-blue-800">Confirm receipt when drugs arrive at Lae AMS.</p>
             </div>
@@ -52,7 +52,7 @@
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-blue-900">
-                                    Incoming shipments from NDoH
+                                    Incoming road deliveries from NDoH
                                     @if(($unreadShipmentNotificationCount ?? 0) > 0)
                                         <span class="ml-2 inline-flex items-center rounded-full bg-blue-200 px-2.5 py-0.5 text-xs font-semibold text-blue-900">
                                             {{ $unreadShipmentNotificationCount }} new
@@ -60,11 +60,11 @@
                                     @endif
                                 </h3>
                                 <p class="mt-1 text-sm text-blue-800">
-                                    {{ $pendingShipmentCount === 1 ? '1 shipment is awaiting' : $pendingShipmentCount.' shipments are awaiting' }} confirmation at Lae AMS.
+                                    {{ $pendingShipmentCount === 1 ? '1 road delivery is awaiting' : $pendingShipmentCount.' road deliveries are awaiting' }} confirmation at Lae AMS.
                                 </p>
                             </div>
                             <a href="{{ getDashboardTransferRoute('index') }}?status=sent" class="shrink-0 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                                View shipments
+                                View deliveries
                             </a>
                         </div>
 
@@ -76,7 +76,7 @@
                                         <p class="text-gray-600">
                                             {{ $shipment->drug->drug_name ?? 'Unknown drug' }} ({{ number_format($shipment->quantity_sent) }} units)
                                             · Batch {{ $shipment->batch_number }}
-                                            · sent by {{ $shipment->sender->name ?? 'Procurement Officer' }}
+                                            · dispatched by {{ $shipment->sender->name ?? 'Procurement Officer' }}
                                         </p>
                                     </div>
                                     <a href="{{ getDashboardTransferRoute('show', $shipment) }}" class="font-semibold text-[#0f766e] hover:underline">Confirm →</a>
@@ -94,7 +94,7 @@
                         View Drug Inventory
                     </a>
                     <a href="{{ getDashboardTransferRoute('index') }}" class="ml-3 inline-flex items-center px-4 py-2 bg-white border border-[#0f766e] rounded-md font-semibold text-xs text-[#0f766e] uppercase tracking-widest hover:bg-teal-50 transition ease-in-out duration-150">
-                        Lae AMS Shipments
+                        Lae AMS Road Deliveries
                     </a>
                 </div>
             </div>
