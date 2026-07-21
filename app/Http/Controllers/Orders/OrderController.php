@@ -9,7 +9,10 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Drug;
 use App\Models\Order;
+use App\Services\OrderNotificationService;
+use App\Services\SupplierQuoteComparisonService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -63,9 +66,41 @@ class OrderController extends Controller
             abort(403, 'Only Procurement Officers can create orders.');
         }
 
-        $drugs = Drug::query()->orderBy('drug_name')->get();
+        $drugs = Drug::query()
+            ->atLevel('ndoh')
+            ->orderBy('drug_name')
+            ->orderByDesc('created_at')
+            ->get()
+            ->unique(fn (Drug $drug) => $drug->drug_name.'|'.$drug->dosage)
+            ->values();
 
         return view('orders.create', compact('drugs'));
+    }
+
+    /**
+     * Compare supplier quotes for a drug type (Procurement Officer — JSON for create form).
+     */
+    public function supplierQuotes(Request $request): JsonResponse
+    {
+        if (! auth()->user()->hasRole('procurement_officer')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'drug_id' => 'required|exists:drugs,id',
+            'quantity' => 'required|integer|min:1|max:999999',
+            'budget' => 'nullable|numeric|min:0|max:999999999',
+        ]);
+
+        $drug = Drug::findOrFail($validated['drug_id']);
+
+        return response()->json(
+            SupplierQuoteComparisonService::compare(
+                $drug,
+                (int) $validated['quantity'],
+                isset($validated['budget']) ? (float) $validated['budget'] : null,
+            )
+        );
     }
 
     /**
@@ -88,6 +123,10 @@ class OrderController extends Controller
             'created_by' => auth()->id(),
         ]);
 
+        $order->load(['drug', 'creator']);
+
+        OrderNotificationService::notifyAdminsOfPendingOrder($order);
+
         \Log::info("Order [{$order->order_number}] created by user ID: ".auth()->id());
 
         return redirect(getDashboardOrderRoute('show', $order))
@@ -100,6 +139,10 @@ class OrderController extends Controller
     public function show(Order $order): View
     {
         $order->load(['drug', 'creator', 'approver', 'receiver']);
+
+        if (auth()->user()->hasRole('admin')) {
+            OrderNotificationService::markOrderNotificationsAsRead(auth()->user(), $order);
+        }
 
         return view('orders.show', compact('order'));
     }
@@ -155,6 +198,10 @@ class OrderController extends Controller
         }
 
         $order->approve(auth()->id());
+
+        if ($admin = auth()->user()) {
+            OrderNotificationService::markOrderNotificationsAsRead($admin, $order);
+        }
 
         \Log::info("Order [{$order->order_number}] approved by user ID: ".auth()->id());
 

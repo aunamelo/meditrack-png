@@ -38,10 +38,12 @@ class DrugController extends Controller
 
         // Search by drug name or batch number
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->byDrugName($search)
-                  ->orWhereByBatch($search);
+                    ->orWhere(function ($q) use ($search) {
+                        $q->byBatch($search);
+                    });
             });
         }
 

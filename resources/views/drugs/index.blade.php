@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Drug Inventory
-        </h2>
+        <div>
+            <p class="text-section-label">Inventory</p>
+            <h2 class="heading-page">Drug Inventory</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+    <x-page-container>
+            <div class="surface-panel">
                 <div class="p-6">
                     <!-- Header Section -->
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -193,6 +193,5 @@
                     @endif
                 </div>
             </div>
-        </div>
-    </div>
+    </x-page-container>
 </x-app-layout>

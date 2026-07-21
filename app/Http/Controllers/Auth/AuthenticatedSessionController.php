@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Order;
+use App\Models\StockTransfer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -99,6 +101,22 @@ class AuthenticatedSessionController extends Controller
 
         // Shown as a fading toast on the dashboard right after redirect.
         $request->session()->flash('login_success', 'Login successful!');
+
+        if ($user->hasRole('admin')) {
+            $pendingOrderCount = Order::pending()->count();
+
+            if ($pendingOrderCount > 0) {
+                $request->session()->flash('admin_pending_orders', $pendingOrderCount);
+            }
+        }
+
+        if ($user->hasRole('store_manager')) {
+            $pendingShipmentCount = StockTransfer::sent()->toLevel('lae_ams')->count();
+
+            if ($pendingShipmentCount > 0) {
+                $request->session()->flash('store_pending_shipments', $pendingShipmentCount);
+            }
+        }
 
         return redirect()->route($routeName);
     }

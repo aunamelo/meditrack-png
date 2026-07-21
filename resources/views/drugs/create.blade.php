@@ -29,7 +29,14 @@
                     </nav>
 
                     <!-- Form -->
-                    <form action="{{ getDashboardDrugRoute('store') }}" method="POST">
+                    <form action="{{ getDashboardDrugRoute('store') }}" method="POST"
+                          x-data="{
+                              costPerUnit: @js(old('cost_per_unit', '')),
+                              quantityReceived: @js(old('quantity_received', '')),
+                          }"
+                          x-init="$watch('quantityReceived', () => $dispatch('currency-recalculate'))"
+                          @pgk-per-unit-applied.window="costPerUnit = Number($event.detail.amount).toFixed(4)"
+                          @pgk-total-applied.window="costPerUnit = (Number($event.detail.amount) / (Number(quantityReceived) || 1)).toFixed(4)">
                         @csrf
 
                         @if ($errors->any())
@@ -88,7 +95,7 @@
                             <!-- Quantity Received -->
                             <div>
                                 <label for="quantity_received" class="block text-sm font-medium text-gray-700 mb-1">Quantity Received <span class="text-red-500">*</span></label>
-                                <input type="number" name="quantity_received" id="quantity_received" value="{{ old('quantity_received') }}" required min="1"
+                                <input type="number" name="quantity_received" id="quantity_received" x-model="quantityReceived" required min="1"
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
                                     placeholder="e.g., 100">
                                 @error('quantity_received')
@@ -149,13 +156,26 @@
 
                             <!-- Cost Per Unit -->
                             <div>
-                                <label for="cost_per_unit" class="block text-sm font-medium text-gray-700 mb-1">Cost Per Unit</label>
-                                <input type="number" name="cost_per_unit" id="cost_per_unit" value="{{ old('cost_per_unit') }}" step="0.01" min="0"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
-                                    placeholder="e.g., 5.50">
+                                <label for="cost_per_unit" class="block text-sm font-medium text-gray-700 mb-1">Cost Per Unit (PGK)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-500">K</span>
+                                    <input type="number" name="cost_per_unit" id="cost_per_unit" x-model="costPerUnit" step="0.0001" min="0"
+                                        class="w-full pl-8 rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                        placeholder="e.g., 5.50">
+                                </div>
                                 @error('cost_per_unit')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <x-currency-converter
+                                    quantity-alpine="quantityReceived"
+                                    apply-event="pgk-total-applied"
+                                    per-unit-event="pgk-per-unit-applied"
+                                    auto-apply-target="per_unit"
+                                    default-currency="USD"
+                                />
                             </div>
 
                             <!-- Storage Location -->

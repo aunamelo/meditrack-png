@@ -22,13 +22,79 @@
         </div>
     @endif
 
+    @if (session('store_pending_shipments'))
+        <div x-data="{ show: true }"
+             x-show="show"
+             x-init="setTimeout(() => show = false, 8000)"
+             x-transition:leave="transition ease-in duration-500"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="fixed top-6 right-6 z-50 flex items-start gap-3 bg-blue-50 border border-blue-200 shadow-xl rounded-xl px-5 py-3.5 max-w-md {{ session('login_success') ? 'mt-20' : '' }}">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 shrink-0">
+                <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-blue-900">
+                    {{ session('store_pending_shipments') === 1 ? '1 incoming shipment' : session('store_pending_shipments').' incoming shipments' }}
+                </p>
+                <p class="mt-1 text-sm text-blue-800">Confirm receipt when drugs arrive at Lae AMS.</p>
+            </div>
+        </div>
+    @endif
+
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            @if(($pendingShipmentCount ?? 0) > 0)
+                <div class="bg-blue-50 border border-blue-200 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-blue-900">
+                                    Incoming shipments from NDoH
+                                    @if(($unreadShipmentNotificationCount ?? 0) > 0)
+                                        <span class="ml-2 inline-flex items-center rounded-full bg-blue-200 px-2.5 py-0.5 text-xs font-semibold text-blue-900">
+                                            {{ $unreadShipmentNotificationCount }} new
+                                        </span>
+                                    @endif
+                                </h3>
+                                <p class="mt-1 text-sm text-blue-800">
+                                    {{ $pendingShipmentCount === 1 ? '1 shipment is awaiting' : $pendingShipmentCount.' shipments are awaiting' }} confirmation at Lae AMS.
+                                </p>
+                            </div>
+                            <a href="{{ getDashboardTransferRoute('index') }}?status=sent" class="shrink-0 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                                View shipments
+                            </a>
+                        </div>
+
+                        <ul class="mt-4 divide-y divide-blue-200 rounded-md border border-blue-200 bg-white">
+                            @foreach($pendingShipments as $shipment)
+                                <li class="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ $shipment->transfer_number }}</p>
+                                        <p class="text-gray-600">
+                                            {{ $shipment->drug->drug_name ?? 'Unknown drug' }} ({{ number_format($shipment->quantity_sent) }} units)
+                                            · Batch {{ $shipment->batch_number }}
+                                            · sent by {{ $shipment->sender->name ?? 'Procurement Officer' }}
+                                        </p>
+                                    </div>
+                                    <a href="{{ getDashboardTransferRoute('show', $shipment) }}" class="font-semibold text-[#0f766e] hover:underline">Confirm →</a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <p class="mb-6">{{ __("You're logged in as Store Manager.") }}</p>
                     <a href="{{ route('store-manager.dashboard.drugs.index') }}" class="inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59] focus:outline-none focus:border-[#0f766e] focus:ring ring-[#0f766e] transition ease-in-out duration-150">
                         View Drug Inventory
+                    </a>
+                    <a href="{{ getDashboardTransferRoute('index') }}" class="ml-3 inline-flex items-center px-4 py-2 bg-white border border-[#0f766e] rounded-md font-semibold text-xs text-[#0f766e] uppercase tracking-widest hover:bg-teal-50 transition ease-in-out duration-150">
+                        Lae AMS Shipments
                     </a>
                 </div>
             </div>

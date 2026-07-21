@@ -35,7 +35,7 @@
                         <a href="{{ getDashboardOrderRoute('edit', $order) }}" class="inline-flex items-center px-3 py-2 bg-gray-100 rounded-md text-xs font-semibold text-gray-700 uppercase hover:bg-gray-200">Edit</a>
                         <details class="inline-block">
                             <summary class="inline-flex items-center px-3 py-2 bg-red-100 rounded-md text-xs font-semibold text-red-700 uppercase hover:bg-red-200 cursor-pointer list-none">Cancel</summary>
-                            <form action="{{ route('procurement.dashboard.orders.cancel', $order) }}" method="POST" class="absolute mt-2 p-4 bg-white border rounded-lg shadow-lg z-10 w-80">
+                            <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute mt-2 p-4 bg-white border rounded-lg shadow-lg z-10 w-80">
                                 @csrf
                                 <label for="cancel_reason" class="block text-sm font-medium text-gray-700 mb-1">Cancellation Reason</label>
                                 <textarea name="reason" id="cancel_reason" rows="3" required class="w-full rounded-md border-gray-300 text-sm"></textarea>
@@ -44,7 +44,7 @@
                         </details>
                     @endif
                     @if(canApproveOrders() && $order->canApprove())
-                        <form action="{{ route('procurement.dashboard.orders.approve', $order) }}" method="POST">
+                        <form action="{{ getDashboardOrderRoute('approve', $order) }}" method="POST">
                             @csrf
                             <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 rounded-md text-xs font-semibold text-white uppercase hover:bg-blue-700">Approve</button>
                         </form>
@@ -52,7 +52,7 @@
                     @if(canApproveOrders() && $order->status === 'pending')
                         <details class="inline-block">
                             <summary class="inline-flex items-center px-3 py-2 bg-red-100 rounded-md text-xs font-semibold text-red-700 uppercase hover:bg-red-200 cursor-pointer list-none">Cancel</summary>
-                            <form action="{{ route('procurement.dashboard.orders.cancel', $order) }}" method="POST" class="absolute mt-2 p-4 bg-white border rounded-lg shadow-lg z-10 w-80">
+                            <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute mt-2 p-4 bg-white border rounded-lg shadow-lg z-10 w-80">
                                 @csrf
                                 <label for="admin_cancel_reason" class="block text-sm font-medium text-gray-700 mb-1">Cancellation Reason</label>
                                 <textarea name="reason" id="admin_cancel_reason" rows="3" required class="w-full rounded-md border-gray-300 text-sm"></textarea>
@@ -155,7 +155,9 @@
                 </div>
             @endif
 
-            @include('orders.receive-modal', ['order' => $order, 'remainingQty' => $remainingQty])
+            @if(canApproveOrders())
+                @include('orders.receive-modal', ['order' => $order, 'remainingQty' => $remainingQty])
+            @endif
         </div>
     </div>
 </x-app-layout>

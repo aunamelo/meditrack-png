@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DrugController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StockTransferController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -11,84 +13,80 @@ Route::get('/', function () {
 
 // Fallback dashboard — only reached if a logged-in user has none of the
 // 5 portal roles assigned. Keeps things safe rather than erroring out.
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 // One protected route per portal. Spatie's `role:` middleware blocks
 // anyone whose account doesn't have that exact role — including if they
 // type the URL directly or reuse a link, regardless of what ?role= was
 // on the login page.
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('dashboard-admin');
-    })->name('dashboard.admin');
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('dashboard.admin');
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacist'])->group(function () {
-    Route::get('/pharmacist/dashboard', function () {
-        return view('dashboard-pharmacist');
-    })->name('dashboard.pharmacist');
+    Route::get('/pharmacist/dashboard', [DashboardController::class, 'index'])->name('dashboard.pharmacist');
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->group(function () {
-    Route::get('/pharmacy-manager/dashboard', function () {
-        return view('dashboard-pharmacy-manager');
-    })->name('dashboard.pharmacy_manager');
+    Route::get('/pharmacy-manager/dashboard', [DashboardController::class, 'index'])->name('dashboard.pharmacy_manager');
 });
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->group(function () {
-    Route::get('/procurement-officer/dashboard', function () {
-        return view('dashboard-procurement-officer');
-    })->name('dashboard.procurement_officer');
+    Route::get('/procurement-officer/dashboard', [DashboardController::class, 'index'])->name('dashboard.procurement_officer');
 });
 
 Route::middleware(['auth', 'verified', 'role:store_manager'])->group(function () {
-    Route::get('/store-manager/dashboard', function () {
-        return view('dashboard-store-manager');
-    })->name('dashboard.store_manager');
+    Route::get('/store-manager/dashboard', [DashboardController::class, 'index'])->name('dashboard.store_manager');
 });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/currency/rates', [\App\Http\Controllers\CurrencyController::class, 'rates'])->name('currency.rates');
+    Route::get('/currency/convert', [\App\Http\Controllers\CurrencyController::class, 'convert'])->name('currency.convert');
 });
 
-// Drug Inventory — scoped under each role's dashboard namespace.
-// Role middleware ensures users cannot access another portal's drug routes.
-Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin/dashboard')->name('admin.dashboard.')->group(function () {
+// Drug Inventory & Procurement Orders — scoped under each role's portal prefix.
+// Dashboard home stays at /{role}/dashboard; modules live at /{role}/drugs and /{role}/orders.
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.dashboard.')->group(function () {
     Route::resource('drugs', DrugController::class);
-});
-
-Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement/dashboard')->name('procurement.dashboard.')->group(function () {
-    Route::resource('drugs', DrugController::class);
-});
-
-Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-manager/dashboard')->name('store-manager.dashboard.')->group(function () {
-    Route::resource('drugs', DrugController::class);
-    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-});
-
-Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharmacy-manager/dashboard')->name('pharmacy-manager.dashboard.')->group(function () {
-    Route::resource('drugs', DrugController::class);
-    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-});
-
-Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist/dashboard')->name('pharmacist.dashboard.')->group(function () {
-    Route::resource('drugs', DrugController::class);
-    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-});
-
-// Procurement Orders — full workflow for procurement officer & admin.
-Route::middleware(['auth', 'verified', 'role:procurement_officer|admin'])->prefix('procurement/dashboard')->name('procurement.dashboard.')->group(function () {
-    Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve')->middleware('role:admin');
-    Route::post('orders/{order}/receive', [OrderController::class, 'receive'])->name('orders.receive')->middleware('role:admin');
+    Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
+    Route::post('orders/{order}/receive', [OrderController::class, 'receive'])->name('orders.receive');
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::resource('orders', OrderController::class);
+    Route::resource('transfers', StockTransferController::class)->only(['index', 'show']);
+});
+
+Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {
+    Route::resource('drugs', DrugController::class);
+    Route::get('orders/supplier-quotes', [OrderController::class, 'supplierQuotes'])->name('orders.supplier-quotes');
+    Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::resource('orders', OrderController::class);
+    Route::resource('transfers', StockTransferController::class)->only(['index', 'create', 'store', 'show']);
+});
+
+Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-manager')->name('store-manager.dashboard.')->group(function () {
+    Route::resource('drugs', DrugController::class);
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
+    Route::resource('transfers', StockTransferController::class)->only(['index', 'show']);
+});
+
+Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharmacy-manager')->name('pharmacy-manager.dashboard.')->group(function () {
+    Route::resource('drugs', DrugController::class);
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+});
+
+Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')->name('pharmacist.dashboard.')->group(function () {
+    Route::resource('drugs', DrugController::class);
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 });
 
 Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')->group(function () {
@@ -117,6 +115,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/drugs', function () {
         return redirect(getDashboardDrugRoute('index'));
     });
+
+    // Legacy URLs — redirect old /{role}/dashboard/* module paths to /{role}/*
+    Route::redirect('/admin/dashboard/drugs', '/admin/drugs');
+    Route::redirect('/admin/dashboard/orders', '/admin/orders');
+    Route::redirect('/procurement-officer/dashboard/drugs', '/procurement-officer/drugs');
+    Route::redirect('/procurement-officer/dashboard/orders', '/procurement-officer/orders');
+    Route::redirect('/procurement/dashboard/drugs', '/procurement-officer/drugs');
+    Route::redirect('/procurement/dashboard/orders', '/procurement-officer/orders');
+    Route::redirect('/store-manager/dashboard/drugs', '/store-manager/drugs');
+    Route::redirect('/store-manager/dashboard/orders', '/store-manager/orders');
+    Route::redirect('/pharmacy-manager/dashboard/drugs', '/pharmacy-manager/drugs');
+    Route::redirect('/pharmacy-manager/dashboard/orders', '/pharmacy-manager/orders');
+    Route::redirect('/pharmacist/dashboard/drugs', '/pharmacist/drugs');
+    Route::redirect('/pharmacist/dashboard/orders', '/pharmacist/orders');
 });
 
 require __DIR__.'/auth.php';

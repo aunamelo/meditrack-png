@@ -11,13 +11,13 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Procurement Orders
-        </h2>
+        <div>
+            <p class="text-section-label">Procurement</p>
+            <h2 class="heading-page">Procurement Orders</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <x-page-container>
             @if (session('success'))
                 <div class="mb-4 bg-green-50 border border-green-200 text-green-800 rounded-md p-4">{{ session('success') }}</div>
             @endif
@@ -25,7 +25,7 @@
                 <div class="mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md p-4">{{ session('error') }}</div>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="surface-panel">
                 <div class="p-6">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
                         <div>
@@ -116,7 +116,7 @@
                                                     <a href="{{ getDashboardOrderRoute('edit', $order) }}" class="text-[#0f766e] hover:text-[#0d5f59] mr-3">Edit</a>
                                                 @endif
                                                 @if(canApproveOrders() && $order->canApprove())
-                                                    <form action="{{ route('procurement.dashboard.orders.approve', $order) }}" method="POST" class="inline">
+                                                    <form action="{{ getDashboardOrderRoute('approve', $order) }}" method="POST" class="inline">
                                                         @csrf
                                                         <button type="submit" class="text-blue-600 hover:text-blue-900 mr-3">Approve</button>
                                                     </form>
@@ -148,6 +148,5 @@
                     @endif
                 </div>
             </div>
-        </div>
-    </div>
+    </x-page-container>
 </x-app-layout>

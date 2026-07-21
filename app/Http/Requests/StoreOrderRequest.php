@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreOrderRequest extends FormRequest
 {
@@ -21,7 +22,10 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'drug_id' => 'required|exists:drugs,id',
+            'drug_id' => [
+                'required',
+                Rule::exists('drugs', 'id')->where(fn ($query) => $query->where('level', 'ndoh')),
+            ],
             'quantity_ordered' => 'required|integer|min:1|max:999999',
             'supplier' => 'required|string|max:255',
             'order_date' => 'required|date|before_or_equal:today',

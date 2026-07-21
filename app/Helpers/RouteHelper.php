@@ -4,7 +4,7 @@
  * Role-aware route helpers for dashboard-scoped Drug Inventory URLs.
  *
  * Drug inventory lives under each portal's dashboard namespace, e.g.
- * /admin/dashboard/drugs, /procurement/dashboard/drugs, etc.
+ * /admin/dashboard (home), /admin/drugs, /procurement-officer/orders, etc.
  */
 
 if (! function_exists('getDashboardRoutePrefix')) {
@@ -20,7 +20,7 @@ if (! function_exists('getDashboardRoutePrefix')) {
         }
 
         if ($user->hasRole('procurement_officer')) {
-            return 'procurement.dashboard.';
+            return 'procurement-officer.dashboard.';
         }
 
         if ($user->hasRole('store_manager')) {
@@ -54,21 +54,12 @@ if (! function_exists('getDashboardDrugRoute')) {
 if (! function_exists('getDashboardOrderRoute')) {
     /**
      * Build a role-scoped Procurement Orders route for the current user.
-     * Admin and Procurement Officer use procurement.dashboard.orders.*;
-     * other portal roles use read-only routes under their dashboard prefix.
+     * Uses the same dashboard prefix as drugs, e.g. admin.dashboard.orders.*.
      */
     function getDashboardOrderRoute(string $routeName, mixed $params = null): string
     {
-        $user = auth()->user();
-
-        if ($user->hasAnyRole(['admin', 'procurement_officer'])) {
-            $prefix = 'procurement.dashboard.orders.';
-        } elseif ($user->hasRole('store_manager')) {
-            $prefix = 'store-manager.dashboard.orders.';
-        } elseif ($user->hasRole('pharmacy_manager')) {
-            $prefix = 'pharmacy-manager.dashboard.orders.';
-        } elseif ($user->hasRole('pharmacist')) {
-            $prefix = 'pharmacist.dashboard.orders.';
+        if (auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager', 'pharmacist'])) {
+            $prefix = getDashboardRoutePrefix().'orders.';
         } else {
             $prefix = 'dashboard.orders.';
         }
@@ -76,6 +67,34 @@ if (! function_exists('getDashboardOrderRoute')) {
         $fullRouteName = $prefix.$routeName;
 
         return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardTransferRoute')) {
+    /**
+     * Build a role-scoped Stock Transfer route for the current user.
+     */
+    function getDashboardTransferRoute(string $routeName, mixed $params = null): string
+    {
+        if (auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager'])) {
+            $prefix = getDashboardRoutePrefix().'transfers.';
+        } else {
+            abort(403, 'You do not have access to shipments.');
+        }
+
+        $fullRouteName = $prefix.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('canManageTransfers')) {
+    /**
+     * Whether the current user can record shipments to Lae AMS.
+     */
+    function canManageTransfers(): bool
+    {
+        return auth()->user()->hasRole('procurement_officer');
     }
 }
 
@@ -96,6 +115,16 @@ if (! function_exists('canApproveOrders')) {
     function canApproveOrders(): bool
     {
         return auth()->user()->hasRole('admin');
+    }
+}
+
+if (! function_exists('canReceiveTransfers')) {
+    /**
+     * Whether the current user can confirm receipt at Lae AMS.
+     */
+    function canReceiveTransfers(): bool
+    {
+        return auth()->user()->hasRole('store_manager');
     }
 }
 

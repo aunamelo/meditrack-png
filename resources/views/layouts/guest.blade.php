@@ -5,13 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'meditrack') }}</title>
+        <title>{{ config('app.name', 'MediTrack PNG') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700|inter:400,500,600,700" rel="stylesheet" />
+        @include('partials.theme-init')
+        @include('partials.fonts')
 
-        <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         @php
@@ -49,9 +47,9 @@
             $role    = $roles[$roleKey] ?? null;
         @endphp
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased bg-surface-muted dark:bg-zinc-950">
         <style>
-            :root{
+            :root {
                 --brand-50:  #eef7f7;
                 --brand-100: #d7ecec;
                 --brand-500: #0f766e;
@@ -62,8 +60,18 @@
                 --ink-500:   #64757b;
                 --line:      #dfe7e6;
                 --surface:   #ffffff;
-                --surface-2: #f5faf9;
-                --bg:        #eef4f3;
+                --surface-2: #f4f8f7;
+                --bg:        #f4f8f7;
+            }
+
+            html.dark {
+                --ink-900:   #f4f4f5;
+                --ink-700:   #d4d4d8;
+                --ink-500:   #a1a1aa;
+                --line:      #3f3f46;
+                --surface:   #18181b;
+                --surface-2: #09090b;
+                --bg:        #09090b;
             }
 
             body {
@@ -71,7 +79,7 @@
                 min-height: 100vh;
                 background: var(--bg);
                 color: var(--ink-900);
-                font-family: 'Instrument Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+                font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -266,6 +274,10 @@
             <div class="auth-card">
                 {{ $slot }}
             </div>
+        </div>
+
+        <div class="fixed bottom-6 right-6 z-50">
+            <x-theme-toggle />
         </div>
     </body>
 </html>

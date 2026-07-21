@@ -1,0 +1,104 @@
+import Chart from 'chart.js/auto';
+
+function themeColors() {
+    const isDark = document.documentElement.classList.contains('dark');
+
+    return {
+        text: isDark ? '#e4e4e7' : '#33454b',
+        muted: isDark ? '#a1a1aa' : '#64757b',
+        grid: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 32, 39, 0.08)',
+        border: isDark ? '#3f3f46' : '#dfe7e6',
+        tooltipBg: isDark ? '#18181b' : '#0f2027',
+    };
+}
+
+function buildOptions(config, colors) {
+    const horizontal = config.horizontal === true;
+
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: horizontal ? 'y' : 'x',
+        plugins: {
+            legend: {
+                display: config.type === 'doughnut' || (config.datasets?.length ?? 0) > 1,
+                labels: {
+                    color: colors.text,
+                    font: { family: '"Plus Jakarta Sans", sans-serif', size: 12, weight: '600' },
+                    boxWidth: 12,
+                    padding: 16,
+                },
+            },
+            tooltip: {
+                backgroundColor: colors.tooltipBg,
+                titleColor: '#ffffff',
+                bodyColor: '#d4d4d8',
+                padding: 12,
+                cornerRadius: 10,
+            },
+        },
+        scales: config.type === 'doughnut'
+            ? {}
+            : {
+                x: {
+                    ticks: { color: colors.muted, font: { family: '"Plus Jakarta Sans", sans-serif', size: 11 } },
+                    grid: { color: colors.grid, drawBorder: false },
+                    border: { color: colors.border },
+                },
+                y: {
+                    ticks: { color: colors.muted, font: { family: '"Plus Jakarta Sans", sans-serif', size: 11 } },
+                    grid: { color: colors.grid, drawBorder: false },
+                    border: { color: colors.border },
+                    beginAtZero: true,
+                },
+            },
+    };
+}
+
+function registerDashboardCharts() {
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('dashboardChart', (config) => ({
+            chart: null,
+            observer: null,
+
+            init() {
+                this.renderChart();
+                this.observer = new MutationObserver(() => this.renderChart());
+                this.observer.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['class'],
+                });
+            },
+
+            renderChart() {
+                const canvas = this.$refs.canvas;
+
+                if (! canvas) {
+                    return;
+                }
+
+                const colors = themeColors();
+
+                if (this.chart) {
+                    this.chart.destroy();
+                }
+
+                this.chart = new Chart(canvas, {
+                    type: config.type,
+                    data: {
+                        labels: config.labels,
+                        datasets: config.datasets,
+                    },
+                    options: buildOptions(config, colors),
+                });
+            },
+
+            destroy() {
+                this.chart?.destroy();
+                this.observer?.disconnect();
+            },
+        }));
+    });
+}
+
+registerDashboardCharts();
