@@ -123,6 +123,14 @@ class Drug extends Model
     }
 
     /**
+     * Scope to exclude written-off drugs from active inventory.
+     */
+    public function scopeInInventory($query)
+    {
+        return $query->where('status', '!=', 'written_off');
+    }
+
+    /**
      * Scope to get active drugs only.
      */
     public function scopeActive($query)

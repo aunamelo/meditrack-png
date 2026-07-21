@@ -47,6 +47,9 @@
                                     <option value="expiring_soon" {{ request('status') == 'expiring_soon' ? 'selected' : '' }}>Expiring Soon</option>
                                     <option value="expired" {{ request('status') == 'expired' ? 'selected' : '' }}>Expired</option>
                                     <option value="low_stock" {{ request('status') == 'low_stock' ? 'selected' : '' }}>Low Stock</option>
+                                    @if(auth()->user()->hasRole('admin'))
+                                        <option value="written_off" {{ request('status') == 'written_off' ? 'selected' : '' }}>Written Off</option>
+                                    @endif
                                 </select>
                             </div>
 

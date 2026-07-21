@@ -19,6 +19,11 @@ class DrugController extends Controller
         $user = auth()->user();
         $query = Drug::query();
 
+        // Hide written-off drugs from the default list (admin can filter to view them)
+        if ($request->status !== 'written_off') {
+            $query->inInventory();
+        }
+
         // Role-based filtering
         if ($user->hasRole('procurement_officer')) {
             $query->atLevel('ndoh');
@@ -54,6 +59,9 @@ class DrugController extends Controller
                     break;
                 case 'low_stock':
                     $query->lowStock();
+                    break;
+                case 'written_off':
+                    $query->where('status', 'written_off');
                     break;
             }
         }
@@ -131,10 +139,9 @@ class DrugController extends Controller
     /**
      * Display the specified drug details.
      */
-    public function show(int $id): View
+    public function show(Drug $drug): View
     {
         $user = auth()->user();
-        $drug = Drug::findOrFail($id);
 
         // Role-based access control
         if ($user->hasRole('procurement_officer') && $drug->level !== 'ndoh') {
@@ -158,10 +165,9 @@ class DrugController extends Controller
      * Show the form for editing the specified drug.
      * Limited fields can be edited.
      */
-    public function edit(int $id): View
+    public function edit(Drug $drug): View
     {
         $user = auth()->user();
-        $drug = Drug::findOrFail($id);
 
         // Role-based access control for editing
         if ($user->hasRole('procurement_officer')) {
@@ -186,9 +192,8 @@ class DrugController extends Controller
      * Update the specified drug in storage.
      * Only limited fields can be updated.
      */
-    public function update(UpdateDrugRequest $request, int $id)
+    public function update(UpdateDrugRequest $request, Drug $drug)
     {
-        $drug = Drug::findOrFail($id);
 
         // Track changes for audit log
         $changes = [];
@@ -220,25 +225,25 @@ class DrugController extends Controller
      * Remove the specified drug from storage.
      * Only accessible to NDoH Admin.
      */
-    public function destroy(int $id)
+    public function destroy(Drug $drug)
     {
         if (!auth()->user()->hasRole('admin')) {
             abort(403, 'Only NDoH Admin can delete drugs.');
         }
 
-        $drug = Drug::findOrFail($id);
+        $drugName = $drug->drug_name;
 
-        // Mark as written off instead of hard delete
+        // Mark as written off — removed from inventory but kept for audit trail
         $drug->update([
             'status' => 'written_off',
+            'quantity_on_hand' => 0,
             'updated_by' => auth()->id(),
         ]);
 
-        // Log to audit trail
-        \Log::info("Drug [{$drug->drug_name}] deleted (written off) by user ID: " . auth()->id());
+        \Log::info("Drug [{$drugName}] removed from inventory (written off) by user ID: " . auth()->id());
 
         return redirect()->route($this->getDashboardPrefix().'drugs.index')
-            ->with('success', 'Drug deleted successfully.');
+            ->with('success', 'Drug removed from inventory.');
     }
 
     /**
