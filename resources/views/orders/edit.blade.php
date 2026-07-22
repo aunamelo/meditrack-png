@@ -1,27 +1,38 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Edit Order — {{ $order->order_number }}
-        </h2>
+        <div>
+            <p class="text-section-label">Procurement</p>
+            <h2 class="heading-page">Edit Order — {{ $order->order_number }}</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <nav class="flex mb-6" aria-label="Breadcrumb">
-                        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                            <li><a href="{{ getDashboardOrderRoute('index') }}" class="text-sm font-medium text-gray-700 hover:text-[#0f766e]">Orders</a></li>
-                            <li><a href="{{ getDashboardOrderRoute('show', $order) }}" class="text-sm font-medium text-gray-700 hover:text-[#0f766e]">{{ $order->order_number }}</a></li>
-                            <li><span class="text-sm text-gray-500"> / Edit</span></li>
-                        </ol>
-                    </nav>
+    @php
+        $defaultItems = old('items', $order->items->map(fn ($item) => [
+            'drug_id' => (string) $item->drug_id,
+            'quantity_ordered' => (string) $item->quantity_ordered,
+        ])->values()->all());
+
+        if (empty($defaultItems)) {
+            $defaultItems = [['drug_id' => (string) $order->drug_id, 'quantity_ordered' => (string) $order->quantity_ordered]];
+        }
+    @endphp
+
+    <x-page-container>
+        <x-module.back-link :href="getDashboardOrderRoute('show', $order)" :label="'Back to ' . $order->order_number" class="mb-6" />
+
+        <div class="module-form-shell">
 
                     <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-800">
                         This order can only be edited before approval.
                     </div>
 
-                    <form action="{{ getDashboardOrderRoute('update', $order) }}" method="POST">
+                    <form action="{{ getDashboardOrderRoute('update', $order) }}" method="POST"
+                          x-data="{
+                              items: @js($defaultItems),
+                              drugOptions: @js($drugs->map(fn ($drug) => ['id' => (string) $drug->id, 'label' => $drug->drug_name.' ('.$drug->dosage.')'])->values()),
+                              addItem() { this.items.push({ drug_id: '', quantity_ordered: '' }); },
+                              removeItem(index) { if (this.items.length > 1) this.items.splice(index, 1); },
+                          }">
                         @csrf
                         @method('PUT')
 
@@ -35,11 +46,44 @@
                             </div>
                         @endif
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Drug</label>
-                                <input type="text" value="{{ $order->drug->drug_name ?? 'N/A' }}" disabled class="w-full rounded-md border-gray-200 bg-gray-50 text-gray-500">
+                        <div class="mb-8 rounded-lg border border-gray-200 bg-gray-50/50 p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-900">Medicines in this order</h3>
+                                    <p class="text-xs text-gray-500 mt-0.5">Update line items before the order is approved.</p>
+                                </div>
+                                <button type="button" @click="addItem()" class="inline-flex items-center px-3 py-1.5 bg-white border border-[#0f766e] rounded-md text-xs font-semibold text-[#0f766e] uppercase hover:bg-teal-50">
+                                    + Add line
+                                </button>
                             </div>
+
+                            <div class="space-y-3">
+                                <template x-for="(item, index) in items" :key="index">
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start bg-white rounded-md border border-gray-200 p-3">
+                                        <div class="md:col-span-7">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Drug <span class="text-red-500">*</span></label>
+                                            <select :name="`items[${index}][drug_id]`" x-model="item.drug_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                                <option value="">Select a drug...</option>
+                                                <template x-for="option in drugOptions" :key="option.id">
+                                                    <option :value="option.id" x-text="option.label"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <div class="md:col-span-3">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
+                                            <input type="number" :name="`items[${index}][quantity_ordered]`" x-model="item.quantity_ordered" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                        </div>
+                                        <div class="md:col-span-2 flex items-end">
+                                            <button type="button" x-show="items.length > 1" @click="removeItem(index)" class="w-full inline-flex justify-center items-center px-3 py-2 border border-red-200 rounded-md text-xs font-semibold text-red-600 uppercase hover:bg-red-50">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Order Date</label>
                                 <input type="text" value="{{ $order->formatOrderDate() }}" disabled class="w-full rounded-md border-gray-200 bg-gray-50 text-gray-500">
@@ -47,11 +91,6 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Source</label>
                                 <input type="text" value="{{ ucfirst($order->source) }}" disabled class="w-full rounded-md border-gray-200 bg-gray-50 text-gray-500">
-                            </div>
-                            <div>
-                                <label for="quantity_ordered" class="block text-sm font-medium text-gray-700 mb-1">Quantity Ordered <span class="text-red-500">*</span></label>
-                                <input type="number" name="quantity_ordered" id="quantity_ordered" value="{{ old('quantity_ordered', $order->quantity_ordered) }}" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
-                                @error('quantity_ordered')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-500">*</span></label>
@@ -71,12 +110,10 @@
                         </div>
 
                         <div class="mt-6 flex gap-3">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59]">Update Order</button>
-                            <a href="{{ getDashboardOrderRoute('show', $order) }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200">Cancel</a>
+                            <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Update Order</button>
+                            <a href="{{ getDashboardOrderRoute('show', $order) }}" class="btn-module-secondary">Cancel</a>
                         </div>
                     </form>
-                </div>
-            </div>
         </div>
-    </div>
+    </x-page-container>
 </x-app-layout>

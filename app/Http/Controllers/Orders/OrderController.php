@@ -10,11 +10,10 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Drug;
 use App\Models\Order;
 use App\Services\OrderNotificationService;
-use App\Services\SupplierQuoteComparisonService;
 use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -25,7 +24,7 @@ class OrderController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $query = Order::with(['drug', 'creator']);
+        $query = Order::with(['items.drug', 'drug', 'creator']);
 
         if ($user->hasRole('procurement_officer')) {
             $query->byCreatedBy($user->id);
@@ -36,7 +35,8 @@ class OrderController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
                     ->orWhere('supplier', 'like', "%{$search}%")
-                    ->orWhereHas('drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"));
+                    ->orWhereHas('drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"))
+                    ->orWhereHas('items.drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"));
             });
         }
 
@@ -78,52 +78,39 @@ class OrderController extends Controller
     }
 
     /**
-     * Compare supplier quotes for a drug type (Procurement Officer — JSON for create form).
-     */
-    public function supplierQuotes(Request $request): JsonResponse
-    {
-        if (! auth()->user()->hasRole('procurement_officer')) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'drug_id' => 'required|exists:drugs,id',
-            'quantity' => 'required|integer|min:1|max:999999',
-            'budget' => 'nullable|numeric|min:0|max:999999999',
-        ]);
-
-        $drug = Drug::findOrFail($validated['drug_id']);
-
-        return response()->json(
-            SupplierQuoteComparisonService::compare(
-                $drug,
-                (int) $validated['quantity'],
-                isset($validated['budget']) ? (float) $validated['budget'] : null,
-            )
-        );
-    }
-
-    /**
      * Store a new order with auto-generated order number.
      */
     public function store(StoreOrderRequest $request): RedirectResponse
     {
-        $order = Order::create([
-            'order_number' => Order::generateOrderNumber(),
-            'drug_id' => $request->drug_id,
-            'quantity_ordered' => $request->quantity_ordered,
-            'supplier' => $request->supplier,
-            'order_date' => $request->order_date,
-            'expected_delivery_date' => $request->expected_delivery_date,
-            'supplier_invoice' => $request->supplier_invoice,
-            'invoice_amount' => $request->invoice_amount,
-            'source' => $request->source,
-            'notes' => $request->notes,
-            'status' => 'pending',
-            'created_by' => auth()->id(),
-        ]);
+        $order = DB::transaction(function () use ($request) {
+            $order = Order::create([
+                'order_number' => Order::generateOrderNumber(),
+                'drug_id' => $request->input('items.0.drug_id'),
+                'quantity_ordered' => collect($request->input('items'))->sum('quantity_ordered'),
+                'supplier' => $request->supplier,
+                'order_date' => $request->order_date,
+                'expected_delivery_date' => $request->expected_delivery_date,
+                'supplier_invoice' => $request->supplier_invoice,
+                'invoice_amount' => $request->invoice_amount,
+                'source' => $request->source,
+                'notes' => $request->notes,
+                'status' => 'pending',
+                'created_by' => auth()->id(),
+            ]);
 
-        $order->load(['drug', 'creator']);
+            foreach ($request->validated('items') as $item) {
+                $order->items()->create([
+                    'drug_id' => $item['drug_id'],
+                    'quantity_ordered' => $item['quantity_ordered'],
+                ]);
+            }
+
+            $order->syncLegacyColumnsFromItems();
+
+            return $order;
+        });
+
+        $order->load(['items.drug', 'creator']);
 
         OrderNotificationService::notifyAdminsOfPendingOrder($order);
 
@@ -138,7 +125,7 @@ class OrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['drug', 'creator', 'approver', 'receiver']);
+        $order->load(['items.drug', 'drug', 'creator', 'approver', 'receiver']);
 
         if (auth()->user()->hasRole('admin')) {
             OrderNotificationService::markOrderNotificationsAsRead(auth()->user(), $order);
@@ -162,7 +149,17 @@ class OrderController extends Controller
             abort(403, 'Only pending orders can be edited.');
         }
 
-        return view('orders.edit', compact('order'));
+        $drugs = Drug::query()
+            ->atLevel('ndoh')
+            ->orderBy('drug_name')
+            ->orderByDesc('created_at')
+            ->get()
+            ->unique(fn (Drug $drug) => $drug->drug_name.'|'.$drug->dosage)
+            ->values();
+
+        $order->load(['items.drug']);
+
+        return view('orders.edit', compact('order', 'drugs'));
     }
 
     /**
@@ -170,12 +167,24 @@ class OrderController extends Controller
      */
     public function update(UpdateOrderRequest $request, Order $order): RedirectResponse
     {
-        $order->update([
-            'quantity_ordered' => $request->quantity_ordered,
-            'supplier' => $request->supplier,
-            'expected_delivery_date' => $request->expected_delivery_date,
-            'notes' => $request->notes,
-        ]);
+        DB::transaction(function () use ($request, $order) {
+            $order->update([
+                'supplier' => $request->supplier,
+                'expected_delivery_date' => $request->expected_delivery_date,
+                'notes' => $request->notes,
+            ]);
+
+            $order->items()->delete();
+
+            foreach ($request->validated('items') as $item) {
+                $order->items()->create([
+                    'drug_id' => $item['drug_id'],
+                    'quantity_ordered' => $item['quantity_ordered'],
+                ]);
+            }
+
+            $order->syncLegacyColumnsFromItems();
+        });
 
         \Log::info("Order [{$order->order_number}] updated by user ID: ".auth()->id());
 
@@ -219,10 +228,23 @@ class OrderController extends Controller
                 ->with('error', 'This order cannot be received.');
         }
 
-        $quantityReceived = (int) $request->quantity_received;
         $receivedDate = Carbon::parse($request->received_date);
+        $quantitiesByItem = [];
 
-        $order->receive($quantityReceived, auth()->id(), $receivedDate);
+        foreach ($request->validated('items') as $row) {
+            $quantitiesByItem[(int) $row['id']] = (int) $row['quantity_received'];
+        }
+
+        $order->load('items.drug');
+        $order->receiveItems($quantitiesByItem, auth()->id(), $receivedDate);
+
+        foreach ($order->items as $item) {
+            $quantityReceived = $quantitiesByItem[$item->id] ?? 0;
+
+            if ($quantityReceived > 0) {
+                $this->createDrugFromOrderItem($order, $item, $quantityReceived, $receivedDate);
+            }
+        }
 
         if ($request->filled('notes')) {
             $order->update([
@@ -230,9 +252,9 @@ class OrderController extends Controller
             ]);
         }
 
-        $this->createDrugFromOrder($order, $quantityReceived, $receivedDate);
+        $totalReceived = array_sum($quantitiesByItem);
 
-        \Log::info("Order [{$order->order_number}] received ({$quantityReceived} units) by user ID: ".auth()->id());
+        \Log::info("Order [{$order->order_number}] received ({$totalReceived} units across lines) by user ID: ".auth()->id());
 
         return redirect(getDashboardOrderRoute('show', $order))
             ->with('success', 'Order received successfully. Drug inventory updated.');
@@ -280,18 +302,27 @@ class OrderController extends Controller
     }
 
     /**
-     * Create an NDoH-level drug batch when an order is received.
+     * Create an NDoH-level drug batch when an order line is received.
      */
-    private function createDrugFromOrder(Order $order, int $quantityReceived, Carbon $receivedDate): void
+    private function createDrugFromOrderItem(Order $order, \App\Models\OrderItem $item, int $quantityReceived, Carbon $receivedDate): void
     {
-        $referenceDrug = $order->drug;
+        $referenceDrug = $item->drug;
+
+        if (! $referenceDrug) {
+            return;
+        }
+
+        $totalOrdered = max($order->quantity_ordered, 1);
+        $lineInvoiceShare = $order->invoice_amount
+            ? ($item->quantity_ordered / $totalOrdered) * (float) $order->invoice_amount
+            : null;
 
         Drug::create([
             'drug_name' => $referenceDrug->drug_name,
             'description' => $referenceDrug->description,
             'dosage' => $referenceDrug->dosage,
             'dosage_form' => $referenceDrug->dosage_form,
-            'batch_number' => $order->order_number.'-'.now()->format('His'),
+            'batch_number' => $order->order_number.'-'.$item->id.'-'.now()->format('His'),
             'expiry_date' => $referenceDrug->expiry_date->gt($receivedDate)
                 ? $referenceDrug->expiry_date
                 : $receivedDate->copy()->addYears(2),
@@ -300,14 +331,14 @@ class OrderController extends Controller
             'reorder_point' => $referenceDrug->reorder_point,
             'unit' => $referenceDrug->unit,
             'supplier' => $order->supplier,
-            'cost_per_unit' => $order->invoice_amount
-                ? round($order->invoice_amount / max($order->quantity_ordered, 1), 2)
+            'cost_per_unit' => $lineInvoiceShare
+                ? round($lineInvoiceShare / max($item->quantity_ordered, 1), 2)
                 : $referenceDrug->cost_per_unit,
             'storage_location' => $referenceDrug->storage_location,
             'level' => 'ndoh',
             'status' => 'active',
             'received_date' => $receivedDate,
-            'notes' => "Received from order {$order->order_number}",
+            'notes' => "Received from order {$order->order_number} (line item #{$item->id})",
             'created_by' => auth()->id(),
             'updated_by' => auth()->id(),
         ]);

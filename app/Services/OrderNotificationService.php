@@ -41,7 +41,7 @@ class OrderNotificationService
     {
         return Order::query()
             ->pending()
-            ->with(['drug', 'creator'])
+            ->with(['items.drug', 'drug', 'creator'])
             ->orderByDesc('created_at')
             ->limit($limit)
             ->get();

@@ -1,94 +1,82 @@
-@php
-    $statusClasses = [
-        'sent' => 'bg-blue-100 text-blue-800',
-        'received' => 'bg-green-100 text-green-800',
-        'cancelled' => 'bg-red-100 text-red-800',
-    ];
-@endphp
-
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Road Delivery {{ $transfer->transfer_number }}
-        </h2>
+        <div>
+            <p class="text-section-label">Logistics</p>
+            <h2 class="heading-page">Shipment {{ $transfer->transfer_number }}</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            @if (session('success'))
-                <div class="bg-green-50 border border-green-200 text-green-800 rounded-md p-4">{{ session('success') }}</div>
-            @endif
-            @if (session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-4">{{ session('error') }}</div>
-            @endif
+    <x-page-container>
+        <x-module.flash />
 
-            <div class="flex items-center justify-between">
-                <a href="{{ getDashboardTransferRoute('index') }}" class="inline-flex items-center text-sm text-gray-600 hover:text-[#0f766e]">← Back to Road Deliveries</a>
-                @if(canReceiveTransfers() && $transfer->canReceive())
-                    <form action="{{ getDashboardTransferRoute('receive', $transfer) }}" method="POST" class="inline-flex items-center gap-3">
-                        @csrf
-                        <input type="text" name="notes" placeholder="Optional receipt note..." class="rounded-md border-gray-300 text-sm shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#0f766e] rounded-md text-xs font-semibold text-white uppercase hover:bg-[#0d5f59]">Confirm Receipt</button>
-                    </form>
-                @endif
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Delivery Details</h3>
-                    <p class="text-2xl font-bold text-[#0f766e] mb-2">{{ $transfer->transfer_number }}</p>
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $statusClasses[$transfer->status] ?? 'bg-gray-100 text-gray-800' }}">{{ logisticsTransferStatusLabel($transfer->status) }}</span>
-                    <dl class="mt-4 space-y-3 text-sm">
-                        <div><dt class="text-gray-500">Date Dispatched</dt><dd class="font-medium">{{ $transfer->formatSentDate() }}</dd></div>
-                        <div><dt class="text-gray-500">Dispatched By</dt><dd class="font-medium">{{ $transfer->sender->name ?? 'N/A' }}</dd></div>
-                        @if($transfer->receiver)
-                            <div><dt class="text-gray-500">Received By</dt><dd class="font-medium">{{ $transfer->receiver->name }}</dd></div>
-                            <div><dt class="text-gray-500">Received At</dt><dd class="font-medium">{{ $transfer->received_at?->format('M d, Y g:i A') ?? 'N/A' }}</dd></div>
-                        @endif
-                        <div><dt class="text-gray-500">Route</dt><dd class="font-medium">NDoH → Lae AMS (by road)</dd></div>
-                        <div><dt class="text-gray-500">Transport</dt><dd class="font-medium">Land — car/truck</dd></div>
-                    </dl>
-                </div>
-
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Drug & Batch</h3>
-                    <dl class="space-y-3 text-sm">
-                        <div><dt class="text-gray-500">Drug Name</dt><dd class="font-medium">{{ $transfer->drug->drug_name ?? 'N/A' }} @if($transfer->drug) ({{ $transfer->drug->dosage }}) @endif</dd></div>
-                        <div><dt class="text-gray-500">Source Batch #</dt><dd class="font-medium">{{ $transfer->batch_number }}</dd></div>
-                        <div><dt class="text-gray-500">Quantity Sent</dt><dd class="font-medium text-lg">{{ number_format($transfer->quantity_sent) }}</dd></div>
-                        @if($transfer->destinationDrug)
-                            <div><dt class="text-gray-500">Lae AMS Batch #</dt><dd class="font-medium">{{ $transfer->destinationDrug->batch_number }}</dd></div>
-                        @endif
-                    </dl>
-                </div>
-
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Inventory Impact</h3>
-                    <dl class="space-y-3 text-sm">
-                        <div><dt class="text-gray-500">From</dt><dd class="font-medium">NDoH National Storage</dd></div>
-                        <div><dt class="text-gray-500">To</dt><dd class="font-medium">Lae AMS Warehouse</dd></div>
-                        @if($transfer->destinationDrug)
-                            <div>
-                                <dt class="text-gray-500">Lae AMS Inventory</dt>
-                                <dd class="font-medium">
-                                    @if(auth()->user()->hasRole('store_manager'))
-                                        <a href="{{ getDashboardDrugRoute('show', $transfer->destinationDrug) }}" class="text-[#0f766e] hover:text-[#0d5f59]">View batch ({{ number_format($transfer->destinationDrug->quantity_on_hand) }} on hand)</a>
-                                    @else
-                                        Batch {{ $transfer->destinationDrug->batch_number }} — {{ number_format($transfer->destinationDrug->quantity_on_hand) }} units
-                                    @endif
-                                </dd>
-                            </div>
-                        @endif
-                    </dl>
-                </div>
-            </div>
-
-            @if($transfer->notes)
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Notes</h3>
-                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ $transfer->notes }}</p>
-                </div>
+        <div class="module-actions-bar">
+            <x-module.back-link :href="getDashboardTransferRoute('index')" label="Back to Shipments" />
+            @if(canReceiveTransfers() && $transfer->canReceive())
+                <form action="{{ getDashboardTransferRoute('receive', $transfer) }}" method="POST" class="inline-flex flex-wrap items-center gap-3">
+                    @csrf
+                    <input type="text" name="notes" placeholder="Optional receipt note..." class="input-field w-64 text-sm">
+                    <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Confirm Receipt</button>
+                </form>
             @endif
         </div>
-    </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <x-module.detail-card title="Shipment Details">
+                <p class="font-display text-2xl font-bold text-brand-600 dark:text-brand-400">{{ $transfer->transfer_number }}</p>
+                <div class="mt-3">
+                    <x-module.status-badge :variant="$transfer->status" :label="ndohToLaeAmsTransferStatusLabel($transfer->status)" />
+                </div>
+                <dl class="mt-4 space-y-4">
+                    <x-module.detail-field label="Date Shipped" :value="$transfer->formatSentDate()" />
+                    <x-module.detail-field label="Shipped By" :value="$transfer->sender->name ?? 'N/A'" />
+                    @if($transfer->receiver)
+                        <x-module.detail-field label="Received By" :value="$transfer->receiver->name" />
+                        <x-module.detail-field label="Received At" :value="$transfer->received_at?->format('M d, Y g:i A') ?? 'N/A'" />
+                    @endif
+                    <x-module.detail-field label="Route" value="NDoH → Lae AMS" />
+                    <x-module.detail-field label="Logistics" value="National shipment to regional warehouse" />
+                </dl>
+            </x-module.detail-card>
+
+            <x-module.detail-card title="Drug & Batch">
+                <dl class="space-y-4">
+                    <x-module.detail-field label="Drug Name">
+                        {{ $transfer->drug->drug_name ?? 'N/A' }}@if($transfer->drug) ({{ $transfer->drug->dosage }})@endif
+                    </x-module.detail-field>
+                    <x-module.detail-field label="Source Batch #" :value="$transfer->batch_number" />
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-muted">Quantity Shipped</dt>
+                        <dd class="mt-1 font-display text-xl font-bold text-ink dark:text-zinc-100">{{ number_format($transfer->quantity_sent) }}</dd>
+                    </div>
+                    @if($transfer->destinationDrug)
+                        <x-module.detail-field label="Lae AMS Batch #" :value="$transfer->destinationDrug->batch_number" />
+                    @endif
+                </dl>
+            </x-module.detail-card>
+
+            <x-module.detail-card title="Inventory Impact">
+                <dl class="space-y-4">
+                    <x-module.detail-field label="From" value="NDoH National Storage" />
+                    <x-module.detail-field label="To" value="Lae AMS Warehouse" />
+                    @if($transfer->destinationDrug)
+                        <x-module.detail-field label="Lae AMS Inventory">
+                            @if(auth()->user()->hasRole('store_manager'))
+                                <a href="{{ getDashboardDrugRoute('show', $transfer->destinationDrug) }}" class="module-table-link">
+                                    View batch ({{ number_format($transfer->destinationDrug->quantity_on_hand) }} on hand)
+                                </a>
+                            @else
+                                Batch {{ $transfer->destinationDrug->batch_number }} — {{ number_format($transfer->destinationDrug->quantity_on_hand) }} units
+                            @endif
+                        </x-module.detail-field>
+                    @endif
+                </dl>
+            </x-module.detail-card>
+        </div>
+
+        @if($transfer->notes)
+            <x-module.detail-card title="Notes" class="mt-6">
+                <p class="whitespace-pre-line text-sm text-ink-secondary dark:text-zinc-300">{{ $transfer->notes }}</p>
+            </x-module.detail-card>
+        @endif
+    </x-page-container>
 </x-app-layout>

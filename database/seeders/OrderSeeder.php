@@ -40,10 +40,8 @@ class OrderSeeder extends Seeder
 
         // 3 Pending orders
         foreach (range(1, 3) as $i) {
-            Order::create([
+            $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-                'drug_id' => $drugs[$i % $drugs->count()]->id,
-                'quantity_ordered' => 500 * $i,
                 'supplier' => $suppliers[$i - 1],
                 'order_date' => Carbon::now()->subDays(10 - $i),
                 'expected_delivery_date' => Carbon::now()->addDays(30 + ($i * 7)),
@@ -51,15 +49,33 @@ class OrderSeeder extends Seeder
                 'status' => 'pending',
                 'notes' => "Pending order #{$i} awaiting NDoH approval.",
                 'created_by' => $procurementOfficer->id,
+            ], [
+                ['drug_id' => $drugs[$i % $drugs->count()]->id, 'quantity_ordered' => 500 * $i],
+            ]);
+        }
+
+        // Multi-line pending order
+        if ($drugs->count() >= 2) {
+            $this->createOrderWithItems([
+                'order_number' => 'ORD-2026-013',
+                'supplier' => 'Combined Pharma Suppliers Ltd',
+                'order_date' => Carbon::now()->subDays(2),
+                'expected_delivery_date' => Carbon::now()->addDays(45),
+                'source' => 'overseas',
+                'status' => 'pending',
+                'notes' => 'Multi-medicine procurement order awaiting NDoH approval.',
+                'created_by' => $procurementOfficer->id,
+            ], [
+                ['drug_id' => $drugs[0]->id, 'quantity_ordered' => 800],
+                ['drug_id' => $drugs[1]->id, 'quantity_ordered' => 1200],
+                ['drug_id' => $drugs[2 % $drugs->count()]->id, 'quantity_ordered' => 600],
             ]);
         }
 
         // 3 Approved/Ordered (awaiting delivery)
         foreach (range(4, 6) as $i) {
-            Order::create([
+            $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-                'drug_id' => $drugs[($i - 1) % $drugs->count()]->id,
-                'quantity_ordered' => 1000,
                 'supplier' => $suppliers[($i - 1) % count($suppliers)],
                 'order_date' => Carbon::now()->subDays(20),
                 'expected_delivery_date' => Carbon::now()->addDays(14),
@@ -71,16 +87,15 @@ class OrderSeeder extends Seeder
                 'created_by' => $procurementOfficer->id,
                 'approved_by' => $admin->id,
                 'approved_at' => Carbon::now()->subDays(5),
+            ], [
+                ['drug_id' => $drugs[($i - 1) % $drugs->count()]->id, 'quantity_ordered' => 1000],
             ]);
         }
 
         // 3 Received (complete deliveries)
         foreach (range(7, 9) as $i) {
-            Order::create([
+            $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-                'drug_id' => $drugs[($i - 1) % $drugs->count()]->id,
-                'quantity_ordered' => 750,
-                'quantity_received' => 750,
                 'supplier' => $suppliers[($i - 1) % count($suppliers)],
                 'order_date' => Carbon::now()->subDays(45),
                 'expected_delivery_date' => Carbon::now()->subDays(10),
@@ -95,16 +110,15 @@ class OrderSeeder extends Seeder
                 'approved_at' => Carbon::now()->subDays(40),
                 'received_by' => $admin->id,
                 'received_at' => Carbon::now()->subDays(8),
+            ], [
+                ['drug_id' => $drugs[($i - 1) % $drugs->count()]->id, 'quantity_ordered' => 750, 'quantity_received' => 750],
             ]);
         }
 
         // 2 Partial deliveries
         foreach (range(10, 11) as $i) {
-            Order::create([
+            $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-                'drug_id' => $drugs[($i - 1) % $drugs->count()]->id,
-                'quantity_ordered' => 2000,
-                'quantity_received' => 1200,
                 'supplier' => $suppliers[($i - 1) % count($suppliers)],
                 'order_date' => Carbon::now()->subDays(30),
                 'expected_delivery_date' => Carbon::now()->subDays(5),
@@ -117,14 +131,14 @@ class OrderSeeder extends Seeder
                 'approved_at' => Carbon::now()->subDays(25),
                 'received_by' => $admin->id,
                 'received_at' => Carbon::now()->subDays(3),
+            ], [
+                ['drug_id' => $drugs[($i - 1) % $drugs->count()]->id, 'quantity_ordered' => 2000, 'quantity_received' => 1200],
             ]);
         }
 
         // 1 Cancelled order
-        Order::create([
+        $this->createOrderWithItems([
             'order_number' => 'ORD-2026-012',
-            'drug_id' => $drugs->first()->id,
-            'quantity_ordered' => 300,
             'supplier' => 'Discontinued Supplier Ltd',
             'order_date' => Carbon::now()->subDays(15),
             'expected_delivery_date' => Carbon::now()->addDays(20),
@@ -132,6 +146,31 @@ class OrderSeeder extends Seeder
             'status' => 'cancelled',
             'notes' => "Supplier unable to fulfil order.\n\nCancelled: Supplier contract terminated.",
             'created_by' => $procurementOfficer->id,
+        ], [
+            ['drug_id' => $drugs->first()->id, 'quantity_ordered' => 300],
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $orderData
+     * @param  array<int, array<string, mixed>>  $lineItems
+     */
+    private function createOrderWithItems(array $orderData, array $lineItems): Order
+    {
+        $orderData['drug_id'] = $lineItems[0]['drug_id'];
+        $orderData['quantity_ordered'] = collect($lineItems)->sum('quantity_ordered');
+        $orderData['quantity_received'] = collect($lineItems)->sum(fn ($line) => $line['quantity_received'] ?? 0);
+
+        $order = Order::create($orderData);
+
+        foreach ($lineItems as $line) {
+            $order->items()->create([
+                'drug_id' => $line['drug_id'],
+                'quantity_ordered' => $line['quantity_ordered'],
+                'quantity_received' => $line['quantity_received'] ?? 0,
+            ]);
+        }
+
+        return $order;
     }
 }

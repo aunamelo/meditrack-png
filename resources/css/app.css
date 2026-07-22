@@ -86,7 +86,81 @@
     }
 
     .dashboard-shell {
-        @apply mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8;
+        @apply mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8;
+    }
+
+    .dashboard-hero {
+        @apply relative mb-8 overflow-hidden rounded-2xl border border-brand-700/20 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-6 shadow-glow sm:p-8;
+    }
+
+    .dashboard-hero-pattern {
+        @apply pointer-events-none absolute inset-0 opacity-20;
+        background-image: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.25) 0, transparent 45%),
+            radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.12) 0, transparent 35%);
+    }
+
+    .dashboard-hero-cta {
+        @apply inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-5 py-3 text-sm font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/25 hover:shadow-xl;
+    }
+
+    .dashboard-stat-card {
+        @apply rounded-2xl border border-line bg-surface p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-glow dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-brand-800;
+    }
+
+    .dashboard-stat-icon {
+        @apply flex h-11 w-11 items-center justify-center rounded-xl;
+    }
+
+    .dashboard-module-card {
+        @apply flex h-full flex-col rounded-2xl border border-line bg-surface p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-glow dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-brand-800;
+    }
+
+    .dashboard-module-card-primary {
+        @apply border-brand-600 bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-glow hover:border-brand-500 hover:from-brand-500 hover:to-brand-700 dark:border-brand-500;
+    }
+
+    .dashboard-module-icon {
+        @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl;
+    }
+
+    .dashboard-alert {
+        @apply overflow-hidden rounded-2xl border shadow-soft dark:shadow-none;
+    }
+
+    .dashboard-alert-icon {
+        @apply flex h-11 w-11 items-center justify-center rounded-xl;
+    }
+
+    .dashboard-alert-item {
+        @apply flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 transition hover:border-brand-200 hover:bg-brand-50/50 dark:border-zinc-800 dark:bg-zinc-950/40 dark:hover:border-brand-800 dark:hover:bg-zinc-800/40;
+    }
+
+    .dashboard-recent-item {
+        @apply flex items-center justify-between gap-3 px-5 py-4 text-sm transition hover:bg-surface-muted dark:hover:bg-zinc-800/40;
+    }
+
+    .dashboard-status-pill {
+        @apply rounded-full bg-surface-muted px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-muted dark:bg-zinc-800 dark:text-zinc-400;
+    }
+
+    .dashboard-supply-chain {
+        @apply surface-panel p-6;
+    }
+
+    .dashboard-chain-node {
+        @apply rounded-xl border border-line bg-surface-muted/60 p-4 transition dark:border-zinc-800 dark:bg-zinc-900/60;
+    }
+
+    .dashboard-chain-node-active {
+        @apply border-brand-300 bg-brand-50/80 ring-2 ring-brand-500/15 dark:border-brand-700 dark:bg-brand-950/40 dark:ring-brand-500/20;
+    }
+
+    .dashboard-chain-icon {
+        @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-lg;
+    }
+
+    .dashboard-empty-state {
+        @apply surface-panel flex flex-col items-center px-6 py-16 text-center;
     }
 
     .dashboard-welcome {
@@ -95,6 +169,131 @@
 
     .stat-health {
         @apply rounded-lg border border-line bg-surface px-4 py-3.5 dark:border-zinc-800 dark:bg-zinc-900;
+    }
+
+    .module-hero {
+        @apply relative mb-6 overflow-hidden rounded-2xl border border-brand-700/20 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-5 shadow-glow sm:p-6;
+    }
+
+    .module-hero-pattern {
+        @apply pointer-events-none absolute inset-0 opacity-20;
+        background-image: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.22) 0, transparent 42%);
+    }
+
+    .module-hero-icon {
+        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-sm;
+    }
+
+    .module-hero-action {
+        @apply inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25;
+    }
+
+    .module-flash {
+        @apply mb-4 rounded-xl border px-4 py-3 text-sm font-medium;
+    }
+
+    .module-flash-success {
+        @apply border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200;
+    }
+
+    .module-flash-error {
+        @apply border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200;
+    }
+
+    .module-panel {
+        @apply overflow-hidden rounded-2xl border border-line bg-surface shadow-soft dark:border-zinc-800 dark:bg-zinc-900;
+    }
+
+    .module-filter {
+        @apply rounded-xl border border-line bg-surface-muted/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/50;
+    }
+
+    .module-table-wrap {
+        @apply overflow-hidden rounded-xl border border-line dark:border-zinc-800;
+    }
+
+    .module-table {
+        @apply min-w-full divide-y divide-line dark:divide-zinc-800;
+    }
+
+    .module-table thead {
+        @apply bg-surface-muted/80 dark:bg-zinc-900/80;
+    }
+
+    .module-table th {
+        @apply px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-muted dark:text-zinc-400;
+    }
+
+    .module-table tbody {
+        @apply divide-y divide-line bg-surface dark:divide-zinc-800 dark:bg-zinc-900;
+    }
+
+    .module-table td {
+        @apply px-4 py-3.5 text-sm text-ink-secondary dark:text-zinc-300;
+    }
+
+    .module-table tr {
+        @apply transition hover:bg-brand-50/40 dark:hover:bg-zinc-800/40;
+    }
+
+    .module-table-link {
+        @apply font-semibold text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300;
+    }
+
+    .module-badge {
+        @apply inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide;
+    }
+
+    .module-empty-cell {
+        @apply px-4 py-12;
+    }
+
+    .module-empty {
+        @apply flex flex-col items-center text-center;
+    }
+
+    .module-empty-icon {
+        @apply mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface-muted dark:bg-zinc-800;
+    }
+
+    .module-back-link {
+        @apply inline-flex items-center gap-1.5 text-sm font-medium text-muted transition hover:text-brand-600 dark:hover:text-brand-400;
+    }
+
+    .module-detail-card {
+        @apply overflow-hidden rounded-2xl border border-line bg-surface shadow-soft dark:border-zinc-800 dark:bg-zinc-900;
+    }
+
+    .module-detail-card-header {
+        @apply border-b border-line px-5 py-4 dark:border-zinc-800;
+    }
+
+    .module-detail-card-body {
+        @apply p-5;
+    }
+
+    .module-form-shell {
+        @apply module-panel p-6 sm:p-8;
+    }
+
+    .module-actions-bar {
+        @apply mb-6 flex flex-wrap items-center justify-between gap-3;
+    }
+
+    .btn-module-secondary {
+        @apply inline-flex items-center justify-center rounded-lg border border-line bg-surface px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-ink-secondary transition hover:bg-surface-muted dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800;
+    }
+
+    .form-label {
+        @apply mb-1 block text-sm font-medium text-ink-secondary dark:text-zinc-300;
+    }
+
+    .module-progress-track {
+        @apply h-2 w-24 overflow-hidden rounded-full bg-surface-muted dark:bg-zinc-800;
+    }
+
+    .module-progress-bar {
+        @apply h-full rounded-full bg-brand-600 transition-all;
     }
 }
 

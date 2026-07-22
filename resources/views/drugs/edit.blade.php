@@ -1,42 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Edit Drug - {{ $drug->drug_name }}
-        </h2>
+        <div>
+            <p class="text-section-label">Inventory</p>
+            <h2 class="heading-page">Edit Drug — {{ $drug->drug_name }}</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <!-- Breadcrumb -->
-                    <nav class="flex mb-6" aria-label="Breadcrumb">
-                        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                            <li class="inline-flex items-center">
-                                <a href="{{ getDashboardDrugRoute('index') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-[#0f766e]">
-                                    Drugs
-                                </a>
-                            </li>
-                            <li>
-                                <div class="flex items-center">
-                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                    </svg>
-                                    <a href="{{ getDashboardDrugRoute('show', $drug->id) }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-[#0f766e]">
-                                        {{ $drug->drug_name }}
-                                    </a>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="flex items-center">
-                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                    </svg>
-                                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Edit</span>
-                                </div>
-                            </li>
-                        </ol>
-                    </nav>
+    <x-page-container>
+        <x-module.back-link :href="getDashboardDrugRoute('show', $drug->id)" :label="'Back to ' . $drug->drug_name" class="mb-6" />
+
+        <div class="module-form-shell">
 
                     <!-- Read-Only Fields Warning -->
                     <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
@@ -126,7 +99,7 @@
                             <div>
                                 <label for="reorder_point" class="block text-sm font-medium text-gray-700 mb-1">Reorder Point <span class="text-red-500">*</span></label>
                                 <input type="number" name="reorder_point" id="reorder_point" value="{{ old('reorder_point', $drug->reorder_point) }}" required min="1"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                    class="input-field">
                                 @error('reorder_point')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -135,7 +108,7 @@
                             <div class="md:col-span-2">
                                 <label for="storage_location" class="block text-sm font-medium text-gray-700 mb-1">Storage Location</label>
                                 <input type="text" name="storage_location" id="storage_location" value="{{ old('storage_location', $drug->storage_location) }}"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., Shelf A1">
                                 @error('storage_location')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -145,7 +118,7 @@
                             <div class="md:col-span-2">
                                 <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                                 <textarea name="notes" id="notes" rows="4"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="Enter any additional notes...">{{ old('notes', $drug->notes) }}</textarea>
                                 @error('notes')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -155,16 +128,10 @@
 
                         <!-- Buttons -->
                         <div class="mt-6 flex items-center justify-end gap-4">
-                            <a href="{{ getDashboardDrugRoute('show', $drug->id) }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200 focus:outline-none focus:border-gray-500 focus:ring ring-gray-500 disabled:opacity-25 transition ease-in-out duration-150">
-                                Cancel
-                            </a>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59] focus:outline-none focus:border-[#0f766e] focus:ring ring-[#0f766e] disabled:opacity-25 transition ease-in-out duration-150">
-                                Update Drug
-                            </button>
+                            <a href="{{ getDashboardDrugRoute('show', $drug->id) }}" class="btn-module-secondary">Cancel</a>
+                            <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Update Drug</button>
                         </div>
                     </form>
-                </div>
-            </div>
         </div>
-    </div>
+    </x-page-container>
 </x-app-layout>

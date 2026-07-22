@@ -69,7 +69,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {
     Route::resource('drugs', DrugController::class);
-    Route::get('orders/supplier-quotes', [OrderController::class, 'supplierQuotes'])->name('orders.supplier-quotes');
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::resource('orders', OrderController::class);
     Route::resource('transfers', StockTransferController::class)->only(['index', 'create', 'store', 'show']);

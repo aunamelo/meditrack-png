@@ -18,16 +18,21 @@ class DashboardChartService
             'admin' => [
                 self::orderStatusChart(),
                 self::ordersTrendChart(),
+                self::shipmentStatusChart('lae_ams'),
             ],
-            'procurement_officer' => [
+            'procurement_officer' => array_values(array_filter([
                 self::orderStatusChart($userId),
                 self::ordersTrendChart($userId),
-            ],
+                $userId ? self::procurementSpendChart($userId) : null,
+            ])),
             'store_manager' => [
                 self::inventoryHealthChart($inventoryLevel ?? 'lae_ams'),
+                self::shipmentStatusChart('lae_ams'),
+                self::topStockChart($inventoryLevel ?? 'lae_ams'),
             ],
             'pharmacy_manager', 'pharmacist' => [
                 self::inventoryHealthChart($inventoryLevel ?? 'modilon_hospital'),
+                self::topStockChart($inventoryLevel ?? 'modilon_hospital'),
             ],
             default => [],
         };
@@ -196,18 +201,20 @@ class DashboardChartService
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $labels = ['In transit by road', 'Received', 'Cancelled'];
+        $labels = $toLevel === 'lae_ams'
+            ? ['Shipped to Lae AMS', 'Received at Lae AMS', 'Cancelled']
+            : ['In transit by road', 'Received', 'Cancelled'];
         $keys = ['sent', 'received', 'cancelled'];
         $data = array_map(fn (string $key) => (int) ($counts[$key] ?? 0), $keys);
 
         return [
             'id' => 'shipment-status-'.($toLevel ?? 'all'),
             'type' => 'bar',
-            'title' => 'Road delivery status',
-            'subtitle' => $toLevel ? 'Lae AMS warehouse deliveries' : 'NDoH → Lae AMS by road',
+            'title' => $toLevel === 'lae_ams' ? 'NDoH shipment status' : 'Road delivery status',
+            'subtitle' => $toLevel === 'lae_ams' ? 'NDoH → Lae AMS logistics' : 'NDoH → Lae AMS shipments',
             'labels' => $labels,
             'datasets' => [[
-                'label' => 'Road deliveries',
+                'label' => $toLevel === 'lae_ams' ? 'Shipments' : 'Road deliveries',
                 'data' => $data,
                 'backgroundColor' => ['#3b82f6', '#10b981', '#ef4444'],
                 'borderRadius' => 8,

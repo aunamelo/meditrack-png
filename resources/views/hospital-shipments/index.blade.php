@@ -1,37 +1,61 @@
 <x-app-layout>
     <x-slot name="header">
-        <div><p class="text-section-label">Logistics</p><h2 class="heading-page">Hospital Road Deliveries</h2></div>
+        <div>
+            <p class="text-section-label">Logistics</p>
+            <h2 class="heading-page">Hospital Road Deliveries</h2>
+        </div>
     </x-slot>
+
     <x-page-container>
-        <div class="surface-panel p-6">
-            <p class="mb-6 text-sm text-gray-500">Track drugs dispatched by car from Lae AMS to Modilon Hospital.</p>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50"><tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Transfer #</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Drug</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Qty</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Sent</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Status</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Actions</th>
-                    </tr></thead>
-                    <tbody class="divide-y divide-gray-200">
+        <x-module.flash />
+
+        <x-module.hero
+            icon="truck"
+            title="Lae AMS → Modilon Hospital"
+            description="Track drugs dispatched by road from the regional warehouse to Modilon Hospital."
+        />
+
+        <div class="module-panel p-6">
+            <div class="module-table-wrap overflow-x-auto">
+                <table class="module-table">
+                    <thead>
+                        <tr>
+                            <th>Transfer #</th>
+                            <th>Drug</th>
+                            <th>Qty</th>
+                            <th>Sent</th>
+                            <th>Status</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         @forelse($transfers as $transfer)
                             <tr>
-                                <td class="px-4 py-3 text-sm font-medium">{{ $transfer->transfer_number }}</td>
-                                <td class="px-4 py-3 text-sm">{{ $transfer->drug->drug_name ?? 'N/A' }}</td>
-                                <td class="px-4 py-3 text-sm">{{ number_format($transfer->quantity_sent) }}</td>
-                                <td class="px-4 py-3 text-sm">{{ $transfer->formatSentDate() }}</td>
-                                <td class="px-4 py-3 text-sm">{{ logisticsTransferStatusLabel($transfer->status) }}</td>
-                                <td class="px-4 py-3 text-right text-sm"><a href="{{ getDashboardHospitalShipmentRoute('show', $transfer) }}" class="font-semibold text-brand-600">View</a></td>
+                                <td class="font-semibold text-ink dark:text-zinc-100">{{ $transfer->transfer_number }}</td>
+                                <td>{{ $transfer->drug->drug_name ?? 'N/A' }}</td>
+                                <td>{{ number_format($transfer->quantity_sent) }}</td>
+                                <td>{{ $transfer->formatSentDate() }}</td>
+                                <td>
+                                    <x-module.status-badge :variant="$transfer->status" :label="logisticsTransferStatusLabel($transfer->status)" />
+                                </td>
+                                <td class="text-right">
+                                    <a href="{{ getDashboardHospitalShipmentRoute('show', $transfer) }}" class="module-table-link">View</a>
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="px-4 py-8 text-center text-sm text-gray-500">No hospital road deliveries yet.</td></tr>
+                            <x-module.empty-row
+                                :colspan="6"
+                                title="No hospital road deliveries yet"
+                                description="Deliveries appear when Lae AMS dispatches approved hospital orders."
+                            />
                         @endforelse
                     </tbody>
                 </table>
             </div>
-            @if($transfers->hasPages())<div class="mt-6">{{ $transfers->links() }}</div>@endif
+
+            @if($transfers->hasPages())
+                <div class="mt-6">{{ $transfers->links() }}</div>
+            @endif
         </div>
     </x-page-container>
 </x-app-layout>

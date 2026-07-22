@@ -60,7 +60,7 @@
     </div>
 
     <div class="p-4">
-        <p class="text-xs text-gray-600 mb-4">Convert supplier quotes to Kina (PGK) before recording costs. Rates refresh on each conversion.</p>
+        <p class="text-xs text-gray-600 mb-4">Convert foreign currency to Kina (PGK) before recording costs. Rates refresh on each conversion.</p>
 
         {{-- Spot rate ticker --}}
         <div x-show="spotRate && fromCurrency" x-cloak

@@ -15,7 +15,7 @@
                     ['Hospital orders', $report['hospital_orders']['total'], 'amber'],
                     ['Pending hospital orders', $report['hospital_orders']['pending'], 'amber'],
                     ['Rejected orders', $report['hospital_orders']['rejected'], 'red'],
-                    ['NDoH receipts', $report['ndoh_receipts']['received'].' / '.$report['ndoh_receipts']['total'], 'blue'],
+                    ['NDoH shipments received', $report['ndoh_receipts']['received'].' / '.$report['ndoh_receipts']['total'], 'blue'],
                     ['Hospital road deliveries', $report['hospital_shipments']['total'], 'purple'],
                     ['Open discrepancies', $report['discrepancies']['open'], 'red'],
                 ] as [$label, $value, $tone])
@@ -35,12 +35,12 @@
                     </ul>
                 </div>
                 <div>
-                    <h4 class="mb-3 font-semibold">Road delivery summary</h4>
+                    <h4 class="mb-3 font-semibold">Logistics summary</h4>
                     <ul class="space-y-2 text-sm">
-                        <li class="flex justify-between"><span>Units dispatched by road</span><span class="font-semibold">{{ number_format($report['hospital_shipments']['units_sent']) }}</span></li>
-                        <li class="flex justify-between"><span>In transit</span><span class="font-semibold">{{ $report['hospital_shipments']['in_transit'] }}</span></li>
-                        <li class="flex justify-between"><span>Delivered</span><span class="font-semibold">{{ $report['hospital_shipments']['delivered'] }}</span></li>
-                        <li class="flex justify-between"><span>NDoH units received</span><span class="font-semibold">{{ number_format($report['ndoh_receipts']['units_received']) }}</span></li>
+                        <li class="flex justify-between"><span>Hospital units dispatched by road</span><span class="font-semibold">{{ number_format($report['hospital_shipments']['units_sent']) }}</span></li>
+                        <li class="flex justify-between"><span>Hospital deliveries in transit</span><span class="font-semibold">{{ $report['hospital_shipments']['in_transit'] }}</span></li>
+                        <li class="flex justify-between"><span>Hospital deliveries completed</span><span class="font-semibold">{{ $report['hospital_shipments']['delivered'] }}</span></li>
+                        <li class="flex justify-between"><span>NDoH units received at Lae AMS</span><span class="font-semibold">{{ number_format($report['ndoh_receipts']['units_received']) }}</span></li>
                     </ul>
                 </div>
             </div>

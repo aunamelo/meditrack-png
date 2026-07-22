@@ -1,163 +1,196 @@
 @php
-    $statusClasses = [
-        'pending' => 'bg-gray-100 text-gray-800',
-        'ordered' => 'bg-blue-100 text-blue-800',
-        'shipped' => 'bg-purple-100 text-purple-800',
-        'received' => 'bg-green-100 text-green-800',
-        'partial' => 'bg-yellow-100 text-yellow-800',
-        'cancelled' => 'bg-red-100 text-red-800',
-    ];
-    $remainingQty = $order->quantity_ordered - ($order->quantity_received ?? 0);
+    $order->loadMissing('items.drug');
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Order {{ $order->order_number }}
-        </h2>
+        <div>
+            <p class="text-section-label">Procurement</p>
+            <h2 class="heading-page">Order {{ $order->order_number }}</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12" x-data="{ showReceiveModal: {{ old('_receive_modal') && $errors->any() ? 'true' : 'false' }} }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            @if (session('success'))
-                <div class="bg-green-50 border border-green-200 text-green-800 rounded-md p-4">{{ session('success') }}</div>
-            @endif
-            @if (session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-4">{{ session('error') }}</div>
-            @endif
+    <x-page-container x-data="{ showReceiveModal: {{ old('_receive_modal') && $errors->any() ? 'true' : 'false' }} }">
+        <x-module.flash />
 
-            <div class="flex items-center justify-between">
-                <a href="{{ getDashboardOrderRoute('index') }}" class="inline-flex items-center text-sm text-gray-600 hover:text-[#0f766e]">
-                    ← Back to Orders
-                </a>
-                <div class="flex gap-3">
-                    @if(canManageOrders() && $order->status === 'pending' && $order->created_by === auth()->id())
-                        <a href="{{ getDashboardOrderRoute('edit', $order) }}" class="inline-flex items-center px-3 py-2 bg-gray-100 rounded-md text-xs font-semibold text-gray-700 uppercase hover:bg-gray-200">Edit</a>
-                        <details class="inline-block">
-                            <summary class="inline-flex items-center px-3 py-2 bg-red-100 rounded-md text-xs font-semibold text-red-700 uppercase hover:bg-red-200 cursor-pointer list-none">Cancel</summary>
-                            <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute mt-2 p-4 bg-white border rounded-lg shadow-lg z-10 w-80">
-                                @csrf
-                                <label for="cancel_reason" class="block text-sm font-medium text-gray-700 mb-1">Cancellation Reason</label>
-                                <textarea name="reason" id="cancel_reason" rows="3" required class="w-full rounded-md border-gray-300 text-sm"></textarea>
-                                <button type="submit" class="mt-2 inline-flex items-center px-3 py-2 bg-red-600 rounded-md text-xs font-semibold text-white uppercase">Confirm Cancel</button>
-                            </form>
-                        </details>
-                    @endif
-                    @if(canApproveOrders() && $order->canApprove())
-                        <form action="{{ getDashboardOrderRoute('approve', $order) }}" method="POST">
+        <div class="module-actions-bar">
+            <x-module.back-link :href="getDashboardOrderRoute('index')" label="Back to Orders" />
+            <div class="flex flex-wrap gap-3">
+                @if(canManageOrders() && $order->status === 'pending' && $order->created_by === auth()->id())
+                    <a href="{{ getDashboardOrderRoute('edit', $order) }}" class="btn-module-secondary">Edit</a>
+                    <details class="relative inline-block">
+                        <summary class="inline-flex cursor-pointer list-none items-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-rose-700 hover:bg-rose-100">Cancel</summary>
+                        <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
                             @csrf
-                            <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 rounded-md text-xs font-semibold text-white uppercase hover:bg-blue-700">Approve</button>
+                            <label for="cancel_reason" class="form-label">Cancellation Reason</label>
+                            <textarea name="reason" id="cancel_reason" rows="3" required class="input-field"></textarea>
+                            <button type="submit" class="btn-brand mt-2 w-full text-xs uppercase">Confirm Cancel</button>
                         </form>
-                    @endif
-                    @if(canApproveOrders() && $order->status === 'pending')
-                        <details class="inline-block">
-                            <summary class="inline-flex items-center px-3 py-2 bg-red-100 rounded-md text-xs font-semibold text-red-700 uppercase hover:bg-red-200 cursor-pointer list-none">Cancel</summary>
-                            <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute mt-2 p-4 bg-white border rounded-lg shadow-lg z-10 w-80">
-                                @csrf
-                                <label for="admin_cancel_reason" class="block text-sm font-medium text-gray-700 mb-1">Cancellation Reason</label>
-                                <textarea name="reason" id="admin_cancel_reason" rows="3" required class="w-full rounded-md border-gray-300 text-sm"></textarea>
-                                <button type="submit" class="mt-2 inline-flex items-center px-3 py-2 bg-red-600 rounded-md text-xs font-semibold text-white uppercase">Confirm Cancel</button>
-                            </form>
-                        </details>
-                    @endif
-                    @if(canApproveOrders() && $order->canReceive())
-                        <button type="button" @click="showReceiveModal = true" class="inline-flex items-center px-3 py-2 bg-[#0f766e] rounded-md text-xs font-semibold text-white uppercase hover:bg-[#0d5f59]">Receive</button>
-                    @endif
-                </div>
+                    </details>
+                @endif
+                @if(canApproveOrders() && $order->canApprove())
+                    <form action="{{ getDashboardOrderRoute('approve', $order) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-blue-700">Approve</button>
+                    </form>
+                @endif
+                @if(canApproveOrders() && $order->status === 'pending')
+                    <details class="relative inline-block">
+                        <summary class="inline-flex cursor-pointer list-none items-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-rose-700 hover:bg-rose-100">Cancel</summary>
+                        <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+                            @csrf
+                            <label for="admin_cancel_reason" class="form-label">Cancellation Reason</label>
+                            <textarea name="reason" id="admin_cancel_reason" rows="3" required class="input-field"></textarea>
+                            <button type="submit" class="btn-brand mt-2 w-full text-xs uppercase">Confirm Cancel</button>
+                        </form>
+                    </details>
+                @endif
+                @if(canApproveOrders() && $order->canReceive())
+                    <button type="button" @click="showReceiveModal = true" class="btn-brand text-xs uppercase tracking-wider">Receive</button>
+                @endif
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Order Information</h3>
-                    <p class="text-2xl font-bold text-[#0f766e] mb-3">{{ $order->order_number }}</p>
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $statusClasses[$order->status] ?? 'bg-gray-100 text-gray-800' }}">{{ ucfirst($order->status) }}</span>
-                    <dl class="mt-4 space-y-3 text-sm">
-                        <div><dt class="text-gray-500">Order Date</dt><dd class="font-medium text-gray-900">{{ $order->formatOrderDate() }}</dd></div>
-                        <div><dt class="text-gray-500">Created By</dt><dd class="font-medium text-gray-900">{{ $order->creator->name ?? 'N/A' }}</dd></div>
-                        <div>
-                            <dt class="text-gray-500">Approval Status</dt>
-                            <dd class="font-medium text-gray-900">
-                                @if($order->approved_at)
-                                    Approved on {{ $order->approved_at->format('M d, Y') }} by {{ $order->approver->name ?? 'N/A' }}
-                                @else
-                                    Pending approval
-                                @endif
-                            </dd>
-                        </div>
-                        @if($order->supplier_invoice)
-                            <div><dt class="text-gray-500">Invoice #</dt><dd class="font-medium text-gray-900">{{ $order->supplier_invoice }}</dd></div>
-                        @endif
-                        @if($order->invoice_amount)
-                            <div><dt class="text-gray-500">Invoice Amount</dt><dd class="font-medium text-gray-900">K {{ number_format($order->invoice_amount, 2) }}</dd></div>
-                        @endif
-                    </dl>
-                </div>
-
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Drug & Delivery</h3>
-                    <dl class="space-y-3 text-sm">
-                        <div>
-                            <dt class="text-gray-500">Drug Name</dt>
-                            <dd class="font-medium text-gray-900">
-                                @if($order->drug)
-                                    <a href="{{ getDashboardDrugRoute('show', $order->drug) }}" class="text-[#0f766e] hover:text-[#0d5f59]">{{ $order->drug->drug_name }}</a>
-                                @else
-                                    N/A
-                                @endif
-                            </dd>
-                        </div>
-                        <div><dt class="text-gray-500">Quantity Ordered</dt><dd class="font-medium text-gray-900">{{ number_format($order->quantity_ordered) }}</dd></div>
-                        <div><dt class="text-gray-500">Supplier</dt><dd class="font-medium text-gray-900">{{ $order->supplier }}</dd></div>
-                        <div><dt class="text-gray-500">Source</dt><dd class="font-medium text-gray-900">{{ ucfirst($order->source) }}</dd></div>
-                        <div><dt class="text-gray-500">Expected Delivery</dt><dd class="font-medium text-gray-900">{{ $order->formatDeliveryDate() }}</dd></div>
-                        @if($order->isOverdue())
-                            <div><dt class="text-gray-500">Overdue</dt><dd class="font-medium text-red-600">{{ $order->daysOverdue() }} days</dd></div>
-                        @elseif($order->expected_delivery_date && !in_array($order->status, ['received', 'cancelled']))
-                            <div><dt class="text-gray-500">Days to Delivery</dt><dd class="font-medium text-gray-900">{{ now()->diffInDays($order->expected_delivery_date, false) }} days</dd></div>
-                        @endif
-                    </dl>
-                </div>
-
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Receipt</h3>
-                    <p class="text-3xl font-bold text-gray-900 mb-2">{{ number_format($order->quantity_received ?? 0) }}</p>
-                    <p class="text-sm text-gray-500 mb-4">of {{ number_format($order->quantity_ordered) }} received</p>
-                    <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
-                        <div class="bg-[#0f766e] h-3 rounded-full" style="width: {{ $order->getProgressPercentage() }}%"></div>
-                    </div>
-                    <dl class="space-y-3 text-sm">
-                        <div>
-                            <dt class="text-gray-500">Receipt Status</dt>
-                            <dd class="font-medium text-gray-900">
-                                @if($order->status === 'received')
-                                    Complete
-                                @elseif($order->status === 'partial')
-                                    Partial delivery
-                                @else
-                                    Not yet received
-                                @endif
-                            </dd>
-                        </div>
-                        @if($order->actual_delivery_date)
-                            <div><dt class="text-gray-500">Received Date</dt><dd class="font-medium text-gray-900">{{ $order->actual_delivery_date->format('M d, Y') }}</dd></div>
-                        @endif
-                        @if($order->receiver)
-                            <div><dt class="text-gray-500">Received By</dt><dd class="font-medium text-gray-900">{{ $order->receiver->name }}</dd></div>
-                        @endif
-                    </dl>
-                </div>
-            </div>
-
-            @if($order->notes)
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Notes</h3>
-                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ $order->notes }}</p>
-                </div>
-            @endif
-
-            @if(canApproveOrders())
-                @include('orders.receive-modal', ['order' => $order, 'remainingQty' => $remainingQty])
-            @endif
         </div>
-    </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <x-module.detail-card title="Order Information">
+                <p class="font-display text-2xl font-bold text-brand-600 dark:text-brand-400">{{ $order->order_number }}</p>
+                <div class="mt-3">
+                    <x-module.status-badge :variant="$order->status" :label="ucfirst($order->status)" />
+                </div>
+                <dl class="mt-4 space-y-4">
+                    <x-module.detail-field label="Order Date" :value="$order->formatOrderDate()" />
+                    <x-module.detail-field label="Created By" :value="$order->creator->name ?? 'N/A'" />
+                    <x-module.detail-field label="Approval Status">
+                        @if($order->approved_at)
+                            Approved on {{ $order->approved_at->format('M d, Y') }} by {{ $order->approver->name ?? 'N/A' }}
+                        @else
+                            Pending approval
+                        @endif
+                    </x-module.detail-field>
+                    @if($order->supplier_invoice)
+                        <x-module.detail-field label="Invoice #" :value="$order->supplier_invoice" />
+                    @endif
+                    @if($order->invoice_amount)
+                        <x-module.detail-field label="Invoice Amount" :value="'K ' . number_format($order->invoice_amount, 2)" />
+                    @endif
+                </dl>
+            </x-module.detail-card>
+
+            <x-module.detail-card title="Supplier & Delivery">
+                <dl class="space-y-4">
+                    <x-module.detail-field label="Supplier" :value="$order->supplier" />
+                    <x-module.detail-field label="Source" :value="ucfirst($order->source)" />
+                    <x-module.detail-field label="Expected Delivery" :value="$order->formatDeliveryDate()" />
+                    @if($order->isOverdue())
+                        <x-module.detail-field label="Overdue">
+                            <span class="text-rose-600">{{ $order->daysOverdue() }} days</span>
+                        </x-module.detail-field>
+                    @elseif($order->expected_delivery_date && !in_array($order->status, ['received', 'cancelled']))
+                        <x-module.detail-field label="Days to Delivery" :value="now()->diffInDays($order->expected_delivery_date, false) . ' days'" />
+                    @endif
+                </dl>
+            </x-module.detail-card>
+
+            <x-module.detail-card title="Receipt">
+                <p class="font-display text-3xl font-bold text-ink dark:text-zinc-100">{{ number_format($order->quantity_received ?? 0) }}</p>
+                <p class="mt-1 text-sm text-muted">of {{ number_format($order->quantity_ordered) }} received</p>
+                <div class="module-progress-track mt-4 w-full">
+                    <div class="module-progress-bar" style="width: {{ $order->getProgressPercentage() }}%"></div>
+                </div>
+                <dl class="mt-4 space-y-4">
+                    <x-module.detail-field label="Receipt Status">
+                        @if($order->status === 'received')
+                            Complete
+                        @elseif($order->status === 'partial')
+                            Partial delivery
+                        @else
+                            Not yet received
+                        @endif
+                    </x-module.detail-field>
+                    @if($order->actual_delivery_date)
+                        <x-module.detail-field label="Received Date" :value="$order->actual_delivery_date->format('M d, Y')" />
+                    @endif
+                    @if($order->receiver)
+                        <x-module.detail-field label="Received By" :value="$order->receiver->name" />
+                    @endif
+                </dl>
+            </x-module.detail-card>
+        </div>
+
+        <x-module.detail-card title="Order Lines" class="mt-6">
+            <div class="mb-4 flex items-center justify-between">
+                <p class="text-sm text-muted">{{ max($order->items->count(), 1) }} {{ Str::plural('item', max($order->items->count(), 1)) }} · {{ number_format($order->quantity_ordered) }} units total</p>
+            </div>
+            <div class="module-table-wrap overflow-x-auto">
+                <table class="module-table">
+                    <thead>
+                        <tr>
+                            <th>Drug</th>
+                            <th class="text-right">Ordered</th>
+                            <th class="text-right">Received</th>
+                            <th class="text-right">Remaining</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($order->items as $item)
+                            <tr>
+                                <td>
+                                    @if($item->drug)
+                                        <a href="{{ getDashboardDrugRoute('show', $item->drug) }}" class="module-table-link">{{ $item->drug->drug_name }}</a>
+                                        <span class="block text-xs text-muted">{{ $item->drug->dosage }}</span>
+                                    @else
+                                        N/A
+                                    @endif
+                                </td>
+                                <td class="text-right font-medium">{{ number_format($item->quantity_ordered) }}</td>
+                                <td class="text-right font-medium">{{ number_format($item->quantity_received ?? 0) }}</td>
+                                <td class="text-right font-medium">{{ number_format($item->remainingQuantity()) }}</td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <div class="module-progress-track w-20">
+                                            <div class="module-progress-bar" style="width: {{ $item->getProgressPercentage() }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-muted">{{ $item->getProgressPercentage() }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td>
+                                    @if($order->drug)
+                                        <a href="{{ getDashboardDrugRoute('show', $order->drug) }}" class="module-table-link">{{ $order->drug->drug_name }}</a>
+                                        <span class="block text-xs text-muted">{{ $order->drug->dosage }}</span>
+                                    @else
+                                        N/A
+                                    @endif
+                                </td>
+                                <td class="text-right font-medium">{{ number_format($order->quantity_ordered) }}</td>
+                                <td class="text-right font-medium">{{ number_format($order->quantity_received ?? 0) }}</td>
+                                <td class="text-right font-medium">{{ number_format(max(0, $order->quantity_ordered - ($order->quantity_received ?? 0))) }}</td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <div class="module-progress-track w-20">
+                                            <div class="module-progress-bar" style="width: {{ $order->getProgressPercentage() }}%"></div>
+                                        </div>
+                                        <span class="text-xs text-muted">{{ $order->getProgressPercentage() }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </x-module.detail-card>
+
+        @if($order->notes)
+            <x-module.detail-card title="Notes" class="mt-6">
+                <p class="whitespace-pre-line text-sm text-ink-secondary dark:text-zinc-300">{{ $order->notes }}</p>
+            </x-module.detail-card>
+        @endif
+
+        @if(canApproveOrders())
+            @include('orders.receive-modal', ['order' => $order])
+        @endif
+    </x-page-container>
 </x-app-layout>

@@ -10,7 +10,7 @@ use Illuminate\Validation\Validator;
 class StoreStockTransferRequest extends FormRequest
 {
     /**
-     * Only Procurement Officers can dispatch road deliveries to Lae AMS.
+     * Only Procurement Officers can ship stock from NDoH to Lae AMS.
      */
     public function authorize(): bool
     {
@@ -43,7 +43,7 @@ class StoreStockTransferRequest extends FormRequest
             }
 
             if ($drug->level !== 'ndoh') {
-                $validator->errors()->add('drug_id', 'Only NDoH level drugs can be sent by road to Lae AMS.');
+                $validator->errors()->add('drug_id', 'Only NDoH level drugs can be shipped to Lae AMS.');
             }
 
             if ($drug->status === 'written_off') {
@@ -51,7 +51,7 @@ class StoreStockTransferRequest extends FormRequest
             }
 
             if ($drug->is_expired) {
-                $validator->errors()->add('drug_id', 'Expired drugs cannot be dispatched by road.');
+                $validator->errors()->add('drug_id', 'Expired drugs cannot be shipped.');
             }
 
             $quantitySent = (int) $this->input('quantity_sent');

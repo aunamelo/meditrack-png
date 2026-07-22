@@ -14,14 +14,14 @@ return [
     'roles' => [
         'admin' => [
             'label' => 'NDoH Admin',
-            'subtitle' => 'National procurement & supply oversight',
+            'subtitle' => 'National procurement, shipments & supply oversight',
             'inventory_level' => 'ndoh',
             'inventory_label' => 'NDoH Central Store',
             'dashboard_route' => 'dashboard.admin',
         ],
         'procurement_officer' => [
             'label' => 'Procurement Officer',
-            'subtitle' => 'Source medicines & manage orders',
+            'subtitle' => 'Source medicines, ship to Lae AMS & manage orders',
             'inventory_level' => 'ndoh',
             'inventory_label' => 'NDoH Central Store',
             'dashboard_route' => 'dashboard.procurement_officer',
@@ -72,7 +72,7 @@ return [
     */
 
     'supply_chain' => [
-        ['key' => 'ndoh', 'label' => 'NDoH', 'description' => 'Central procurement'],
+        ['key' => 'ndoh', 'label' => 'NDoH', 'description' => 'Central procurement & shipments to Lae AMS'],
         ['key' => 'lae_ams', 'label' => 'Lae AMS', 'description' => 'Regional warehouse'],
         ['key' => 'modilon_hospital', 'label' => 'Modilon Hospital', 'description' => 'Patient dispensing'],
     ],

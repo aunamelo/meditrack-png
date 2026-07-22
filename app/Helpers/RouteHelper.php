@@ -82,7 +82,7 @@ if (! function_exists('getDashboardTransferRoute')) {
         if (auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager'])) {
             $prefix = getDashboardRoutePrefix().'transfers.';
         } else {
-            abort(403, 'You do not have access to road deliveries.');
+            abort(403, 'You do not have access to NDoH shipments.');
         }
 
         $fullRouteName = $prefix.$routeName;
@@ -93,7 +93,7 @@ if (! function_exists('getDashboardTransferRoute')) {
 
 if (! function_exists('canManageTransfers')) {
     /**
-     * Whether the current user can record road deliveries to Lae AMS.
+     * Whether the current user can ship stock from NDoH to Lae AMS.
      */
     function canManageTransfers(): bool
     {
@@ -223,7 +223,25 @@ if (! function_exists('canRequestHospitalOrders')) {
     }
 }
 
+if (! function_exists('ndohToLaeAmsTransferStatusLabel')) {
+    /**
+     * Status labels for Department of Health (NDoH) shipments to Lae AMS.
+     */
+    function ndohToLaeAmsTransferStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'sent' => 'Shipped to Lae AMS',
+            'received' => 'Received at Lae AMS',
+            'cancelled' => 'Cancelled',
+            default => ucfirst(str_replace('_', ' ', $status)),
+        };
+    }
+}
+
 if (! function_exists('logisticsTransferStatusLabel')) {
+    /**
+     * Status labels for Lae AMS → hospital road deliveries.
+     */
     function logisticsTransferStatusLabel(string $status): string
     {
         return match ($status) {

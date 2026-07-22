@@ -1,32 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Enter New Drug
-        </h2>
+        <div>
+            <p class="text-section-label">Inventory</p>
+            <h2 class="heading-page">Enter New Drug</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <!-- Breadcrumb -->
-                    <nav class="flex mb-6" aria-label="Breadcrumb">
-                        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                            <li class="inline-flex items-center">
-                                <a href="{{ getDashboardDrugRoute('index') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-[#0f766e]">
-                                    Drugs
-                                </a>
-                            </li>
-                            <li>
-                                <div class="flex items-center">
-                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                    </svg>
-                                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Create</span>
-                                </div>
-                            </li>
-                        </ol>
-                    </nav>
+    <x-page-container>
+        <x-module.back-link :href="getDashboardDrugRoute('index')" label="Back to Drugs" class="mb-6" />
+
+        <div class="module-form-shell">
 
                     <!-- Form -->
                     <form action="{{ getDashboardDrugRoute('store') }}" method="POST"
@@ -62,9 +45,9 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Drug Name -->
                             <div>
-                                <label for="drug_name" class="block text-sm font-medium text-gray-700 mb-1">Drug Name <span class="text-red-500">*</span></label>
+                                <label for="drug_name" class="form-label">Drug Name <span class="text-red-500">*</span></label>
                                 <input type="text" name="drug_name" id="drug_name" value="{{ old('drug_name') }}" required
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., Paracetamol">
                                 @error('drug_name')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -73,9 +56,9 @@
 
                             <!-- Batch Number -->
                             <div>
-                                <label for="batch_number" class="block text-sm font-medium text-gray-700 mb-1">Batch Number <span class="text-red-500">*</span></label>
+                                <label for="batch_number" class="form-label">Batch Number <span class="text-red-500">*</span></label>
                                 <input type="text" name="batch_number" id="batch_number" value="{{ old('batch_number') }}" required
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., BATCH-2024-001">
                                 @error('batch_number')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -84,9 +67,9 @@
 
                             <!-- Expiry Date -->
                             <div>
-                                <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="text-red-500">*</span></label>
+                                <label for="expiry_date" class="form-label">Expiry Date <span class="text-red-500">*</span></label>
                                 <input type="date" name="expiry_date" id="expiry_date" value="{{ old('expiry_date') }}" required min="{{ date('Y-m-d') }}"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                    class="input-field">
                                 @error('expiry_date')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -94,9 +77,9 @@
 
                             <!-- Quantity Received -->
                             <div>
-                                <label for="quantity_received" class="block text-sm font-medium text-gray-700 mb-1">Quantity Received <span class="text-red-500">*</span></label>
+                                <label for="quantity_received" class="form-label">Quantity Received <span class="text-red-500">*</span></label>
                                 <input type="number" name="quantity_received" id="quantity_received" x-model="quantityReceived" required min="1"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., 100">
                                 @error('quantity_received')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -105,9 +88,9 @@
 
                             <!-- Dosage -->
                             <div>
-                                <label for="dosage" class="block text-sm font-medium text-gray-700 mb-1">Dosage <span class="text-red-500">*</span></label>
+                                <label for="dosage" class="form-label">Dosage <span class="text-red-500">*</span></label>
                                 <input type="text" name="dosage" id="dosage" value="{{ old('dosage') }}" required
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., 500mg">
                                 @error('dosage')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -116,9 +99,9 @@
 
                             <!-- Dosage Form -->
                             <div>
-                                <label for="dosage_form" class="block text-sm font-medium text-gray-700 mb-1">Dosage Form <span class="text-red-500">*</span></label>
+                                <label for="dosage_form" class="form-label">Dosage Form <span class="text-red-500">*</span></label>
                                 <select name="dosage_form" id="dosage_form" required
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                    class="input-field">
                                     <option value="">Select form...</option>
                                     <option value="tablet" {{ old('dosage_form') == 'tablet' ? 'selected' : '' }}>Tablet</option>
                                     <option value="injection" {{ old('dosage_form') == 'injection' ? 'selected' : '' }}>Injection</option>
@@ -134,9 +117,9 @@
 
                             <!-- Unit -->
                             <div>
-                                <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unit <span class="text-red-500">*</span></label>
+                                <label for="unit" class="form-label">Unit <span class="text-red-500">*</span></label>
                                 <input type="text" name="unit" id="unit" value="{{ old('unit') }}" required
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., tablets, ml, vials">
                                 @error('unit')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -145,9 +128,9 @@
 
                             <!-- Supplier -->
                             <div>
-                                <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                                <label for="supplier" class="form-label">Supplier</label>
                                 <input type="text" name="supplier" id="supplier" value="{{ old('supplier') }}"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., Pfizer Pharmaceuticals">
                                 @error('supplier')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -156,11 +139,11 @@
 
                             <!-- Cost Per Unit -->
                             <div>
-                                <label for="cost_per_unit" class="block text-sm font-medium text-gray-700 mb-1">Cost Per Unit (PGK)</label>
+                                <label for="cost_per_unit" class="form-label">Cost Per Unit (PGK)</label>
                                 <div class="relative">
                                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-500">K</span>
                                     <input type="number" name="cost_per_unit" id="cost_per_unit" x-model="costPerUnit" step="0.0001" min="0"
-                                        class="w-full pl-8 rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                        class="input-field pl-8"
                                         placeholder="e.g., 5.50">
                                 </div>
                                 @error('cost_per_unit')
@@ -180,9 +163,9 @@
 
                             <!-- Storage Location -->
                             <div>
-                                <label for="storage_location" class="block text-sm font-medium text-gray-700 mb-1">Storage Location</label>
+                                <label for="storage_location" class="form-label">Storage Location</label>
                                 <input type="text" name="storage_location" id="storage_location" value="{{ old('storage_location') }}"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., Shelf A1">
                                 @error('storage_location')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -191,9 +174,9 @@
 
                             <!-- Reorder Point -->
                             <div>
-                                <label for="reorder_point" class="block text-sm font-medium text-gray-700 mb-1">Reorder Point</label>
+                                <label for="reorder_point" class="form-label">Reorder Point</label>
                                 <input type="number" name="reorder_point" id="reorder_point" value="{{ old('reorder_point') ?? 100 }}" min="1"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="e.g., 100">
                                 @error('reorder_point')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -202,9 +185,9 @@
 
                             <!-- Description -->
                             <div class="md:col-span-2">
-                                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <label for="description" class="form-label">Description</label>
                                 <textarea name="description" id="description" rows="3"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="Enter drug description...">{{ old('description') }}</textarea>
                                 @error('description')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -213,9 +196,9 @@
 
                             <!-- Notes -->
                             <div class="md:col-span-2">
-                                <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <label for="notes" class="form-label">Notes</label>
                                 <textarea name="notes" id="notes" rows="3"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"
+                                    class="input-field"
                                     placeholder="Enter any additional notes...">{{ old('notes') }}</textarea>
                                 @error('notes')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -225,16 +208,10 @@
 
                         <!-- Buttons -->
                         <div class="mt-6 flex items-center justify-end gap-4">
-                            <a href="{{ getDashboardDrugRoute('index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200 focus:outline-none focus:border-gray-500 focus:ring ring-gray-500 disabled:opacity-25 transition ease-in-out duration-150">
-                                Cancel
-                            </a>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59] focus:outline-none focus:border-[#0f766e] focus:ring ring-[#0f766e] disabled:opacity-25 transition ease-in-out duration-150">
-                                Save Drug
-                            </button>
+                            <a href="{{ getDashboardDrugRoute('index') }}" class="btn-module-secondary">Cancel</a>
+                            <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Save Drug</button>
                         </div>
                     </form>
-                </div>
-            </div>
         </div>
-    </div>
+    </x-page-container>
 </x-app-layout>

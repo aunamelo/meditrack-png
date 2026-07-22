@@ -8,9 +8,6 @@ use Illuminate\Validation\Rule;
 
 class StoreOrderRequest extends FormRequest
 {
-    /**
-     * Only Procurement Officers can create orders.
-     */
     public function authorize(): bool
     {
         return auth()->user()->hasRole('procurement_officer');
@@ -22,11 +19,12 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'drug_id' => [
+            'items' => ['required', 'array', 'min:1', 'max:25'],
+            'items.*.drug_id' => [
                 'required',
                 Rule::exists('drugs', 'id')->where(fn ($query) => $query->where('level', 'ndoh')),
             ],
-            'quantity_ordered' => 'required|integer|min:1|max:999999',
+            'items.*.quantity_ordered' => ['required', 'integer', 'min:1', 'max:999999'],
             'supplier' => 'required|string|max:255',
             'order_date' => 'required|date|before_or_equal:today',
             'expected_delivery_date' => 'nullable|date|after:order_date',
@@ -34,6 +32,19 @@ class StoreOrderRequest extends FormRequest
             'invoice_amount' => 'nullable|numeric|min:0|max:999999.99',
             'source' => 'required|in:overseas,local,donation',
             'notes' => 'nullable|string',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'items.required' => 'Add at least one medicine line to the order.',
+            'items.min' => 'Add at least one medicine line to the order.',
+            'items.*.drug_id.required' => 'Select a drug for each line item.',
+            'items.*.quantity_ordered.required' => 'Enter a quantity for each line item.',
         ];
     }
 }

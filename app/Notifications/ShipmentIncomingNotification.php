@@ -36,7 +36,7 @@ class ShipmentIncomingNotification extends Notification
             'batch_number' => $this->transfer->batch_number,
             'quantity_sent' => $this->transfer->quantity_sent,
             'sent_by' => $this->transfer->sender->name ?? 'Procurement Officer',
-            'message' => "Road delivery {$this->transfer->transfer_number} ({$drugName}) is en route to Lae AMS by car.",
+            'message' => "Shipment {$this->transfer->transfer_number} ({$drugName}) has been shipped from NDoH to Lae AMS.",
         ];
     }
 }

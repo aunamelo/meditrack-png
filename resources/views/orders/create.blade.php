@@ -1,28 +1,24 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Create New Order
-        </h2>
+        <div>
+            <p class="text-section-label">Procurement</p>
+            <h2 class="heading-page">Create New Order</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <nav class="flex mb-6" aria-label="Breadcrumb">
-                        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                            <li>
-                                <a href="{{ getDashboardOrderRoute('index') }}" class="text-sm font-medium text-gray-700 hover:text-[#0f766e]">Orders</a>
-                            </li>
-                            <li><span class="text-sm text-gray-500"> / Create</span></li>
-                        </ol>
-                    </nav>
+    @php
+        $defaultItems = old('items', [['drug_id' => '', 'quantity_ordered' => '']]);
+    @endphp
+
+    <x-page-container>
+        <x-module.back-link :href="getDashboardOrderRoute('index')" label="Back to Orders" class="mb-6" />
+
+        <div class="module-form-shell">
 
                     <form action="{{ getDashboardOrderRoute('store') }}" method="POST"
                           @pgk-applied="applyPgkAmount($event.detail)"
                           x-data="createOrderForm({
-                              drugId: @js(old('drug_id', '')),
-                              quantityOrdered: @js(old('quantity_ordered', '')),
+                              items: @js($defaultItems),
                               supplier: @js(old('supplier', '')),
                               source: @js(old('source', 'overseas')),
                               orderDate: @js(old('order_date', now()->format('Y-m-d'))),
@@ -31,6 +27,7 @@
                               invoiceAmount: @js(old('invoice_amount', '')),
                               notes: @js(old('notes', '')),
                               notesEdited: @js(filled(old('notes'))),
+                              drugOptions: @js($drugs->map(fn ($drug) => ['id' => (string) $drug->id, 'label' => $drug->drug_name.' ('.$drug->dosage.')'])->values()),
                           })">
                         @csrf
 
@@ -44,33 +41,50 @@
                             </div>
                         @endif
 
+                        <div class="mb-8 rounded-lg border border-gray-200 bg-gray-50/50 p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-900">Medicines in this order</h3>
+                                    <p class="text-xs text-gray-500 mt-0.5">Add one or more drug lines — all items share the same supplier and delivery details.</p>
+                                </div>
+                                <button type="button" @click="addItem()" class="inline-flex items-center px-3 py-1.5 bg-white border border-[#0f766e] rounded-md text-xs font-semibold text-[#0f766e] uppercase hover:bg-teal-50">
+                                    + Add line
+                                </button>
+                            </div>
+
+                            <div class="space-y-3">
+                                <template x-for="(item, index) in items" :key="index">
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start bg-white rounded-md border border-gray-200 p-3">
+                                        <div class="md:col-span-7">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Drug <span class="text-red-500">*</span></label>
+                                            <select :name="`items[${index}][drug_id]`" x-model="item.drug_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                                <option value="">Select a drug...</option>
+                                                <template x-for="option in drugOptions" :key="option.id">
+                                                    <option :value="option.id" x-text="option.label"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <div class="md:col-span-3">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
+                                            <input type="number" :name="`items[${index}][quantity_ordered]`" x-model="item.quantity_ordered" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                        </div>
+                                        <div class="md:col-span-2 flex items-end">
+                                            <button type="button" x-show="items.length > 1" @click="removeItem(index)" class="w-full inline-flex justify-center items-center px-3 py-2 border border-red-200 rounded-md text-xs font-semibold text-red-600 uppercase hover:bg-red-50">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            @if($drugs->isEmpty())
+                                <p class="mt-3 text-sm text-amber-700">Add a drug entry first so the system knows which drug types NDoH can order. <a href="{{ getDashboardDrugRoute('create') }}" class="font-medium text-[#0f766e] underline">Add drug entry →</a></p>
+                            @else
+                                <p class="mt-3 text-xs text-gray-500">A new NDoH batch is created for each line when the order is received.</p>
+                            @endif
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="drug_id" class="block text-sm font-medium text-gray-700 mb-1">Drug <span class="text-red-500">*</span></label>
-                                <select name="drug_id" id="drug_id" x-model="drugId" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
-                                    <option value="">Select a drug...</option>
-                                    @forelse($drugs as $drug)
-                                        <option value="{{ $drug->id }}">{{ $drug->drug_name }} ({{ $drug->dosage }})</option>
-                                    @empty
-                                        <option value="" disabled>No NDoH drug types on file</option>
-                                    @endforelse
-                                </select>
-                                @if($drugs->isEmpty())
-                                    <p class="mt-1 text-sm text-amber-700">Add a drug entry first so the system knows which drug types NDoH can order. <a href="{{ getDashboardDrugRoute('create') }}" class="font-medium text-[#0f766e] underline">Add drug entry →</a></p>
-                                @else
-                                    <p class="mt-1 text-xs text-gray-500">Select the drug type to order from the supplier. Written-off or depleted batches can still be used as a reference. A new NDoH batch is created when the order is received.</p>
-                                @endif
-                                @error('drug_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="quantity_ordered" class="block text-sm font-medium text-gray-700 mb-1">Quantity Ordered <span class="text-red-500">*</span></label>
-                                <input type="number" name="quantity_ordered" id="quantity_ordered" x-model="quantityOrdered" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
-                                @error('quantity_ordered')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                            </div>
-
-                            <x-supplier-quote-picker />
-
                             <div>
                                 <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-500">*</span></label>
                                 <input type="text" name="supplier" id="supplier" x-model="supplier" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
@@ -114,13 +128,13 @@
                                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-500">K</span>
                                     <input type="number" name="invoice_amount" id="invoice_amount" x-model="invoiceAmount" step="0.01" min="0" class="w-full pl-8 rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
                                 </div>
-                                <p class="mt-1 text-xs text-gray-500">Updates automatically when you convert a foreign quote below.</p>
+                                <p class="mt-1 text-xs text-gray-500">Total for all lines. Use the currency converter below if needed.</p>
                                 @error('invoice_amount')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div class="md:col-span-2">
                                 <x-currency-converter
-                                    quantity-alpine="quantityOrdered"
+                                    quantity-alpine="totalQuantity"
                                     default-currency="USD"
                                 />
                             </div>
@@ -137,20 +151,18 @@
                         </div>
 
                         <div class="mt-6 flex gap-3">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#0f766e] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0d5f59]">Create Order</button>
-                            <a href="{{ getDashboardOrderRoute('index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200">Cancel</a>
+                            <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Create Order</button>
+                            <a href="{{ getDashboardOrderRoute('index') }}" class="btn-module-secondary">Cancel</a>
                         </div>
                     </form>
-                </div>
-            </div>
         </div>
-    </div>
+    </x-page-container>
 
     <script>
         function createOrderForm(initial) {
             return {
-                drugId: initial.drugId ?? '',
-                quantityOrdered: initial.quantityOrdered ?? '',
+                items: initial.items ?? [{ drug_id: '', quantity_ordered: '' }],
+                drugOptions: initial.drugOptions ?? [],
                 supplier: initial.supplier ?? '',
                 source: initial.source ?? 'overseas',
                 orderDate: initial.orderDate ?? '',
@@ -160,38 +172,45 @@
                 notes: initial.notes ?? '',
                 notesEdited: initial.notesEdited ?? false,
                 foreignQuote: null,
-                selectedQuote: null,
                 sourceLabels: {
                     overseas: 'Overseas',
                     local: 'Local',
                     donation: 'Donation',
                 },
+                get totalQuantity() {
+                    return this.items.reduce((sum, item) => sum + (Number(item.quantity_ordered) || 0), 0);
+                },
                 init() {
-                    ['drugId', 'quantityOrdered', 'supplier', 'source', 'orderDate', 'expectedDeliveryDate', 'supplierInvoice', 'invoiceAmount']
+                    ['supplier', 'source', 'orderDate', 'expectedDeliveryDate', 'supplierInvoice', 'invoiceAmount']
                         .forEach((field) => this.$watch(field, () => this.refreshNotes()));
+
+                    this.$watch('items', () => this.refreshNotes(), { deep: true });
 
                     if (!this.notesEdited) {
                         this.refreshNotes();
                     }
 
-                    this.$watch('quantityOrdered', () => {
+                    this.$watch('totalQuantity', () => {
                         this.$dispatch('currency-recalculate');
                     });
+                },
+                addItem() {
+                    this.items.push({ drug_id: '', quantity_ordered: '' });
+                },
+                removeItem(index) {
+                    if (this.items.length > 1) {
+                        this.items.splice(index, 1);
+                    }
+                },
+                drugLabel(drugId) {
+                    const option = this.drugOptions.find((entry) => entry.id === String(drugId));
+
+                    return option ? option.label : null;
                 },
                 applyPgkAmount(detail) {
                     this.invoiceAmount = Number(detail.amount).toFixed(2);
                     this.foreignQuote = detail;
                     this.refreshNotes();
-                },
-                selectedDrugLabel() {
-                    const select = document.getElementById('drug_id');
-                    if (!select || !this.drugId) {
-                        return null;
-                    }
-
-                    const option = select.querySelector(`option[value="${CSS.escape(String(this.drugId))}"]`);
-
-                    return option ? option.textContent.trim() : null;
                 },
                 formatDate(value) {
                     if (!value) {
@@ -212,22 +231,24 @@
                 },
                 buildNotes() {
                     const lines = [];
-                    const drug = this.selectedDrugLabel();
-                    const quantity = Number(this.quantityOrdered);
+                    const itemLines = this.items
+                        .filter((item) => item.drug_id && Number(item.quantity_ordered) > 0)
+                        .map((item) => {
+                            const label = this.drugLabel(item.drug_id);
 
-                    if (drug && quantity > 0) {
-                        lines.push(`Procurement order for ${quantity.toLocaleString()} units of ${drug}.`);
-                    } else if (drug) {
-                        lines.push(`Procurement order for ${drug}.`);
+                            return label ? `${Number(item.quantity_ordered).toLocaleString()} × ${label}` : null;
+                        })
+                        .filter(Boolean);
+
+                    if (itemLines.length === 1) {
+                        lines.push(`Procurement order for ${itemLines[0]}.`);
+                    } else if (itemLines.length > 1) {
+                        lines.push(`Multi-line procurement order (${itemLines.length} medicines): ${itemLines.join('; ')}.`);
                     }
 
                     if (this.supplier) {
                         const sourceLabel = this.sourceLabels[this.source] ?? this.source;
                         lines.push(`Supplier: ${this.supplier} (${sourceLabel} source).`);
-                    }
-
-                    if (this.selectedQuote) {
-                        lines.push(`Quote selected: ${this.selectedQuote.supplier_name} — K ${Number(this.selectedQuote.total_pgk).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total (${this.selectedQuote.quote_currency} ${Number(this.selectedQuote.unit_price).toLocaleString()} per unit).`);
                     }
 
                     const orderDate = this.formatDate(this.orderDate);
@@ -246,7 +267,7 @@
                         invoiceDetails.push(`Invoice #${invoiceNumber}`);
                     }
                     if (this.foreignQuote) {
-                        invoiceDetails.push(`Supplier quote: ${Number(this.foreignQuote.originalAmount).toLocaleString()} ${this.foreignQuote.from}`);
+                        invoiceDetails.push(`Converted amount: ${Number(this.foreignQuote.originalAmount).toLocaleString()} ${this.foreignQuote.from}`);
                     }
                     if (this.invoiceAmount !== '' && this.invoiceAmount !== null) {
                         const amount = Number(this.invoiceAmount);

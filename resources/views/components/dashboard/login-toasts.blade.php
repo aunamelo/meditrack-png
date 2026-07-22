@@ -46,9 +46,9 @@
         </div>
         <div>
             <p class="text-sm font-semibold text-blue-900">
-                {{ session('store_pending_shipments') === 1 ? '1 incoming road delivery' : session('store_pending_shipments').' incoming road deliveries' }}
+                {{ session('store_pending_shipments') === 1 ? '1 incoming shipment from NDoH' : session('store_pending_shipments').' incoming shipments from NDoH' }}
             </p>
-            <p class="mt-1 text-sm text-blue-800">Confirm receipt when drugs arrive at Lae AMS by car.</p>
+            <p class="mt-1 text-sm text-blue-800">Confirm receipt when the shipment arrives at Lae AMS.</p>
         </div>
     </div>
 @endif

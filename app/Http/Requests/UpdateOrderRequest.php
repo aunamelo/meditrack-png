@@ -4,19 +4,17 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateOrderRequest extends FormRequest
 {
-    /**
-     * Only Procurement Officers can update their own pending orders.
-     */
     public function authorize(): bool
     {
-        $user = auth()->user();
         $order = $this->route('order');
 
-        return $user->hasRole('procurement_officer')
-            && $order->created_by === $user->id
+        return auth()->user()->hasRole('procurement_officer')
+            && $order
+            && $order->created_by === auth()->id()
             && $order->status === 'pending';
     }
 
@@ -25,12 +23,18 @@ class UpdateOrderRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var \App\Models\Order $order */
         $order = $this->route('order');
 
         return [
-            'quantity_ordered' => 'required|integer|min:1|max:999999',
+            'items' => ['required', 'array', 'min:1', 'max:25'],
+            'items.*.drug_id' => [
+                'required',
+                Rule::exists('drugs', 'id')->where(fn ($query) => $query->where('level', 'ndoh')),
+            ],
+            'items.*.quantity_ordered' => ['required', 'integer', 'min:1', 'max:999999'],
             'supplier' => 'required|string|max:255',
-            'expected_delivery_date' => 'nullable|date|after:'.$order->order_date->format('Y-m-d'),
+            'expected_delivery_date' => ['nullable', 'date', 'after:'.$order->order_date->format('Y-m-d')],
             'notes' => 'nullable|string',
         ];
     }

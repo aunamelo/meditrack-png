@@ -88,8 +88,8 @@ class PortalNavigationService
 
                 $items[] = self::item(
                     section: 'logistics',
-                    label: 'NDoH Receipts',
-                    description: 'Confirm incoming national stock by road',
+                    label: 'NDoH Shipments',
+                    description: 'Confirm incoming national stock',
                     href: getDashboardTransferRoute('index'),
                     active: request()->routeIs('*.dashboard.transfers.*'),
                     icon: 'truck',
@@ -180,8 +180,8 @@ class PortalNavigationService
                 if ($user->hasAnyRole(['admin', 'procurement_officer'])) {
                     $items[] = self::item(
                         section: 'logistics',
-                        label: 'Lae AMS Road Deliveries',
-                        description: 'NDoH → Lae warehouse by road',
+                        label: 'Shipments to Lae AMS',
+                        description: 'NDoH → Lae AMS logistics',
                         href: getDashboardTransferRoute('index'),
                         active: request()->routeIs('*.dashboard.transfers.*'),
                         icon: 'truck',

@@ -23,7 +23,7 @@
                     @endif
                     @if(auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager']))
                         <x-nav-link :href="getDashboardTransferRoute('index')" :active="request()->routeIs('*.dashboard.transfers.*')">
-                            {{ __('Lae AMS Road Deliveries') }}
+                            {{ __('Shipments to Lae AMS') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -88,7 +88,7 @@
             @endif
             @if(auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager']))
                 <x-responsive-nav-link :href="getDashboardTransferRoute('index')" :active="request()->routeIs('*.dashboard.transfers.*')">
-                    {{ __('Lae AMS Road Deliveries') }}
+                    {{ __('Shipments to Lae AMS') }}
                 </x-responsive-nav-link>
             @endif
         </div>

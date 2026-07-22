@@ -1,19 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Record Road Delivery to Lae AMS
-        </h2>
+        <div>
+            <p class="text-section-label">Logistics</p>
+            <h2 class="heading-page">Ship Stock to Lae AMS</h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <nav class="flex mb-6" aria-label="Breadcrumb">
-                        <a href="{{ getDashboardTransferRoute('index') }}" class="text-sm font-medium text-gray-700 hover:text-[#0f766e]">Road Deliveries</a>
-                        <span class="text-sm text-gray-500 mx-2">/</span>
-                        <span class="text-sm text-gray-500">Record</span>
-                    </nav>
+    <x-page-container>
+        <x-module.back-link :href="getDashboardTransferRoute('index')" label="Back to Shipments" class="mb-6" />
+
+        <div class="module-form-shell">
 
                     <form action="{{ getDashboardTransferRoute('store') }}" method="POST"
                           x-data="createShipmentForm({
@@ -40,32 +36,32 @@
                             <div class="md:col-span-2">
                                 <label for="drug_id" class="block text-sm font-medium text-gray-700 mb-1">NDoH Drug <span class="text-red-500">*</span></label>
                                 <select name="drug_id" id="drug_id" x-model="drugId" @change="updateMaxQuantity()" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
-                                    <option value="">Select drug to dispatch by road...</option>
+                                    <option value="">Select drug to ship to Lae AMS...</option>
                                     @forelse($drugs as $drug)
                                         <option value="{{ $drug->id }}" data-qty="{{ $drug->quantity_on_hand }}" data-batch="{{ $drug->batch_number }}" data-expiry="{{ $drug->formatExpiry() }}" data-name="{{ $drug->drug_name }} ({{ $drug->dosage }})">
                                             {{ $drug->drug_name }} — Batch {{ $drug->batch_number }} ({{ $drug->quantity_on_hand }} available, expires {{ $drug->formatExpiry() }})
                                         </option>
                                     @empty
-                                        <option value="" disabled>No NDoH stock available to dispatch</option>
+                                        <option value="" disabled>No NDoH stock available to ship</option>
                                     @endforelse
                                 </select>
                                 @if($drugs->isEmpty())
-                                    <p class="mt-1 text-sm text-amber-700">No active NDoH batches with stock. Receive a procurement order first, then return here to dispatch by road to Lae AMS. <a href="{{ getDashboardOrderRoute('index') }}" class="font-medium text-[#0f766e] underline">View orders →</a></p>
+                                    <p class="mt-1 text-sm text-amber-700">No active NDoH batches with stock. Receive a procurement order first, then return here to ship stock to Lae AMS. <a href="{{ getDashboardOrderRoute('index') }}" class="font-medium text-[#0f766e] underline">View orders →</a></p>
                                 @else
-                                    <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. Stock is deducted from NDoH and a new batch is created at Lae AMS.</p>
+                                    <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. Stock is deducted from NDoH and a new batch is created at Lae AMS when the shipment is recorded.</p>
                                 @endif
                                 @error('drug_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
-                                <label for="quantity_sent" class="block text-sm font-medium text-gray-700 mb-1">Quantity Sent <span class="text-red-500">*</span></label>
+                                <label for="quantity_sent" class="block text-sm font-medium text-gray-700 mb-1">Quantity Shipped <span class="text-red-500">*</span></label>
                                 <input type="number" name="quantity_sent" id="quantity_sent" x-model="quantitySent" :max="maxQuantity || undefined" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
                                 <p class="mt-1 text-xs text-gray-500" x-show="maxQuantity > 0" x-cloak>Maximum available: <span x-text="maxQuantity.toLocaleString()"></span> units</p>
                                 @error('quantity_sent')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
-                                <label for="sent_date" class="block text-sm font-medium text-gray-700 mb-1">Date Sent <span class="text-red-500">*</span></label>
+                                <label for="sent_date" class="block text-sm font-medium text-gray-700 mb-1">Date Shipped <span class="text-red-500">*</span></label>
                                 <input type="date" name="sent_date" id="sent_date" x-model="sentDate" max="{{ now()->format('Y-m-d') }}" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
                                 @error('sent_date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
@@ -82,18 +78,16 @@
                         </div>
 
                         <div class="mt-6 p-4 bg-teal-50 border border-teal-200 rounded-md text-sm text-teal-800">
-                            Dispatching this road delivery will deduct stock from NDoH and create a new inventory entry at Lae AMS. The Store Manager will be notified to confirm receipt upon arrival by car.
+                            Recording this shipment will deduct stock from NDoH national storage and create a new inventory entry at Lae AMS. The Store Manager will be notified to confirm receipt when the shipment arrives.
                         </div>
 
                         <div class="mt-6 flex gap-3">
-                            <button type="submit" @if($drugs->isEmpty()) disabled @endif class="inline-flex items-center px-4 py-2 bg-[#0f766e] text-white text-xs font-semibold uppercase rounded-md hover:bg-[#0d5f59] disabled:opacity-50 disabled:cursor-not-allowed">Dispatch to Lae AMS</button>
-                            <a href="{{ getDashboardTransferRoute('index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold uppercase rounded-md hover:bg-gray-200">Cancel</a>
+                            <button type="submit" @if($drugs->isEmpty()) disabled @endif class="btn-brand text-xs uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50">Ship to Lae AMS</button>
+                            <a href="{{ getDashboardTransferRoute('index') }}" class="btn-module-secondary">Cancel</a>
                         </div>
                     </form>
-                </div>
-            </div>
         </div>
-    </div>
+    </x-page-container>
 
     <script>
         function createShipmentForm(initial) {
@@ -156,11 +150,11 @@
                         const quantity = Number(this.quantitySent);
 
                         if (drugName && batch) {
-                            let line = `Road delivery of ${drugName}, batch ${batch}`;
+                            let line = `NDoH shipment of ${drugName}, batch ${batch}`;
                             if (quantity > 0) {
                                 line += ` — ${quantity.toLocaleString()} units`;
                             }
-                            line += ` from NDoH to Lae AMS by car.`;
+                            line += ` to Lae AMS.`;
                             lines.push(line);
                         }
 
@@ -171,7 +165,7 @@
 
                     const sentDate = this.formatDate(this.sentDate);
                     if (sentDate) {
-                        lines.push(`Dispatched by road on ${sentDate}.`);
+                        lines.push(`Shipped on ${sentDate}.`);
                     }
 
                     return lines.join('\n');

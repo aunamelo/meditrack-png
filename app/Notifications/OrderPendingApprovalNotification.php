@@ -25,11 +25,10 @@ class OrderPendingApprovalNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $this->order->loadMissing(['drug', 'creator']);
+        $this->order->loadMissing(['items.drug', 'drug', 'creator']);
 
-        $drugLabel = $this->order->drug
-            ? "{$this->order->drug->drug_name} ({$this->order->drug->dosage})"
-            : 'Unknown drug';
+        $drugLabel = $this->order->itemsSummary();
+        $lineCount = $this->order->items->count();
 
         return [
             'order_id' => $this->order->id,
@@ -38,7 +37,9 @@ class OrderPendingApprovalNotification extends Notification
             'quantity_ordered' => $this->order->quantity_ordered,
             'supplier' => $this->order->supplier,
             'created_by' => $this->order->creator->name ?? 'Procurement Officer',
-            'message' => "Order {$this->order->order_number} for {$drugLabel} requires NDoH approval.",
+            'message' => $lineCount > 1
+                ? "Order {$this->order->order_number} with {$lineCount} medicines requires NDoH approval."
+                : "Order {$this->order->order_number} for {$drugLabel} requires NDoH approval.",
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
@@ -73,6 +74,66 @@ class Order extends Model
     public function drug(): BelongsTo
     {
         return $this->belongsTo(Drug::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class)->orderBy('id');
+    }
+
+    /**
+     * Summary label for lists — first drug name plus count when multi-line.
+     */
+    public function itemsSummary(): string
+    {
+        $this->loadMissing('items.drug');
+
+        if ($this->items->isEmpty()) {
+            return $this->drug?->drug_name ?? 'N/A';
+        }
+
+        $first = $this->items->first()->drug?->drug_name ?? 'Unknown drug';
+        $extra = $this->items->count() - 1;
+
+        return $extra > 0 ? "{$first} +{$extra} more" : $first;
+    }
+
+    public function hasMultipleItems(): bool
+    {
+        if ($this->relationLoaded('items')) {
+            return $this->items->count() > 1;
+        }
+
+        return $this->items()->count() > 1;
+    }
+
+    public function syncLegacyColumnsFromItems(): void
+    {
+        $firstItem = $this->items()->orderBy('id')->first();
+
+        $this->update([
+            'drug_id' => $firstItem?->drug_id,
+            'quantity_ordered' => (int) $this->items()->sum('quantity_ordered'),
+            'quantity_received' => (int) $this->items()->sum('quantity_received'),
+        ]);
+    }
+
+    public function syncStatusFromItems(): void
+    {
+        $items = $this->items()->get();
+
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        $allReceived = $items->every(fn (OrderItem $item) => $item->isFullyReceived());
+        $anyReceived = $items->contains(fn (OrderItem $item) => ($item->quantity_received ?? 0) > 0);
+
+        if ($allReceived) {
+            $this->update(['status' => 'received']);
+        } elseif ($anyReceived) {
+            $this->update(['status' => 'partial']);
+        }
     }
 
     public function creator(): BelongsTo
@@ -183,6 +244,19 @@ class Order extends Model
 
     public function getProgressPercentage(): float
     {
+        $this->loadMissing('items');
+
+        if ($this->items->isNotEmpty()) {
+            $ordered = $this->items->sum('quantity_ordered');
+            $received = $this->items->sum('quantity_received');
+
+            if ($ordered <= 0) {
+                return 0;
+            }
+
+            return min(100, round(($received / $ordered) * 100, 1));
+        }
+
         if ($this->quantity_ordered <= 0) {
             return 0;
         }
@@ -232,15 +306,54 @@ class Order extends Model
     }
 
     /**
-     * Record receipt of goods — updates quantities and status.
+     * Record receipt of goods — updates line items and order status.
+     *
+     * @param  array<int, int>  $quantitiesByItemId  order_item_id => quantity received
+     */
+    public function receiveItems(array $quantitiesByItemId, int $userId, ?Carbon $receivedDate = null): void
+    {
+        $receivedDate ??= Carbon::today();
+
+        foreach ($quantitiesByItemId as $itemId => $quantityReceived) {
+            $quantityReceived = (int) $quantityReceived;
+
+            if ($quantityReceived <= 0) {
+                continue;
+            }
+
+            /** @var OrderItem $item */
+            $item = $this->items()->findOrFail($itemId);
+            $item->receiveQuantity($quantityReceived);
+        }
+
+        $this->syncLegacyColumnsFromItems();
+        $this->syncStatusFromItems();
+
+        $this->update([
+            'received_by' => $userId,
+            'received_at' => now(),
+            'actual_delivery_date' => $receivedDate,
+        ]);
+    }
+
+    /**
+     * Record receipt of goods — single-line legacy helper.
      */
     public function receive(int $quantityReceived, int $userId, ?Carbon $receivedDate = null): void
     {
         $receivedDate ??= Carbon::today();
 
-        $totalReceived = ($this->quantity_received ?? 0) + $quantityReceived;
+        $this->loadMissing('items');
 
-        $status = $totalReceived >= $this->quantity_ordered ? 'received' : 'partial';
+        if ($this->items->isNotEmpty()) {
+            $item = $this->items->first();
+            $this->receiveItems([$item->id => $quantityReceived], $userId, $receivedDate);
+
+            return;
+        }
+
+        $totalReceived = ($this->quantity_received ?? 0) + $quantityReceived;
+        $status = $totalReceived >= ($this->quantity_ordered ?? 0) ? 'received' : 'partial';
 
         $this->update([
             'quantity_received' => $totalReceived,
