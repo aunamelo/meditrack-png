@@ -56,13 +56,18 @@ return [
     */
 
     'sections' => [
-        'overview' => 'Overview',
-        'inventory' => 'Inventory',
-        'procurement' => 'Procurement',
-        'logistics' => 'Logistics',
-        'hospital' => 'Hospital Supply',
-        'reports' => 'Reports',
-        'administration' => 'Administration',
+        'overview' => 'Menu',
+        'inventory' => 'Menu',
+        'procurement' => 'Menu',
+        'logistics' => 'Menu',
+        'hospital' => 'Menu',
+        'reports' => 'Other Menu',
+        'administration' => 'Other Menu',
+    ],
+
+    'nav_groups' => [
+        'menu' => ['overview', 'inventory', 'procurement', 'logistics', 'hospital'],
+        'other' => ['reports', 'administration'],
     ],
 
     /*

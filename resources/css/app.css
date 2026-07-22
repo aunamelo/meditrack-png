@@ -12,7 +12,7 @@
     }
 
     body {
-        @apply font-sans text-ink bg-surface-muted dark:bg-zinc-950 dark:text-zinc-100;
+        @apply font-sans text-ink bg-canvas dark:bg-zinc-950 dark:text-zinc-100;
     }
 
     h1, h2, h3, h4 {
@@ -38,7 +38,98 @@
     }
 
     .text-section-label {
-        @apply text-[11px] font-bold uppercase tracking-[0.14em] text-brand-600 dark:text-brand-400;
+        @apply text-[11px] font-bold uppercase tracking-[0.14em] text-accent dark:text-accent;
+    }
+
+    .medcare-sidebar {
+        @apply w-[260px] shrink-0 bg-gradient-to-b from-brand-700 via-brand-700 to-brand-900 text-white shadow-sidebar transition-[width] duration-300 ease-in-out;
+    }
+
+    .medcare-sidebar-collapsed {
+        @apply lg:w-[4.75rem];
+    }
+
+    .medcare-sidebar-label {
+        @apply px-3 text-[11px] font-semibold uppercase tracking-widest text-white/45;
+    }
+
+    .sidebar-brand-text {
+        @apply min-w-0 overflow-hidden transition-opacity duration-200;
+    }
+
+    .medcare-sidebar-collapsed .sidebar-brand-text,
+    .medcare-sidebar-collapsed .medcare-sidebar-label,
+    .medcare-sidebar-collapsed .sidebar-link-label,
+    .medcare-sidebar-collapsed .sidebar-role-card {
+        @apply lg:pointer-events-none lg:w-0 lg:overflow-hidden lg:whitespace-nowrap lg:opacity-0;
+    }
+
+    .medcare-sidebar-collapsed .sidebar-link {
+        @apply lg:relative lg:justify-center lg:gap-0 lg:px-2;
+    }
+
+    .medcare-sidebar-collapsed .sidebar-link-badge-count {
+        @apply lg:hidden;
+    }
+
+    .sidebar-link-badge-dot {
+        @apply hidden;
+    }
+
+    .medcare-sidebar-collapsed .sidebar-link-badge-dot {
+        @apply lg:block;
+    }
+
+    .medcare-sidebar-collapsed .sidebar-header {
+        @apply lg:justify-center lg:px-2 lg:py-4;
+    }
+
+    .medcare-sidebar-collapsed .sidebar-header-brand {
+        @apply lg:flex-none;
+    }
+
+    .sidebar-header-collapse {
+        @apply hidden shrink-0 lg:inline-flex;
+    }
+
+    .medcare-sidebar-collapsed .sidebar-header-collapse {
+        @apply lg:hidden;
+    }
+
+    .sidebar-collapse-btn {
+        @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/75 transition hover:border-white/20 hover:bg-white/15 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/20;
+    }
+
+    .sidebar-collapse-footer {
+        @apply hidden border-t border-white/10 p-3;
+    }
+
+    .medcare-sidebar-collapsed .sidebar-collapse-footer {
+        @apply lg:flex lg:justify-center;
+    }
+
+    .medcare-topbar {
+        @apply flex shrink-0 items-center justify-between gap-4 border-b border-line/80 bg-surface px-4 py-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:px-6;
+    }
+
+    .medcare-search {
+        @apply flex max-w-md flex-1 items-center rounded-xl border border-line bg-canvas px-4 py-2.5 dark:border-zinc-700 dark:bg-zinc-800/80;
+    }
+
+    .medcare-panel {
+        @apply overflow-hidden rounded-[20px] border border-line/80 bg-surface shadow-soft dark:border-zinc-800 dark:bg-zinc-900;
+    }
+
+    .medcare-stat-card {
+        @apply rounded-[20px] border border-line/80 bg-surface p-5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card dark:border-zinc-800 dark:bg-zinc-900;
+    }
+
+    .medcare-stat-featured {
+        @apply rounded-[20px] bg-gradient-to-br from-brand-700 via-brand-600 to-accent p-5 text-white shadow-glow;
+    }
+
+    .surface-panel {
+        @apply medcare-panel;
     }
 
     .text-muted {
@@ -62,7 +153,7 @@
     }
 
     .btn-brand {
-        @apply inline-flex items-center justify-center rounded-lg border border-brand-600 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2 dark:focus:ring-offset-zinc-900;
+        @apply inline-flex items-center justify-center rounded-xl border border-brand-600 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 hover:border-brand-700 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2;
     }
 
     .btn-brand-outline {
@@ -74,19 +165,19 @@
     }
 
     .input-field {
-        @apply w-full rounded-lg border-line bg-surface-muted text-sm text-ink shadow-sm placeholder:text-ink-faint focus:border-brand-500 focus:ring focus:ring-brand-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-brand-500;
+        @apply w-full rounded-xl border-line bg-canvas text-sm text-ink shadow-sm placeholder:text-ink-faint focus:border-accent focus:ring focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-accent;
     }
 
     .sidebar-shell {
-        @apply border-r border-line bg-surface dark:border-zinc-800 dark:bg-zinc-950;
+        @apply medcare-sidebar;
     }
 
     .topbar-shell {
-        @apply border-b border-line bg-surface/90 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90;
+        @apply medcare-topbar;
     }
 
     .dashboard-shell {
-        @apply mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8;
+        @apply mx-auto w-full max-w-[1400px];
     }
 
     .dashboard-hero {
@@ -104,19 +195,15 @@
     }
 
     .dashboard-stat-card {
-        @apply rounded-2xl border border-line bg-surface p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-glow dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-brand-800;
-    }
-
-    .dashboard-stat-icon {
-        @apply flex h-11 w-11 items-center justify-center rounded-xl;
+        @apply medcare-stat-card;
     }
 
     .dashboard-module-card {
-        @apply flex h-full flex-col rounded-2xl border border-line bg-surface p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-glow dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-brand-800;
+        @apply flex h-full flex-col rounded-[20px] border border-line/80 bg-surface p-5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card dark:border-zinc-800 dark:bg-zinc-900;
     }
 
     .dashboard-module-card-primary {
-        @apply border-brand-600 bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-glow hover:border-brand-500 hover:from-brand-500 hover:to-brand-700 dark:border-brand-500;
+        @apply border-transparent bg-gradient-to-br from-brand-700 to-accent text-white shadow-glow hover:from-brand-600 hover:to-accent-light;
     }
 
     .dashboard-module-icon {
@@ -144,7 +231,7 @@
     }
 
     .dashboard-supply-chain {
-        @apply surface-panel p-6;
+        @apply medcare-panel p-6;
     }
 
     .dashboard-chain-node {
@@ -172,7 +259,11 @@
     }
 
     .module-hero {
-        @apply relative mb-6 overflow-hidden rounded-2xl border border-brand-700/20 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-5 shadow-glow sm:p-6;
+        @apply relative mb-6 overflow-hidden rounded-[20px] bg-gradient-to-br from-brand-700 via-brand-600 to-accent p-5 shadow-glow sm:p-6;
+    }
+
+    .module-hero-compact {
+        @apply mb-4 p-4 sm:p-5;
     }
 
     .module-hero-pattern {
@@ -201,11 +292,11 @@
     }
 
     .module-panel {
-        @apply overflow-hidden rounded-2xl border border-line bg-surface shadow-soft dark:border-zinc-800 dark:bg-zinc-900;
+        @apply medcare-panel;
     }
 
     .module-filter {
-        @apply rounded-xl border border-line bg-surface-muted/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/50;
+        @apply rounded-[16px] border border-line/80 bg-canvas p-4 dark:border-zinc-800 dark:bg-zinc-900/50;
     }
 
     .module-table-wrap {
@@ -261,7 +352,7 @@
     }
 
     .module-detail-card {
-        @apply overflow-hidden rounded-2xl border border-line bg-surface shadow-soft dark:border-zinc-800 dark:bg-zinc-900;
+        @apply medcare-panel;
     }
 
     .module-detail-card-header {
@@ -294,6 +385,151 @@
 
     .module-progress-bar {
         @apply h-full rounded-full bg-brand-600 transition-all;
+    }
+
+    .guest-portal-body {
+        @apply relative flex h-dvh flex-col overflow-hidden font-sans antialiased text-ink dark:text-zinc-100;
+        background: linear-gradient(165deg, #0b5a52 0%, #073d38 40%, #031f1c 100%);
+    }
+
+    .guest-portal-bg-glow {
+        @apply pointer-events-none absolute left-1/2 top-[52%] z-0 h-[min(640px,72vh)] w-[min(520px,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-90;
+        background: radial-gradient(
+            ellipse at center,
+            rgba(43, 179, 129, 0.2) 0%,
+            rgba(13, 112, 92, 0.08) 42%,
+            transparent 72%
+        );
+        filter: blur(48px);
+    }
+
+    .guest-portal-official-bar {
+        @apply relative z-10 shrink-0 border-b border-white/10 bg-black/20 px-4 py-2 text-center backdrop-blur-sm;
+    }
+
+    .guest-portal-official-bar p {
+        @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-white/85 sm:text-xs;
+    }
+
+    .guest-portal-shell {
+        @apply relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5 px-4 py-3;
+    }
+
+    .guest-portal-card {
+        @apply relative z-10 w-full max-w-[420px] shrink-0 overflow-y-auto overflow-x-hidden rounded-2xl border border-white/20 bg-surface shadow-[0_28px_70px_-20px_rgba(0,0,0,0.5)] dark:border-zinc-600/40 dark:bg-zinc-900;
+        max-height: calc(100dvh - 5.5rem);
+    }
+
+    .guest-portal-card-inner {
+        @apply p-5 sm:p-6;
+    }
+
+    .guest-portal-back {
+        @apply absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-muted transition hover:bg-canvas hover:text-brand-600 dark:hover:bg-zinc-800;
+    }
+
+    .guest-portal-brand {
+        @apply px-5 pb-0 pt-5 text-center sm:px-6 sm:pt-6;
+    }
+
+    .guest-portal-logo-ring {
+        @apply mx-auto mb-3 flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-2xl bg-gradient-to-br from-brand-50 to-brand-100 p-1 shadow-inner dark:from-zinc-800 dark:to-zinc-900;
+    }
+
+    .guest-portal-logo {
+        @apply flex h-full w-full items-center justify-center rounded-[14px] bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-md [&_svg]:h-6 [&_svg]:w-6;
+    }
+
+    .guest-portal-name {
+        @apply font-display text-[1.35rem] font-bold leading-tight tracking-tight text-ink dark:text-zinc-50;
+    }
+
+    .guest-portal-tag {
+        @apply mt-1 inline-block rounded-full bg-brand-50 px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-brand-700 dark:bg-brand-950/60 dark:text-brand-300;
+    }
+
+    .guest-portal-scope {
+        @apply mt-2 text-xs text-muted;
+    }
+
+    .guest-portal-divider {
+        @apply mx-5 border-t border-line/90 dark:border-zinc-800 sm:mx-6;
+    }
+
+    .guest-portal-title {
+        @apply px-5 pb-0 pt-4 text-center font-display text-base font-semibold text-ink dark:text-zinc-50 sm:px-6;
+    }
+
+    .guest-portal-role-badge {
+        @apply mx-5 mt-4 rounded-xl border border-brand-200/80 bg-brand-50/80 px-4 py-3 text-center dark:border-brand-800/60 dark:bg-brand-950/30 sm:mx-6;
+    }
+
+    .guest-portal-role-label {
+        @apply block text-[10px] font-semibold uppercase tracking-widest text-muted;
+    }
+
+    .guest-portal-role-name {
+        @apply mt-0.5 block font-display text-sm font-bold text-brand-800 dark:text-brand-200;
+    }
+
+    .guest-portal-form-wrap {
+        @apply px-5 py-4 sm:px-6 sm:py-5;
+    }
+
+    .guest-portal-form {
+        @apply space-y-3.5;
+    }
+
+    .guest-portal-field {
+        @apply relative;
+    }
+
+    .guest-portal-label {
+        @apply mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-ink-secondary dark:text-zinc-400;
+    }
+
+    .guest-portal-input {
+        @apply h-11 w-full rounded-lg border border-line bg-white px-3.5 text-sm text-ink shadow-sm transition placeholder:text-ink-faint focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/15 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500;
+    }
+
+    .guest-portal-select {
+        @apply cursor-pointer pr-10;
+    }
+
+    .guest-portal-select-icon {
+        @apply pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-muted;
+    }
+
+    .guest-portal-btn {
+        @apply flex h-11 w-full items-center justify-center rounded-lg bg-brand-700 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2 dark:focus:ring-offset-zinc-900;
+    }
+
+    .guest-portal-error {
+        @apply mt-1.5 text-xs font-medium text-red-600 dark:text-red-400;
+    }
+
+    .guest-portal-notice {
+        @apply mx-5 mb-3 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-center text-xs font-medium text-brand-800 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-200 sm:mx-6;
+    }
+
+    .guest-portal-check {
+        @apply inline-flex cursor-pointer items-center gap-2 text-xs text-muted;
+    }
+
+    .guest-portal-link {
+        @apply text-xs font-semibold text-brand-600 transition hover:text-brand-800 dark:text-brand-400;
+    }
+
+    .guest-portal-trust {
+        @apply mx-5 mb-4 flex items-center justify-center gap-1.5 border-t border-line/80 pt-3 text-[10px] font-medium uppercase tracking-wide text-muted dark:border-zinc-800 sm:mx-6;
+    }
+
+    .guest-portal-footer {
+        @apply shrink-0 px-4 pb-3 text-center text-[10px] leading-snug text-white/45;
+    }
+
+    .guest-portal-theme {
+        @apply fixed right-3 top-3 z-50 sm:right-4;
     }
 }
 

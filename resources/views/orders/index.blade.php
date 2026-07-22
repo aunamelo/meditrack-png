@@ -11,7 +11,6 @@
 
         <x-module.hero
             icon="clipboard"
-            title="Track drug procurement from suppliers"
             description="Monitor orders across the NDoH supply chain"
             :action-url="canManageOrders() ? getDashboardOrderRoute('create') : null"
             :action-label="canManageOrders() ? 'New Order' : null"

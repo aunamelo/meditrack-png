@@ -11,7 +11,6 @@
 
         <x-module.hero
             icon="hospital"
-            :title="auth()->user()->hasRole('store_manager') ? 'Modilon Hospital stock requests' : 'Request stock from Lae AMS'"
             :description="auth()->user()->hasRole('store_manager')
                 ? 'Review, approve, reject, and dispatch orders by road based on Lae AMS availability.'
                 : 'Submit replenishment requests to the regional warehouse.'"

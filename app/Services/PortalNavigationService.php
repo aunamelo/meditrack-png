@@ -265,4 +265,40 @@ class PortalNavigationService
 
         return null;
     }
+
+    /**
+     * Primary header action for the top bar (role-specific).
+     *
+     * @return array{label: string, url: string}|null
+     */
+    public static function primaryAction(): ?array
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return null;
+        }
+
+        if ($user->hasRole('procurement_officer')) {
+            return ['label' => 'New order', 'url' => getDashboardOrderRoute('create')];
+        }
+
+        if ($user->hasRole('pharmacy_manager')) {
+            return ['label' => 'New request', 'url' => getDashboardHospitalOrderRoute('create')];
+        }
+
+        if ($user->hasRole('store_manager')) {
+            return ['label' => 'Hospital orders', 'url' => getDashboardHospitalOrderRoute('index')];
+        }
+
+        if ($user->hasRole('admin')) {
+            return ['label' => 'Review orders', 'url' => getDashboardOrderRoute('index')];
+        }
+
+        if ($user->hasRole('pharmacist')) {
+            return ['label' => 'View inventory', 'url' => getDashboardDrugRoute('index')];
+        }
+
+        return null;
+    }
 }

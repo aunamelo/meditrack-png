@@ -11,7 +11,6 @@
 
         <x-module.hero
             icon="truck"
-            title="NDoH → Lae AMS shipments"
             description="Track stock shipped from Department of Health national storage to Lae AMS warehouse"
             :action-url="auth()->user()->hasRole('procurement_officer') ? getDashboardTransferRoute('create') : null"
             :action-label="auth()->user()->hasRole('procurement_officer') ? 'Record Shipment' : null"

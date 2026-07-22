@@ -13,19 +13,32 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body>
-        <div x-data="{ sidebarOpen: false }" class="min-h-screen bg-surface-muted dark:bg-zinc-950 lg:pl-64">
+        <div
+            x-data="{
+                sidebarOpen: false,
+                sidebarCollapsed: false,
+                init() {
+                    this.sidebarCollapsed = localStorage.getItem('meditrack-sidebar-collapsed') === '1';
+                },
+                toggleSidebarCollapse() {
+                    this.sidebarCollapsed = ! this.sidebarCollapsed;
+                    localStorage.setItem('meditrack-sidebar-collapsed', this.sidebarCollapsed ? '1' : '0');
+                },
+            }"
+            class="flex h-screen min-h-screen overflow-hidden bg-surface dark:bg-zinc-950"
+        >
             @auth
                 @include('layouts.sidebar')
             @endauth
 
-            <div class="flex min-h-screen flex-col">
+            <div class="flex h-screen min-h-screen min-w-0 flex-1 flex-col overflow-hidden bg-canvas dark:bg-zinc-950">
                 @auth
                     @include('layouts.topbar')
                 @else
                     @include('layouts.navigation')
                 @endauth
 
-                <main class="flex-1">
+                <main class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 lg:px-6">
                     {{ $slot }}
                 </main>
             </div>

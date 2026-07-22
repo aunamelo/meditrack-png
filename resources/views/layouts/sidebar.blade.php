@@ -1,64 +1,109 @@
 @php
     $portalNav = $portalNav ?? \App\Services\PortalNavigationService::sections();
     $roleMeta = $roleMeta ?? \App\Services\PortalNavigationService::currentRoleMeta();
-    $sectionLabels = config('portal.sections', []);
+    $navGroups = config('portal.nav_groups', ['menu' => [], 'other' => []]);
 @endphp
 
 <aside
-    class="sidebar-shell fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-in-out lg:translate-x-0"
-    :class="{ '-translate-x-full': ! sidebarOpen, 'translate-x-0': sidebarOpen }"
+    class="medcare-sidebar fixed inset-y-0 left-0 z-40 h-full min-h-screen transform transition-transform duration-200 ease-in-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0"
+    :class="{
+        '-translate-x-full': ! sidebarOpen,
+        'translate-x-0': sidebarOpen,
+        'medcare-sidebar-collapsed': sidebarCollapsed,
+    }"
     x-cloak
 >
-    <div class="flex h-full flex-col">
-        <div class="flex h-16 items-center gap-3 border-b border-line px-4 dark:border-zinc-800">
-            <a href="{{ getRoleDashboardRoute() }}" class="flex min-w-0 items-center gap-2.5">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-extrabold text-white shadow-glow">M</div>
-                <div class="min-w-0">
-                    <p class="truncate font-display text-sm font-bold text-ink dark:text-zinc-50">MediTrack PNG</p>
-                    <p class="truncate text-[11px] font-medium text-ink-muted dark:text-zinc-500">Medicine supply chain</p>
+    <div class="flex h-full min-h-screen flex-col overflow-hidden">
+        {{-- Brand + collapse toggle --}}
+        <div class="sidebar-header flex items-center gap-2 px-4 py-5 lg:px-3">
+            <a href="{{ getRoleDashboardRoute() }}" class="sidebar-header-brand flex min-w-0 flex-1 items-center gap-3 overflow-hidden" title="MediTrack PNG">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white shadow-glow backdrop-blur-sm [&_svg]:h-6 [&_svg]:w-6">
+                    @include('components.icons.medical-cross')
+                </div>
+                <div class="sidebar-brand-text min-w-0">
+                    <p class="truncate font-display text-lg font-bold text-white">MediTrack</p>
+                    <p class="truncate text-xs font-medium text-white/60">PNG Supply Chain</p>
                 </div>
             </a>
+            <button
+                type="button"
+                @click="toggleSidebarCollapse()"
+                class="sidebar-collapse-btn sidebar-header-collapse"
+                :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                aria-expanded="true"
+                x-bind:aria-expanded="(! sidebarCollapsed).toString()"
+            >
+                <svg
+                    class="h-4 w-4 transition-transform duration-300"
+                    :class="{ 'rotate-180': sidebarCollapsed }"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
         </div>
 
-        @if($roleMeta)
-            <div class="border-b border-line px-4 py-3.5 dark:border-zinc-800">
-                <p class="text-section-label">{{ $roleMeta['label'] }}</p>
-                <p class="mt-1 text-xs font-medium text-ink-muted dark:text-zinc-500">{{ $roleMeta['subtitle'] }}</p>
-            </div>
-        @endif
+        <nav class="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 pb-4">
+            @foreach($navGroups as $groupLabel => $sectionKeys)
+                @php
+                    $groupItems = collect($sectionKeys)
+                        ->filter(fn ($key) => isset($portalNav[$key]))
+                        ->flatMap(fn ($key) => $portalNav[$key])
+                        ->values();
+                @endphp
 
-        <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-4">
-            @foreach($portalNav as $sectionKey => $items)
-                <div>
-                    <p class="mb-2 px-2 text-section-label">
-                        {{ $sectionLabels[$sectionKey] ?? ucfirst($sectionKey) }}
-                    </p>
-                    <div class="space-y-1">
-                        @foreach($items as $item)
-                            <x-sidebar-link
-                                :href="$item['href']"
-                                :active="$item['active']"
-                                :icon="$item['icon']"
-                                :label="$item['label']"
-                                :description="$item['description']"
-                                :badge="$item['badge'] ?? null"
-                            />
-                        @endforeach
+                @if($groupItems->isNotEmpty())
+                    <div>
+                        <p class="medcare-sidebar-label mb-2">
+                            {{ $groupLabel === 'menu' ? 'Menu' : 'Other Menu' }}
+                        </p>
+                        <div class="space-y-1">
+                            @foreach($groupItems as $item)
+                                <x-sidebar-link
+                                    :href="$item['href']"
+                                    :active="$item['active']"
+                                    :icon="$item['icon']"
+                                    :label="$item['label']"
+                                    :badge="$item['badge'] ?? null"
+                                />
+                            @endforeach
+                        </div>
                     </div>
-                </div>
+                @endif
             @endforeach
         </nav>
 
-        <div class="border-t border-line p-3 dark:border-zinc-800">
-            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-muted transition hover:bg-surface-muted hover:text-ink dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100">
-                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                </span>
-                <span class="min-w-0 flex-1">
-                    <span class="block truncate font-semibold">{{ Auth::user()->name }}</span>
-                    <span class="block truncate text-xs text-ink-faint dark:text-zinc-500">Account settings</span>
-                </span>
-            </a>
+        @if($roleMeta)
+            <div class="sidebar-role-card mx-3 mb-3 overflow-hidden rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm" title="{{ $roleMeta['label'] }} · {{ $roleMeta['inventory_label'] }}">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-white/50">Your role</p>
+                <p class="mt-1 truncate text-sm font-semibold text-white">{{ $roleMeta['label'] }}</p>
+                <p class="mt-0.5 truncate text-xs text-white/60">{{ $roleMeta['inventory_label'] }}</p>
+            </div>
+        @endif
+
+        {{-- Expand control when collapsed --}}
+        <div class="sidebar-collapse-footer">
+            <button
+                type="button"
+                @click="toggleSidebarCollapse()"
+                class="sidebar-collapse-btn"
+                title="Expand sidebar"
+                aria-label="Expand sidebar"
+            >
+                <svg
+                    class="h-4 w-4 rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
         </div>
     </div>
 </aside>
@@ -67,6 +112,6 @@
     x-show="sidebarOpen"
     x-transition.opacity
     @click="sidebarOpen = false"
-    class="fixed inset-0 z-30 bg-ink/60 backdrop-blur-sm lg:hidden dark:bg-black/70"
+    class="fixed inset-0 z-30 bg-ink/50 backdrop-blur-sm lg:hidden"
     x-cloak
 ></div>

@@ -13,6 +13,10 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect(getRoleDashboardRoute());
+    }
+
     return view('welcome');
 })->name('home');
 

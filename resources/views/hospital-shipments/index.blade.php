@@ -11,7 +11,6 @@
 
         <x-module.hero
             icon="truck"
-            title="Lae AMS → Modilon Hospital"
             description="Track drugs dispatched by road from the regional warehouse to Modilon Hospital."
         />
 

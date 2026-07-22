@@ -56,8 +56,13 @@
                     <x-module.detail-field label="Days In Storage" :value="$drug->days_in_storage . ' days'" />
                     <div>
                         <dt class="text-xs font-semibold uppercase tracking-wide text-muted">Days Until Expiry</dt>
-                        <dd class="mt-1 text-sm font-semibold @if($drug->days_until_expiry < 0) text-rose-600 @elseif($drug->days_until_expiry <= 180) text-amber-600 @else text-emerald-600 @endif">
-                            {{ $drug->days_until_expiry }} days@if($drug->days_until_expiry < 0) (Expired)@endif
+                        <dd @class([
+                            'mt-1 text-sm font-semibold',
+                            'text-rose-600' => $drug->days_until_expiry < 0,
+                            'text-amber-600' => $drug->days_until_expiry >= 0 && $drug->days_until_expiry <= 180,
+                            'text-emerald-600' => $drug->days_until_expiry > 180,
+                        ])>
+                            {{ $drug->days_until_expiry }} days{{ $drug->days_until_expiry < 0 ? ' (Expired)' : '' }}
                         </dd>
                     </div>
                     <x-module.detail-field label="Last Issued Date" :value="$drug->last_issued_date ? $drug->last_issued_date->format('M d, Y') : 'Never'" />

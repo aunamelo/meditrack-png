@@ -11,7 +11,6 @@
 
         <x-module.hero
             icon="cube"
-            title="Manage drugs across the supply chain"
             description="View and manage drug inventory at your level"
             :action-url="auth()->user()->hasRole('procurement_officer') ? getDashboardDrugRoute('create') : null"
             :action-label="auth()->user()->hasRole('procurement_officer') ? 'New Entry' : null"
