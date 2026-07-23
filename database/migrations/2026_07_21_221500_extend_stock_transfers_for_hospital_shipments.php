@@ -44,6 +44,9 @@ return new class extends Migration
     {
         DB::statement('PRAGMA foreign_keys=OFF');
 
+        // Drop the unique index from the old table before renaming
+        DB::statement('DROP INDEX IF EXISTS stock_transfers_transfer_number_unique');
+
         Schema::rename('stock_transfers', 'stock_transfers_old');
 
         Schema::create('stock_transfers', function (Blueprint $table) {
@@ -64,9 +67,6 @@ return new class extends Migration
             $table->timestamp('received_at')->nullable();
             $table->timestamps();
         });
-
-        // Drop the unique index before copying data if it exists
-        DB::statement('DROP INDEX IF EXISTS stock_transfers_transfer_number_unique');
 
         DB::statement('
             INSERT INTO stock_transfers (
