@@ -52,7 +52,7 @@ class DrugPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('procurement_officer');
+        return $user->hasRole('admin');
     }
 
     /**

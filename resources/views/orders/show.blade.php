@@ -1,5 +1,5 @@
 @php
-    $order->loadMissing('items.drug');
+    $order->loadMissing(['items.medicine', 'items.drug', 'medicine']);
 @endphp
 
 <x-app-layout>
@@ -125,7 +125,7 @@
                 <table class="module-table">
                     <thead>
                         <tr>
-                            <th>Drug</th>
+                            <th>Medicine</th>
                             <th class="text-right">Ordered</th>
                             <th class="text-right">Received</th>
                             <th class="text-right">Remaining</th>
@@ -136,11 +136,20 @@
                         @forelse($order->items as $item)
                             <tr>
                                 <td>
-                                    @if($item->drug)
+                                    @if($item->medicine && auth()->user()->hasAnyRole(['admin', 'procurement_officer']))
+                                        <a href="{{ getDashboardMedicineRoute('show', $item->medicine) }}" class="module-table-link">{{ $item->medicine->name }}</a>
+                                        <span class="block text-xs text-muted">{{ $item->medicine->dosage }}</span>
+                                    @elseif($item->medicine)
+                                        <span class="font-medium">{{ $item->medicine->name }}</span>
+                                        <span class="block text-xs text-muted">{{ $item->medicine->dosage }}</span>
+                                    @elseif($item->drug)
                                         <a href="{{ getDashboardDrugRoute('show', $item->drug) }}" class="module-table-link">{{ $item->drug->drug_name }}</a>
                                         <span class="block text-xs text-muted">{{ $item->drug->dosage }}</span>
                                     @else
                                         N/A
+                                    @endif
+                                    @if($item->drug && $item->medicine)
+                                        <span class="mt-1 block text-xs text-muted">Batch: <a href="{{ getDashboardDrugRoute('show', $item->drug) }}" class="module-table-link">{{ $item->drug->batch_number }}</a></span>
                                     @endif
                                 </td>
                                 <td class="text-right font-medium">{{ number_format($item->quantity_ordered) }}</td>
@@ -158,7 +167,10 @@
                         @empty
                             <tr>
                                 <td>
-                                    @if($order->drug)
+                                    @if($order->medicine)
+                                        <span class="font-medium">{{ $order->medicine->name }}</span>
+                                        <span class="block text-xs text-muted">{{ $order->medicine->dosage }}</span>
+                                    @elseif($order->drug)
                                         <a href="{{ getDashboardDrugRoute('show', $order->drug) }}" class="module-table-link">{{ $order->drug->drug_name }}</a>
                                         <span class="block text-xs text-muted">{{ $order->drug->dosage }}</span>
                                     @else

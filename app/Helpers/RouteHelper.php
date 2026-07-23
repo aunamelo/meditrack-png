@@ -39,6 +39,22 @@ if (! function_exists('getDashboardRoutePrefix')) {
     }
 }
 
+if (! function_exists('getDashboardMedicineRoute')) {
+    /**
+     * Build a role-scoped Medicine Catalog route for the current user.
+     */
+    function getDashboardMedicineRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'procurement_officer'])) {
+            abort(403, 'You do not have access to the medicine catalog.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'medicines.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
 if (! function_exists('getDashboardDrugRoute')) {
     /**
      * Build a role-scoped Drug Inventory route for the current user.

@@ -17,6 +17,7 @@ class Order extends Model
      */
     protected $fillable = [
         'order_number',
+        'medicine_id',
         'drug_id',
         'quantity_ordered',
         'quantity_received',
@@ -71,6 +72,11 @@ class Order extends Model
         return $prefix.str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
     }
 
+    public function medicine(): BelongsTo
+    {
+        return $this->belongsTo(Medicine::class);
+    }
+
     public function drug(): BelongsTo
     {
         return $this->belongsTo(Drug::class);
@@ -86,13 +92,14 @@ class Order extends Model
      */
     public function itemsSummary(): string
     {
-        $this->loadMissing('items.drug');
+        $this->loadMissing(['items.medicine', 'items.drug', 'medicine']);
 
         if ($this->items->isEmpty()) {
-            return $this->drug?->drug_name ?? 'N/A';
+            return $this->medicine?->name ?? $this->drug?->drug_name ?? 'N/A';
         }
 
-        $first = $this->items->first()->drug?->drug_name ?? 'Unknown drug';
+        $firstItem = $this->items->first();
+        $first = $firstItem->medicine?->name ?? $firstItem->drug?->drug_name ?? 'Unknown medicine';
         $extra = $this->items->count() - 1;
 
         return $extra > 0 ? "{$first} +{$extra} more" : $first;
@@ -112,6 +119,7 @@ class Order extends Model
         $firstItem = $this->items()->orderBy('id')->first();
 
         $this->update([
+            'medicine_id' => $firstItem?->medicine_id,
             'drug_id' => $firstItem?->drug_id,
             'quantity_ordered' => (int) $this->items()->sum('quantity_ordered'),
             'quantity_received' => (int) $this->items()->sum('quantity_received'),

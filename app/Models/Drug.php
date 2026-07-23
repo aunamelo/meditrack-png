@@ -15,6 +15,7 @@ class Drug extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'medicine_id',
         'drug_name',
         'description',
         'dosage',
@@ -52,6 +53,11 @@ class Drug extends Model
     /**
      * Get the user who created this drug.
      */
+    public function medicine(): BelongsTo
+    {
+        return $this->belongsTo(Medicine::class);
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

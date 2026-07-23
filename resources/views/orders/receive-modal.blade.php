@@ -26,7 +26,7 @@
                         <table class="min-w-full divide-y divide-gray-200 text-sm">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Drug</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
                                     <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Ordered</th>
                                     <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Already in</th>
                                     <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Remaining</th>
@@ -37,8 +37,8 @@
                                 @forelse($order->items as $index => $item)
                                     <tr>
                                         <td class="px-4 py-3 font-medium text-gray-900">
-                                            {{ $item->drug->drug_name ?? 'Unknown' }}
-                                            <span class="block text-xs text-gray-500">{{ $item->drug->dosage ?? '' }}</span>
+                                            {{ $item->medicine->name ?? $item->drug->drug_name ?? 'Unknown' }}
+                                            <span class="block text-xs text-gray-500">{{ $item->medicine->dosage ?? $item->drug->dosage ?? '' }}</span>
                                         </td>
                                         <td class="px-4 py-3 text-right text-gray-600">{{ number_format($item->quantity_ordered) }}</td>
                                         <td class="px-4 py-3 text-right text-gray-600">{{ number_format($item->quantity_received ?? 0) }}</td>

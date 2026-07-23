@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreDrugRequest;
 use App\Http\Requests\UpdateDrugRequest;
 use App\Models\Drug;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -95,10 +96,15 @@ class DrugController extends Controller
      * Show the form for creating a new drug.
      * Only accessible to Procurement Officer.
      */
-    public function create(): View
+    public function create(): View|RedirectResponse
     {
-        if (!auth()->user()->hasRole('procurement_officer')) {
-            abort(403, 'Only Procurement Officers can create drug entries.');
+        if (auth()->user()->hasRole('procurement_officer')) {
+            return redirect(getDashboardMedicineRoute('create'))
+                ->with('info', 'Inventory batches are created when orders are received. Add medicines to the catalog instead.');
+        }
+
+        if (! auth()->user()->hasRole('admin')) {
+            abort(403, 'Only NDoH Admin can manually create inventory batches.');
         }
 
         return view('drugs.create');
@@ -109,6 +115,9 @@ class DrugController extends Controller
      */
     public function store(StoreDrugRequest $request)
     {
+        if (! auth()->user()->hasRole('admin')) {
+            abort(403, 'Inventory batches are created when procurement orders are received.');
+        }
         $drug = Drug::create([
             'drug_name' => $request->drug_name,
             'description' => $request->description,

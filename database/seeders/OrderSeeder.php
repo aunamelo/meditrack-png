@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Drug;
+use App\Models\Medicine;
 use App\Models\Order;
 use App\Models\User;
 use Carbon\Carbon;
@@ -18,14 +18,10 @@ class OrderSeeder extends Seeder
         $procurementOfficer = User::where('email', 'procurement@example.com')->first() ?? User::first();
         $admin = User::where('email', 'admin@example.com')->first() ?? User::skip(1)->first() ?? $procurementOfficer;
 
-        $drugs = Drug::query()->where('level', 'ndoh')->take(5)->get();
+        $medicines = Medicine::query()->active()->take(5)->get();
 
-        if ($drugs->isEmpty()) {
-            $drugs = Drug::query()->take(5)->get();
-        }
-
-        if ($drugs->isEmpty() || ! $procurementOfficer) {
-            $this->command?->warn('OrderSeeder skipped: requires drugs and users.');
+        if ($medicines->isEmpty() || ! $procurementOfficer) {
+            $this->command?->warn('OrderSeeder skipped: requires medicines and users.');
 
             return;
         }
@@ -38,7 +34,6 @@ class OrderSeeder extends Seeder
             'WHO Donation Program',
         ];
 
-        // 3 Pending orders
         foreach (range(1, 3) as $i) {
             $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
@@ -50,12 +45,11 @@ class OrderSeeder extends Seeder
                 'notes' => "Pending order #{$i} awaiting NDoH approval.",
                 'created_by' => $procurementOfficer->id,
             ], [
-                ['drug_id' => $drugs[$i % $drugs->count()]->id, 'quantity_ordered' => 500 * $i],
+                ['medicine_id' => $medicines[$i % $medicines->count()]->id, 'quantity_ordered' => 500 * $i],
             ]);
         }
 
-        // Multi-line pending order
-        if ($drugs->count() >= 2) {
+        if ($medicines->count() >= 2) {
             $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-013',
                 'supplier' => 'Combined Pharma Suppliers Ltd',
@@ -66,13 +60,12 @@ class OrderSeeder extends Seeder
                 'notes' => 'Multi-medicine procurement order awaiting NDoH approval.',
                 'created_by' => $procurementOfficer->id,
             ], [
-                ['drug_id' => $drugs[0]->id, 'quantity_ordered' => 800],
-                ['drug_id' => $drugs[1]->id, 'quantity_ordered' => 1200],
-                ['drug_id' => $drugs[2 % $drugs->count()]->id, 'quantity_ordered' => 600],
+                ['medicine_id' => $medicines[0]->id, 'quantity_ordered' => 800],
+                ['medicine_id' => $medicines[1]->id, 'quantity_ordered' => 1200],
+                ['medicine_id' => $medicines[2 % $medicines->count()]->id, 'quantity_ordered' => 600],
             ]);
         }
 
-        // 3 Approved/Ordered (awaiting delivery)
         foreach (range(4, 6) as $i) {
             $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
@@ -88,11 +81,10 @@ class OrderSeeder extends Seeder
                 'approved_by' => $admin->id,
                 'approved_at' => Carbon::now()->subDays(5),
             ], [
-                ['drug_id' => $drugs[($i - 1) % $drugs->count()]->id, 'quantity_ordered' => 1000],
+                ['medicine_id' => $medicines[($i - 1) % $medicines->count()]->id, 'quantity_ordered' => 1000],
             ]);
         }
 
-        // 3 Received (complete deliveries)
         foreach (range(7, 9) as $i) {
             $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
@@ -111,11 +103,10 @@ class OrderSeeder extends Seeder
                 'received_by' => $admin->id,
                 'received_at' => Carbon::now()->subDays(8),
             ], [
-                ['drug_id' => $drugs[($i - 1) % $drugs->count()]->id, 'quantity_ordered' => 750, 'quantity_received' => 750],
+                ['medicine_id' => $medicines[($i - 1) % $medicines->count()]->id, 'quantity_ordered' => 750, 'quantity_received' => 750],
             ]);
         }
 
-        // 2 Partial deliveries
         foreach (range(10, 11) as $i) {
             $this->createOrderWithItems([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
@@ -132,11 +123,10 @@ class OrderSeeder extends Seeder
                 'received_by' => $admin->id,
                 'received_at' => Carbon::now()->subDays(3),
             ], [
-                ['drug_id' => $drugs[($i - 1) % $drugs->count()]->id, 'quantity_ordered' => 2000, 'quantity_received' => 1200],
+                ['medicine_id' => $medicines[($i - 1) % $medicines->count()]->id, 'quantity_ordered' => 2000, 'quantity_received' => 1200],
             ]);
         }
 
-        // 1 Cancelled order
         $this->createOrderWithItems([
             'order_number' => 'ORD-2026-012',
             'supplier' => 'Discontinued Supplier Ltd',
@@ -147,7 +137,7 @@ class OrderSeeder extends Seeder
             'notes' => "Supplier unable to fulfil order.\n\nCancelled: Supplier contract terminated.",
             'created_by' => $procurementOfficer->id,
         ], [
-            ['drug_id' => $drugs->first()->id, 'quantity_ordered' => 300],
+            ['medicine_id' => $medicines->first()->id, 'quantity_ordered' => 300],
         ]);
     }
 
@@ -157,7 +147,7 @@ class OrderSeeder extends Seeder
      */
     private function createOrderWithItems(array $orderData, array $lineItems): Order
     {
-        $orderData['drug_id'] = $lineItems[0]['drug_id'];
+        $orderData['medicine_id'] = $lineItems[0]['medicine_id'];
         $orderData['quantity_ordered'] = collect($lineItems)->sum('quantity_ordered');
         $orderData['quantity_received'] = collect($lineItems)->sum(fn ($line) => $line['quantity_received'] ?? 0);
 
@@ -165,7 +155,7 @@ class OrderSeeder extends Seeder
 
         foreach ($lineItems as $line) {
             $order->items()->create([
-                'drug_id' => $line['drug_id'],
+                'medicine_id' => $line['medicine_id'],
                 'quantity_ordered' => $line['quantity_ordered'],
                 'quantity_received' => $line['quantity_received'] ?? 0,
             ]);

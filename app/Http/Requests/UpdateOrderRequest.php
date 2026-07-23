@@ -28,9 +28,9 @@ class UpdateOrderRequest extends FormRequest
 
         return [
             'items' => ['required', 'array', 'min:1', 'max:25'],
-            'items.*.drug_id' => [
+            'items.*.medicine_id' => [
                 'required',
-                Rule::exists('drugs', 'id')->where(fn ($query) => $query->where('level', 'ndoh')),
+                Rule::exists('medicines', 'id')->where(fn ($query) => $query->where('is_active', true)),
             ],
             'items.*.quantity_ordered' => ['required', 'integer', 'min:1', 'max:999999'],
             'supplier' => 'required|string|max:255',

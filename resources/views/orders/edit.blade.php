@@ -8,12 +8,12 @@
 
     @php
         $defaultItems = old('items', $order->items->map(fn ($item) => [
-            'drug_id' => (string) $item->drug_id,
+            'medicine_id' => (string) $item->medicine_id,
             'quantity_ordered' => (string) $item->quantity_ordered,
         ])->values()->all());
 
         if (empty($defaultItems)) {
-            $defaultItems = [['drug_id' => (string) $order->drug_id, 'quantity_ordered' => (string) $order->quantity_ordered]];
+            $defaultItems = [['medicine_id' => (string) $order->medicine_id, 'quantity_ordered' => (string) $order->quantity_ordered]];
         }
     @endphp
 
@@ -29,8 +29,8 @@
                     <form action="{{ getDashboardOrderRoute('update', $order) }}" method="POST"
                           x-data="{
                               items: @js($defaultItems),
-                              drugOptions: @js($drugs->map(fn ($drug) => ['id' => (string) $drug->id, 'label' => $drug->drug_name.' ('.$drug->dosage.')'])->values()),
-                              addItem() { this.items.push({ drug_id: '', quantity_ordered: '' }); },
+                              medicineOptions: @js($medicines->map(fn ($medicine) => ['id' => (string) $medicine->id, 'label' => $medicine->displayLabel()])->values()),
+                              addItem() { this.items.push({ medicine_id: '', quantity_ordered: '' }); },
                               removeItem(index) { if (this.items.length > 1) this.items.splice(index, 1); },
                           }">
                         @csrf
@@ -61,10 +61,10 @@
                                 <template x-for="(item, index) in items" :key="index">
                                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start bg-white rounded-md border border-gray-200 p-3">
                                         <div class="md:col-span-7">
-                                            <label class="block text-xs font-medium text-gray-700 mb-1">Drug <span class="text-red-500">*</span></label>
-                                            <select :name="`items[${index}][drug_id]`" x-model="item.drug_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
-                                                <option value="">Select a drug...</option>
-                                                <template x-for="option in drugOptions" :key="option.id">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Medicine <span class="text-red-500">*</span></label>
+                                            <select :name="`items[${index}][medicine_id]`" x-model="item.medicine_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                                <option value="">Select a medicine...</option>
+                                                <template x-for="option in medicineOptions" :key="option.id">
                                                     <option :value="option.id" x-text="option.label"></option>
                                                 </template>
                                             </select>

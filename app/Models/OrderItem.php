@@ -12,6 +12,7 @@ class OrderItem extends Model
      */
     protected $fillable = [
         'order_id',
+        'medicine_id',
         'drug_id',
         'quantity_ordered',
         'quantity_received',
@@ -22,9 +23,23 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
+    public function medicine(): BelongsTo
+    {
+        return $this->belongsTo(Medicine::class);
+    }
+
     public function drug(): BelongsTo
     {
         return $this->belongsTo(Drug::class);
+    }
+
+    public function lineLabel(): string
+    {
+        if ($this->medicine) {
+            return $this->medicine->displayLabel();
+        }
+
+        return $this->drug?->drug_name ?? 'Unknown medicine';
     }
 
     public function remainingQuantity(): int

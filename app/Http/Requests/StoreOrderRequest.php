@@ -20,9 +20,9 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'items' => ['required', 'array', 'min:1', 'max:25'],
-            'items.*.drug_id' => [
+            'items.*.medicine_id' => [
                 'required',
-                Rule::exists('drugs', 'id')->where(fn ($query) => $query->where('level', 'ndoh')),
+                Rule::exists('medicines', 'id')->where(fn ($query) => $query->where('is_active', true)),
             ],
             'items.*.quantity_ordered' => ['required', 'integer', 'min:1', 'max:999999'],
             'supplier' => 'required|string|max:255',
@@ -43,7 +43,7 @@ class StoreOrderRequest extends FormRequest
         return [
             'items.required' => 'Add at least one medicine line to the order.',
             'items.min' => 'Add at least one medicine line to the order.',
-            'items.*.drug_id.required' => 'Select a drug for each line item.',
+            'items.*.medicine_id.required' => 'Select a medicine for each line item.',
             'items.*.quantity_ordered.required' => 'Enter a quantity for each line item.',
         ];
     }

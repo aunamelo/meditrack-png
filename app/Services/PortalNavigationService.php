@@ -61,6 +61,17 @@ class PortalNavigationService
             icon: 'home',
         );
 
+        if ($user->hasAnyRole(['admin', 'procurement_officer'])) {
+            $items[] = self::item(
+                section: 'procurement',
+                label: 'Medicine Catalog',
+                description: 'Approved medicines for procurement',
+                href: getDashboardMedicineRoute('index'),
+                active: request()->routeIs('*.dashboard.medicines.*'),
+                icon: 'clipboard',
+            );
+        }
+
         if ($user->hasAnyRole(['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager', 'pharmacist'])) {
             $meta = self::currentRoleMeta();
 
@@ -283,16 +294,16 @@ class PortalNavigationService
             return ['label' => 'New order', 'url' => getDashboardOrderRoute('create')];
         }
 
+        if ($user->hasRole('admin')) {
+            return ['label' => 'Review orders', 'url' => getDashboardOrderRoute('index')];
+        }
+
         if ($user->hasRole('pharmacy_manager')) {
             return ['label' => 'New request', 'url' => getDashboardHospitalOrderRoute('create')];
         }
 
         if ($user->hasRole('store_manager')) {
             return ['label' => 'Hospital orders', 'url' => getDashboardHospitalOrderRoute('index')];
-        }
-
-        if ($user->hasRole('admin')) {
-            return ['label' => 'Review orders', 'url' => getDashboardOrderRoute('index')];
         }
 
         if ($user->hasRole('pharmacist')) {

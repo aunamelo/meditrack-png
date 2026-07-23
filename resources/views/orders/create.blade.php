@@ -7,7 +7,7 @@
     </x-slot>
 
     @php
-        $defaultItems = old('items', [['drug_id' => '', 'quantity_ordered' => '']]);
+        $defaultItems = old('items', [['medicine_id' => '', 'quantity_ordered' => '']]);
     @endphp
 
     <x-page-container>
@@ -27,7 +27,7 @@
                               invoiceAmount: @js(old('invoice_amount', '')),
                               notes: @js(old('notes', '')),
                               notesEdited: @js(filled(old('notes'))),
-                              drugOptions: @js($drugs->map(fn ($drug) => ['id' => (string) $drug->id, 'label' => $drug->drug_name.' ('.$drug->dosage.')'])->values()),
+                              medicineOptions: @js($medicines->map(fn ($medicine) => ['id' => (string) $medicine->id, 'label' => $medicine->displayLabel()])->values()),
                           })">
                         @csrf
 
@@ -45,7 +45,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-900">Medicines in this order</h3>
-                                    <p class="text-xs text-gray-500 mt-0.5">Add one or more drug lines — all items share the same supplier and delivery details.</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">Select medicines from the NDoH catalog — all items share the same supplier and delivery details.</p>
                                 </div>
                                 <button type="button" @click="addItem()" class="inline-flex items-center px-3 py-1.5 bg-white border border-[#0f766e] rounded-md text-xs font-semibold text-[#0f766e] uppercase hover:bg-teal-50">
                                     + Add line
@@ -56,10 +56,10 @@
                                 <template x-for="(item, index) in items" :key="index">
                                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start bg-white rounded-md border border-gray-200 p-3">
                                         <div class="md:col-span-7">
-                                            <label class="block text-xs font-medium text-gray-700 mb-1">Drug <span class="text-red-500">*</span></label>
-                                            <select :name="`items[${index}][drug_id]`" x-model="item.drug_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
-                                                <option value="">Select a drug...</option>
-                                                <template x-for="option in drugOptions" :key="option.id">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Medicine <span class="text-red-500">*</span></label>
+                                            <select :name="`items[${index}][medicine_id]`" x-model="item.medicine_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                                <option value="">Select a medicine...</option>
+                                                <template x-for="option in medicineOptions" :key="option.id">
                                                     <option :value="option.id" x-text="option.label"></option>
                                                 </template>
                                             </select>
@@ -77,10 +77,10 @@
                                 </template>
                             </div>
 
-                            @if($drugs->isEmpty())
-                                <p class="mt-3 text-sm text-amber-700">Add a drug entry first so the system knows which drug types NDoH can order. <a href="{{ getDashboardDrugRoute('create') }}" class="font-medium text-[#0f766e] underline">Add drug entry →</a></p>
+                            @if($medicines->isEmpty())
+                                <p class="mt-3 text-sm text-amber-700">Add medicines to the catalog before creating procurement orders. <a href="{{ getDashboardMedicineRoute('create') }}" class="font-medium text-[#0f766e] underline">Add medicine →</a></p>
                             @else
-                                <p class="mt-3 text-xs text-gray-500">A new NDoH batch is created for each line when the order is received.</p>
+                                <p class="mt-3 text-xs text-gray-500">An NDoH inventory batch is created for each line when the order is received.</p>
                             @endif
                         </div>
 
@@ -161,8 +161,8 @@
     <script>
         function createOrderForm(initial) {
             return {
-                items: initial.items ?? [{ drug_id: '', quantity_ordered: '' }],
-                drugOptions: initial.drugOptions ?? [],
+                items: initial.items ?? [{ medicine_id: '', quantity_ordered: '' }],
+                medicineOptions: initial.medicineOptions ?? [],
                 supplier: initial.supplier ?? '',
                 source: initial.source ?? 'overseas',
                 orderDate: initial.orderDate ?? '',
@@ -195,15 +195,15 @@
                     });
                 },
                 addItem() {
-                    this.items.push({ drug_id: '', quantity_ordered: '' });
+                    this.items.push({ medicine_id: '', quantity_ordered: '' });
                 },
                 removeItem(index) {
                     if (this.items.length > 1) {
                         this.items.splice(index, 1);
                     }
                 },
-                drugLabel(drugId) {
-                    const option = this.drugOptions.find((entry) => entry.id === String(drugId));
+                medicineLabel(medicineId) {
+                    const option = this.medicineOptions.find((entry) => entry.id === String(medicineId));
 
                     return option ? option.label : null;
                 },
@@ -232,9 +232,9 @@
                 buildNotes() {
                     const lines = [];
                     const itemLines = this.items
-                        .filter((item) => item.drug_id && Number(item.quantity_ordered) > 0)
+                        .filter((item) => item.medicine_id && Number(item.quantity_ordered) > 0)
                         .map((item) => {
-                            const label = this.drugLabel(item.drug_id);
+                            const label = this.medicineLabel(item.medicine_id);
 
                             return label ? `${Number(item.quantity_ordered).toLocaleString()} × ${label}` : null;
                         })

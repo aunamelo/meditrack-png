@@ -13,7 +13,7 @@ class StoreDrugRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->hasRole('procurement_officer');
+        return auth()->user()->hasRole('admin');
     }
 
     /**

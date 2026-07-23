@@ -8,6 +8,7 @@ use App\Http\Requests\ReceiveOrderRequest;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Drug;
+use App\Models\Medicine;
 use App\Models\Order;
 use App\Services\OrderNotificationService;
 use Carbon\Carbon;
@@ -24,7 +25,7 @@ class OrderController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $query = Order::with(['items.drug', 'drug', 'creator']);
+        $query = Order::with(['items.medicine', 'items.drug', 'medicine', 'drug', 'creator']);
 
         if ($user->hasRole('procurement_officer')) {
             $query->byCreatedBy($user->id);
@@ -35,7 +36,9 @@ class OrderController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
                     ->orWhere('supplier', 'like', "%{$search}%")
+                    ->orWhereHas('medicine', fn ($medicineQuery) => $medicineQuery->where('name', 'like', "%{$search}%"))
                     ->orWhereHas('drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"))
+                    ->orWhereHas('items.medicine', fn ($medicineQuery) => $medicineQuery->where('name', 'like', "%{$search}%"))
                     ->orWhereHas('items.drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"));
             });
         }
@@ -66,15 +69,13 @@ class OrderController extends Controller
             abort(403, 'Only Procurement Officers can create orders.');
         }
 
-        $drugs = Drug::query()
-            ->atLevel('ndoh')
-            ->orderBy('drug_name')
-            ->orderByDesc('created_at')
-            ->get()
-            ->unique(fn (Drug $drug) => $drug->drug_name.'|'.$drug->dosage)
-            ->values();
+        $medicines = Medicine::query()
+            ->active()
+            ->orderBy('name')
+            ->orderBy('dosage')
+            ->get();
 
-        return view('orders.create', compact('drugs'));
+        return view('orders.create', compact('medicines'));
     }
 
     /**
@@ -85,7 +86,7 @@ class OrderController extends Controller
         $order = DB::transaction(function () use ($request) {
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
-                'drug_id' => $request->input('items.0.drug_id'),
+                'medicine_id' => $request->input('items.0.medicine_id'),
                 'quantity_ordered' => collect($request->input('items'))->sum('quantity_ordered'),
                 'supplier' => $request->supplier,
                 'order_date' => $request->order_date,
@@ -100,7 +101,7 @@ class OrderController extends Controller
 
             foreach ($request->validated('items') as $item) {
                 $order->items()->create([
-                    'drug_id' => $item['drug_id'],
+                    'medicine_id' => $item['medicine_id'],
                     'quantity_ordered' => $item['quantity_ordered'],
                 ]);
             }
@@ -110,7 +111,7 @@ class OrderController extends Controller
             return $order;
         });
 
-        $order->load(['items.drug', 'creator']);
+        $order->load(['items.medicine', 'creator']);
 
         OrderNotificationService::notifyAdminsOfPendingOrder($order);
 
@@ -125,7 +126,7 @@ class OrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['items.drug', 'drug', 'creator', 'approver', 'receiver']);
+        $order->load(['items.medicine', 'items.drug', 'medicine', 'drug', 'creator', 'approver', 'receiver']);
 
         if (auth()->user()->hasRole('admin')) {
             OrderNotificationService::markOrderNotificationsAsRead(auth()->user(), $order);
@@ -149,17 +150,15 @@ class OrderController extends Controller
             abort(403, 'Only pending orders can be edited.');
         }
 
-        $drugs = Drug::query()
-            ->atLevel('ndoh')
-            ->orderBy('drug_name')
-            ->orderByDesc('created_at')
-            ->get()
-            ->unique(fn (Drug $drug) => $drug->drug_name.'|'.$drug->dosage)
-            ->values();
+        $medicines = Medicine::query()
+            ->active()
+            ->orderBy('name')
+            ->orderBy('dosage')
+            ->get();
 
-        $order->load(['items.drug']);
+        $order->load(['items.medicine']);
 
-        return view('orders.edit', compact('order', 'drugs'));
+        return view('orders.edit', compact('order', 'medicines'));
     }
 
     /**
@@ -178,7 +177,7 @@ class OrderController extends Controller
 
             foreach ($request->validated('items') as $item) {
                 $order->items()->create([
-                    'drug_id' => $item['drug_id'],
+                    'medicine_id' => $item['medicine_id'],
                     'quantity_ordered' => $item['quantity_ordered'],
                 ]);
             }
@@ -235,10 +234,10 @@ class OrderController extends Controller
             $quantitiesByItem[(int) $row['id']] = (int) $row['quantity_received'];
         }
 
-        $order->load('items.drug');
+        $order->load('items.medicine');
         $order->receiveItems($quantitiesByItem, auth()->id(), $receivedDate);
 
-        foreach ($order->items as $item) {
+        foreach ($order->fresh('items.medicine')->items as $item) {
             $quantityReceived = $quantitiesByItem[$item->id] ?? 0;
 
             if ($quantityReceived > 0) {
@@ -306,9 +305,9 @@ class OrderController extends Controller
      */
     private function createDrugFromOrderItem(Order $order, \App\Models\OrderItem $item, int $quantityReceived, Carbon $receivedDate): void
     {
-        $referenceDrug = $item->drug;
+        $medicine = $item->medicine;
 
-        if (! $referenceDrug) {
+        if (! $medicine) {
             return;
         }
 
@@ -317,24 +316,22 @@ class OrderController extends Controller
             ? ($item->quantity_ordered / $totalOrdered) * (float) $order->invoice_amount
             : null;
 
-        Drug::create([
-            'drug_name' => $referenceDrug->drug_name,
-            'description' => $referenceDrug->description,
-            'dosage' => $referenceDrug->dosage,
-            'dosage_form' => $referenceDrug->dosage_form,
+        $drug = Drug::create([
+            'medicine_id' => $medicine->id,
+            'drug_name' => $medicine->name,
+            'description' => $medicine->description,
+            'dosage' => $medicine->dosage,
+            'dosage_form' => $medicine->dosage_form,
             'batch_number' => $order->order_number.'-'.$item->id.'-'.now()->format('His'),
-            'expiry_date' => $referenceDrug->expiry_date->gt($receivedDate)
-                ? $referenceDrug->expiry_date
-                : $receivedDate->copy()->addYears(2),
+            'expiry_date' => $receivedDate->copy()->addYears(2),
             'quantity_received' => $quantityReceived,
             'quantity_on_hand' => $quantityReceived,
-            'reorder_point' => $referenceDrug->reorder_point,
-            'unit' => $referenceDrug->unit,
+            'reorder_point' => $medicine->reorder_point,
+            'unit' => $medicine->unit,
             'supplier' => $order->supplier,
             'cost_per_unit' => $lineInvoiceShare
                 ? round($lineInvoiceShare / max($item->quantity_ordered, 1), 2)
-                : $referenceDrug->cost_per_unit,
-            'storage_location' => $referenceDrug->storage_location,
+                : null,
             'level' => 'ndoh',
             'status' => 'active',
             'received_date' => $receivedDate,
@@ -342,5 +339,8 @@ class OrderController extends Controller
             'created_by' => auth()->id(),
             'updated_by' => auth()->id(),
         ]);
+
+        $item->update(['drug_id' => $drug->id]);
+        $order->syncLegacyColumnsFromItems();
     }
 }

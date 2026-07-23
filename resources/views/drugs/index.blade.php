@@ -11,9 +11,9 @@
 
         <x-module.hero
             icon="cube"
-            description="View and manage drug inventory at your level"
-            :action-url="auth()->user()->hasRole('procurement_officer') ? getDashboardDrugRoute('create') : null"
-            :action-label="auth()->user()->hasRole('procurement_officer') ? 'New Entry' : null"
+            description="NDoH stock batches — created when procurement orders are received"
+            :action-url="auth()->user()->hasRole('admin') ? getDashboardDrugRoute('create') : null"
+            :action-label="auth()->user()->hasRole('admin') ? 'Manual entry' : null"
         />
 
         <div class="module-panel p-6">
@@ -142,9 +142,11 @@
                         <x-dashboard.icon name="cube" class="h-6 w-6 text-muted" />
                     </div>
                     <p class="text-sm font-semibold text-ink dark:text-zinc-200">No drugs found</p>
-                    <p class="mt-1 text-sm text-muted">Get started by creating a new drug entry.</p>
-                    @if(auth()->user()->hasRole('procurement_officer'))
-                        <a href="{{ getDashboardDrugRoute('create') }}" class="btn-brand mt-4 text-xs uppercase tracking-wider">New Entry</a>
+                    <p class="mt-1 text-sm text-muted">Inventory batches appear here after procurement orders are received.</p>
+                    @if(auth()->user()->hasAnyRole(['admin', 'procurement_officer']))
+                        <a href="{{ auth()->user()->hasRole('admin') ? getDashboardDrugRoute('create') : getDashboardMedicineRoute('index') }}" class="btn-brand mt-4 text-xs uppercase tracking-wider">
+                            {{ auth()->user()->hasRole('admin') ? 'Manual entry' : 'Medicine catalog' }}
+                        </a>
                     @endif
                 </div>
             @endif

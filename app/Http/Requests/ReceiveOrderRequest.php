@@ -37,7 +37,7 @@ class ReceiveOrderRequest extends FormRequest
                 return;
             }
 
-            $order->loadMissing('items');
+            $order->loadMissing(['items.medicine', 'items.drug']);
 
             foreach ($this->input('items', []) as $index => $row) {
                 $item = $order->items->firstWhere('id', (int) ($row['id'] ?? 0));
@@ -53,7 +53,7 @@ class ReceiveOrderRequest extends FormRequest
                 if ($qty > $item->remainingQuantity()) {
                     $validator->errors()->add(
                         "items.{$index}.quantity_received",
-                        "Cannot receive more than {$item->remainingQuantity()} units for {$item->drug?->drug_name}."
+                        "Cannot receive more than {$item->remainingQuantity()} units for {$item->lineLabel()}."
                     );
                 }
             }
