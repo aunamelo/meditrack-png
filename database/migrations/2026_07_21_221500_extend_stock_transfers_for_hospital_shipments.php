@@ -65,6 +65,9 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Drop the unique index before copying data if it exists
+        DB::statement('DROP INDEX IF EXISTS stock_transfers_transfer_number_unique');
+
         DB::statement('
             INSERT INTO stock_transfers (
                 id, transfer_number, drug_id, destination_drug_id, hospital_order_id,
