@@ -17,6 +17,7 @@ class Medicine extends Model
         'dosage_form',
         'unit',
         'description',
+        'supplier_id',
         'reorder_point',
         'is_active',
         'created_by',
@@ -39,6 +40,11 @@ class Medicine extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function orderItems(): HasMany

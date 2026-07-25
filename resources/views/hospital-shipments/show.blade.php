@@ -17,7 +17,14 @@
                 <x-module.detail-field label="Quantity sent" :value="number_format($transfer->quantity_sent)" />
                 <x-module.detail-field label="Batch" :value="$transfer->batch_number" />
                 <x-module.detail-field label="Route" value="Lae AMS → Modilon Hospital (by road)" />
-                <x-module.detail-field label="Transport" value="Land — car/truck" />
+                <x-module.detail-field label="Assigned vehicle">
+                    @if($transfer->vehicle)
+                        <span class="font-medium text-ink dark:text-zinc-200">{{ $transfer->vehicle->displayLabel() }}</span>
+                        <span class="block text-xs text-muted">{{ $transfer->vehicle->typeLabel() }} · ready for tracking</span>
+                    @else
+                        <span class="text-sm text-muted">Not recorded</span>
+                    @endif
+                </x-module.detail-field>
                 <x-module.detail-field label="Dispatched" :value="$transfer->formatSentDate()" />
                 <x-module.detail-field label="Status">
                     <x-module.status-badge :variant="$transfer->status" :label="logisticsTransferStatusLabel($transfer->status)" />

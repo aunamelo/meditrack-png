@@ -10,7 +10,17 @@
         <x-module.back-link :href="getDashboardMedicineRoute('show', $medicine)" :label="'Back to ' . $medicine->name" class="mb-6" />
 
         <div class="module-form-shell">
-            <form action="{{ getDashboardMedicineRoute('update', $medicine) }}" method="POST">
+            <form action="{{ getDashboardMedicineRoute('update', $medicine) }}" method="POST"
+                  x-data="medicineCatalogForm({
+                      name: @js(old('name', $medicine->name)),
+                      dosage: @js(old('dosage', $medicine->dosage)),
+                      dosageForm: @js(old('dosage_form', $medicine->dosage_form)),
+                      supplierId: @js(old('supplier_id', (string) $medicine->supplier_id)),
+                      description: @js(old('description', $medicine->description ?? '')),
+                      descriptionEdited: @js(filled(old('description')) || filled($medicine->description)),
+                      supplierOptions: @js($suppliers->map(fn ($supplier) => ['id' => (string) $supplier->id, 'name' => $supplier->name])->values()),
+                      formLabels: @js(['tablet' => 'tablet', 'injection' => 'injection', 'syrup' => 'syrup', 'cream' => 'cream', 'ointment' => 'ointment', 'other' => 'other']),
+                  })">
                 @csrf
                 @method('PUT')
 
@@ -27,19 +37,19 @@
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
                         <label for="name" class="form-label">Medicine name <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" id="name" value="{{ old('name', $medicine->name) }}" required class="input-field">
+                        <input type="text" name="name" id="name" x-model="name" value="{{ old('name', $medicine->name) }}" required class="input-field">
                         @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="dosage" class="form-label">Dosage <span class="text-red-500">*</span></label>
-                        <input type="text" name="dosage" id="dosage" value="{{ old('dosage', $medicine->dosage) }}" required class="input-field">
+                        <input type="text" name="dosage" id="dosage" x-model="dosage" value="{{ old('dosage', $medicine->dosage) }}" required class="input-field">
                         @error('dosage')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="dosage_form" class="form-label">Dosage form <span class="text-red-500">*</span></label>
-                        <select name="dosage_form" id="dosage_form" required class="input-field">
+                        <select name="dosage_form" id="dosage_form" x-model="dosageForm" required class="input-field">
                             @foreach(['tablet' => 'Tablet', 'injection' => 'Injection', 'syrup' => 'Syrup', 'cream' => 'Cream', 'ointment' => 'Ointment', 'other' => 'Other'] as $value => $label)
                                 <option value="{{ $value }}" @selected(old('dosage_form', $medicine->dosage_form) === $value)>{{ $label }}</option>
                             @endforeach
@@ -59,29 +69,94 @@
                         @error('reorder_point')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
-                    @if(auth()->user()->hasRole('admin'))
-                        <div>
-                            <label class="form-label">Catalog status</label>
-                            <label class="mt-2 inline-flex items-center gap-2 text-sm text-ink">
-                                <input type="hidden" name="is_active" value="0">
-                                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $medicine->is_active)) class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
-                                Active in catalog
-                            </label>
-                        </div>
-                    @endif
+                    <div class="md:col-span-2">
+                        <label for="supplier_id" class="form-label">Registered supplier (India / China) <span class="text-red-500">*</span></label>
+                        <select name="supplier_id" id="supplier_id" x-model="supplierId" required class="input-field">
+                            <option value="">Select manufacturer...</option>
+                            @foreach($suppliers->groupBy('country') as $country => $group)
+                                <optgroup label="{{ $group->first()->countryLabel() }}">
+                                    @foreach($group as $supplier)
+                                        <option value="{{ $supplier->id }}" @selected(old('supplier_id', $medicine->supplier_id) == $supplier->id)>{{ $supplier->name }}@if($supplier->headquarters) — {{ $supplier->headquarters }}@endif</option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
+                        @error('supplier_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
 
                     <div class="md:col-span-2">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea name="description" id="description" rows="3" class="input-field">{{ old('description', $medicine->description) }}</textarea>
+                        <div class="mb-1 flex items-center justify-between">
+                            <label for="description" class="form-label">Description</label>
+                            <button type="button" x-show="descriptionEdited" x-cloak @click="descriptionEdited = false; refreshDescription()" class="text-xs font-medium text-brand-600 hover:underline">Regenerate from form</button>
+                        </div>
+                        <textarea name="description" id="description" rows="3" x-model="description" @input="descriptionEdited = true" class="input-field"></textarea>
+                        <p class="mt-1 text-xs text-muted">Auto-filled from medicine details and registered supplier. Edit to customize.</p>
                         @error('description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
 
-                <div class="mt-6 flex gap-3">
+                <div class="mt-6 flex flex-wrap items-center gap-3">
                     <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Save changes</button>
                     <a href="{{ getDashboardMedicineRoute('show', $medicine) }}" class="btn-module-secondary">Cancel</a>
                 </div>
             </form>
+
+            <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4 dark:border-zinc-800">
+                @include('medicines.partials.status-actions', ['medicine' => $medicine])
+                <p class="text-xs text-muted">Inactive medicines stay in the catalog but cannot be added to new procurement orders.</p>
+            </div>
         </div>
     </x-page-container>
+
+    <script>
+        function medicineCatalogForm(initial) {
+            return {
+                name: initial.name ?? '',
+                dosage: initial.dosage ?? '',
+                dosageForm: initial.dosageForm ?? '',
+                supplierId: initial.supplierId ?? '',
+                description: initial.description ?? '',
+                descriptionEdited: initial.descriptionEdited ?? false,
+                supplierOptions: initial.supplierOptions ?? [],
+                formLabels: initial.formLabels ?? {},
+                get supplierName() {
+                    const option = this.supplierOptions.find((entry) => entry.id === String(this.supplierId));
+
+                    return option ? option.name : '';
+                },
+                init() {
+                    ['name', 'dosage', 'dosageForm', 'supplierId'].forEach((field) => {
+                        this.$watch(field, () => this.refreshDescription());
+                    });
+
+                    if (!this.descriptionEdited) {
+                        this.refreshDescription();
+                    }
+                },
+                buildDescription() {
+                    const supplier = this.supplierName;
+
+                    if (!supplier) {
+                        return '';
+                    }
+
+                    const medicineName = String(this.name).trim();
+                    const medicineDosage = String(this.dosage).trim();
+
+                    if (medicineName && medicineDosage && this.dosageForm) {
+                        const form = this.formLabels[this.dosageForm] ?? this.dosageForm;
+
+                        return `Essential medicine (${medicineName} ${medicineDosage}, ${form}) — imported from ${supplier}.`;
+                    }
+
+                    return `Essential medicine — imported from ${supplier}.`;
+                },
+                refreshDescription() {
+                    if (!this.descriptionEdited) {
+                        this.description = this.buildDescription();
+                    }
+                },
+            };
+        }
+    </script>
 </x-app-layout>

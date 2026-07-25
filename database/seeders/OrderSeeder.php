@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Medicine;
 use App\Models\Order;
+use App\Models\Supplier;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -18,7 +19,7 @@ class OrderSeeder extends Seeder
         $procurementOfficer = User::where('email', 'procurement@example.com')->first() ?? User::first();
         $admin = User::where('email', 'admin@example.com')->first() ?? User::skip(1)->first() ?? $procurementOfficer;
 
-        $medicines = Medicine::query()->active()->take(5)->get();
+        $medicines = Medicine::query()->active()->take(6)->get();
 
         if ($medicines->isEmpty() || ! $procurementOfficer) {
             $this->command?->warn('OrderSeeder skipped: requires medicines and users.');
@@ -26,88 +27,87 @@ class OrderSeeder extends Seeder
             return;
         }
 
-        $suppliers = [
-            'PharmaCorp International',
-            'MedSupply PNG Ltd',
-            'Global Health Distributors',
-            'Pacific Pharma Co.',
-            'WHO Donation Program',
-        ];
-
         foreach (range(1, 3) as $i) {
-            $this->createOrderWithItems([
+            $supplierRef = match ($i) {
+                1 => $this->supplier('Cipla Ltd'),
+                2 => $this->supplier('Sinopharm International Corporation'),
+                default => $this->supplier('WHO Essential Medicines Programme'),
+            };
+
+            $this->createOrderWithItems(array_merge([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-                'supplier' => $suppliers[$i - 1],
                 'order_date' => Carbon::now()->subDays(10 - $i),
                 'expected_delivery_date' => Carbon::now()->addDays(30 + ($i * 7)),
                 'source' => $i === 3 ? 'donation' : 'overseas',
                 'status' => 'pending',
                 'notes' => "Pending order #{$i} awaiting NDoH approval.",
                 'created_by' => $procurementOfficer->id,
-            ], [
+            ], $supplierRef), [
                 ['medicine_id' => $medicines[$i % $medicines->count()]->id, 'quantity_ordered' => 500 * $i],
             ]);
         }
 
         if ($medicines->count() >= 2) {
-            $this->createOrderWithItems([
+            $this->createOrderWithItems(array_merge([
                 'order_number' => 'ORD-2026-013',
-                'supplier' => 'Combined Pharma Suppliers Ltd',
                 'order_date' => Carbon::now()->subDays(2),
                 'expected_delivery_date' => Carbon::now()->addDays(45),
                 'source' => 'overseas',
                 'status' => 'pending',
                 'notes' => 'Multi-medicine procurement order awaiting NDoH approval.',
                 'created_by' => $procurementOfficer->id,
-            ], [
+            ], $this->supplier('Sun Pharmaceutical Industries Ltd')), [
                 ['medicine_id' => $medicines[0]->id, 'quantity_ordered' => 800],
                 ['medicine_id' => $medicines[1]->id, 'quantity_ordered' => 1200],
                 ['medicine_id' => $medicines[2 % $medicines->count()]->id, 'quantity_ordered' => 600],
             ]);
         }
 
+        $manufacturingSuppliers = [
+            'Cipla Ltd',
+            'Lupin Ltd',
+            "Dr. Reddy's Laboratories Ltd",
+        ];
+
         foreach (range(4, 6) as $i) {
-            $this->createOrderWithItems([
+            $this->createOrderWithItems(array_merge([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-                'supplier' => $suppliers[($i - 1) % count($suppliers)],
                 'order_date' => Carbon::now()->subDays(20),
                 'expected_delivery_date' => Carbon::now()->addDays(14),
                 'supplier_invoice' => 'INV-2026-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT),
                 'invoice_amount' => 15000 + ($i * 2500),
                 'source' => 'overseas',
                 'status' => 'manufacturing',
-                'notes' => 'Approved — supplier manufacturing in progress.',
+                'notes' => 'Approved — Asian manufacturer producing order (3–6 month import pipeline).',
                 'created_by' => $procurementOfficer->id,
                 'approved_by' => $admin->id,
                 'approved_at' => Carbon::now()->subDays(5),
                 'manufacturing_started_at' => Carbon::now()->subDays(5),
-            ], [
+            ], $this->supplier($manufacturingSuppliers[$i - 4])), [
                 ['medicine_id' => $medicines[($i - 1) % $medicines->count()]->id, 'quantity_ordered' => 1000],
             ]);
         }
 
-        $this->createOrderWithItems([
+        $this->createOrderWithItems(array_merge([
             'order_number' => 'ORD-2026-014',
-            'supplier' => 'Global Health Distributors',
             'order_date' => Carbon::now()->subDays(35),
             'expected_delivery_date' => Carbon::now()->addDays(45),
             'supplier_invoice' => 'INV-2026-0014',
             'invoice_amount' => 42000,
             'source' => 'overseas',
             'status' => 'shipped',
-            'notes' => 'Left Mumbai port — en route to Port Moresby.',
+            'notes' => 'Left Mumbai port, India — en route to Port Moresby.',
             'created_by' => $procurementOfficer->id,
             'approved_by' => $admin->id,
             'approved_at' => Carbon::now()->subDays(30),
             'manufacturing_started_at' => Carbon::now()->subDays(30),
             'shipped_at' => Carbon::now()->subDays(7),
-        ], [
+        ], $this->supplier('Sun Pharmaceutical Industries Ltd')), [
             ['medicine_id' => $medicines[0]->id, 'quantity_ordered' => 2500],
         ]);
 
-        $this->createOrderWithItems([
+        $this->createOrderWithItems(array_merge([
             'order_number' => 'ORD-2026-015',
-            'supplier' => 'PharmaCorp International',
             'order_date' => Carbon::now()->subDays(60),
             'expected_delivery_date' => Carbon::now()->addDays(20),
             'supplier_invoice' => 'INV-2026-0015',
@@ -120,13 +120,12 @@ class OrderSeeder extends Seeder
             'approved_at' => Carbon::now()->subDays(55),
             'manufacturing_started_at' => Carbon::now()->subDays(55),
             'shipped_at' => Carbon::now()->subDays(21),
-        ], [
+        ], $this->supplier("Dr. Reddy's Laboratories Ltd")), [
             ['medicine_id' => $medicines[1 % $medicines->count()]->id, 'quantity_ordered' => 1800],
         ]);
 
-        $this->createOrderWithItems([
+        $this->createOrderWithItems(array_merge([
             'order_number' => 'ORD-2026-016',
-            'supplier' => 'Pacific Pharma Co.',
             'order_date' => Carbon::now()->subDays(90),
             'expected_delivery_date' => Carbon::now()->addDays(7),
             'supplier_invoice' => 'INV-2026-0016',
@@ -141,14 +140,13 @@ class OrderSeeder extends Seeder
             'shipped_at' => Carbon::now()->subDays(40),
             'customs_cleared_at' => Carbon::now()->subDays(14),
             'fx_cleared_at' => Carbon::now()->subDays(3),
-        ], [
+        ], $this->supplier('Shanghai Pharmaceuticals Holding Co., Ltd')), [
             ['medicine_id' => $medicines[2 % $medicines->count()]->id, 'quantity_ordered' => 3200],
         ]);
 
         foreach (range(7, 9) as $i) {
-            $this->createOrderWithItems([
+            $this->createOrderWithItems(array_merge([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-                'supplier' => $suppliers[($i - 1) % count($suppliers)],
                 'order_date' => Carbon::now()->subDays(45),
                 'expected_delivery_date' => Carbon::now()->subDays(10),
                 'actual_delivery_date' => Carbon::now()->subDays(8),
@@ -162,43 +160,54 @@ class OrderSeeder extends Seeder
                 'approved_at' => Carbon::now()->subDays(40),
                 'received_by' => $admin->id,
                 'received_at' => Carbon::now()->subDays(8),
-            ], [
+            ], $this->supplier('Boroko Pharmacy Wholesale')), [
                 ['medicine_id' => $medicines[($i - 1) % $medicines->count()]->id, 'quantity_ordered' => 750, 'quantity_received' => 750],
             ]);
         }
 
         foreach (range(10, 11) as $i) {
-            $this->createOrderWithItems([
+            $this->createOrderWithItems(array_merge([
                 'order_number' => 'ORD-2026-'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
-                'supplier' => $suppliers[($i - 1) % count($suppliers)],
                 'order_date' => Carbon::now()->subDays(30),
                 'expected_delivery_date' => Carbon::now()->subDays(5),
                 'actual_delivery_date' => Carbon::now()->subDays(3),
                 'source' => 'overseas',
                 'status' => 'partial',
-                'notes' => 'Partial shipment received — balance expected.',
+                'notes' => 'Partial shipment received from China — balance expected.',
                 'created_by' => $procurementOfficer->id,
                 'approved_by' => $admin->id,
                 'approved_at' => Carbon::now()->subDays(25),
                 'received_by' => $admin->id,
                 'received_at' => Carbon::now()->subDays(3),
-            ], [
+            ], $this->supplier($i === 10 ? 'Zhejiang Huahai Pharmaceutical Co., Ltd' : 'CSPC Pharmaceutical Group Ltd')), [
                 ['medicine_id' => $medicines[($i - 1) % $medicines->count()]->id, 'quantity_ordered' => 2000, 'quantity_received' => 1200],
             ]);
         }
 
-        $this->createOrderWithItems([
+        $this->createOrderWithItems(array_merge([
             'order_number' => 'ORD-2026-012',
-            'supplier' => 'Discontinued Supplier Ltd',
             'order_date' => Carbon::now()->subDays(15),
             'expected_delivery_date' => Carbon::now()->addDays(20),
             'source' => 'overseas',
             'status' => 'cancelled',
             'notes' => "Supplier unable to fulfil order.\n\nCancelled: Supplier contract terminated.",
             'created_by' => $procurementOfficer->id,
-        ], [
+        ], $this->supplier('Aurobindo Pharma Ltd')), [
             ['medicine_id' => $medicines->first()->id, 'quantity_ordered' => 300],
         ]);
+    }
+
+    /**
+     * @return array{supplier_id: int|null, supplier: string}
+     */
+    private function supplier(string $name): array
+    {
+        $model = Supplier::where('name', $name)->first();
+
+        return [
+            'supplier_id' => $model?->id,
+            'supplier' => $model?->name ?? $name,
+        ];
     }
 
     /**

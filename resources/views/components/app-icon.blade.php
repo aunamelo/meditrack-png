@@ -1,8 +1,22 @@
 @props([
     'size' => 'md',
+    'brand' => null,
 ])
 
 @php
+    $roleMeta = auth()->check() ? \App\Services\PortalNavigationService::currentRoleMeta() : null;
+
+    if ($brand === 'modilon') {
+        $icon = 'images/modilon-hospital.webp';
+        $alt = 'Modilon General Hospital — Madang';
+    } elseif ($brand === 'ndoh') {
+        $icon = 'images/ndoh.png';
+        $alt = 'National Department of Health — Papua New Guinea';
+    } else {
+        $icon = $roleMeta['brand_icon'] ?? 'images/ndoh.png';
+        $alt = $roleMeta['brand_alt'] ?? 'National Department of Health — Papua New Guinea';
+    }
+
     $sizeClass = match ($size) {
         'sm' => 'h-8 w-8',
         'md' => 'h-10 w-10',
@@ -15,7 +29,7 @@
 @endphp
 
 <img
-    src="{{ asset('images/ndoh.png') }}"
-    alt="National Department of Health — Papua New Guinea"
+    src="{{ asset($icon) }}"
+    alt="{{ $alt }}"
     {{ $attributes->merge(['class' => "object-contain {$sizeClass}"]) }}
 />

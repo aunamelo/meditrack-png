@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Supplier;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreOrderRequest extends FormRequest
 {
@@ -25,7 +27,10 @@ class StoreOrderRequest extends FormRequest
                 Rule::exists('medicines', 'id')->where(fn ($query) => $query->where('is_active', true)),
             ],
             'items.*.quantity_ordered' => ['required', 'integer', 'min:1', 'max:999999'],
-            'supplier' => 'required|string|max:255',
+            'supplier_id' => [
+                'required',
+                Rule::exists('suppliers', 'id')->where(fn ($query) => $query->where('is_active', true)),
+            ],
             'order_date' => 'required|date|before_or_equal:today',
             'expected_delivery_date' => 'nullable|date|after:order_date',
             'supplier_invoice' => 'nullable|string|max:100',
@@ -33,6 +38,35 @@ class StoreOrderRequest extends FormRequest
             'source' => 'required|in:overseas,local,donation',
             'notes' => 'nullable|string',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $supplier = Supplier::query()->find($this->input('supplier_id'));
+
+            if (! $supplier) {
+                return;
+            }
+
+            $matchesSource = match ($this->input('source')) {
+                'overseas' => in_array($supplier->country, ['india', 'china'], true),
+                'local' => $supplier->country === 'png',
+                'donation' => $supplier->country === 'international',
+                default => false,
+            };
+
+            if (! $matchesSource) {
+                $validator->errors()->add(
+                    'supplier_id',
+                    'Overseas orders must use a registered India or China manufacturer; local and donation orders require a matching supplier type.'
+                );
+            }
+        });
     }
 
     /**

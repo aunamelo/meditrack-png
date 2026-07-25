@@ -93,9 +93,23 @@
                                 <input type="text" value="{{ ucfirst($order->source) }}" disabled class="w-full rounded-md border-gray-200 bg-gray-50 text-gray-500">
                             </div>
                             <div>
-                                <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-500">*</span></label>
-                                <input type="text" name="supplier" id="supplier" value="{{ old('supplier', $order->supplier) }}" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
-                                @error('supplier')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                <label for="supplier_id" class="block text-sm font-medium text-gray-700 mb-1">Registered supplier <span class="text-red-500">*</span></label>
+                                <select name="supplier_id" id="supplier_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
+                                    <option value="">Select supplier...</option>
+                                    @foreach($suppliers->filter(fn ($supplier) => match($order->source) {
+                                        'overseas' => in_array($supplier->country, ['india', 'china']),
+                                        'local' => $supplier->country === 'png',
+                                        'donation' => $supplier->country === 'international',
+                                        default => true,
+                                    })->groupBy('country') as $country => $group)
+                                        <optgroup label="{{ $group->first()->countryLabel() }}">
+                                            @foreach($group as $supplier)
+                                                <option value="{{ $supplier->id }}" @selected(old('supplier_id', $order->supplier_id) == $supplier->id)>{{ $supplier->displayLabel() }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                                @error('supplier_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label for="expected_delivery_date" class="block text-sm font-medium text-gray-700 mb-1">Expected Delivery Date</label>

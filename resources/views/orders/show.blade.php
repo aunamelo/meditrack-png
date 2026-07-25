@@ -97,6 +97,9 @@
             <x-module.detail-card title="Supplier & Delivery">
                 <dl class="space-y-4">
                     <x-module.detail-field label="Supplier" :value="$order->supplier" />
+                    @if($order->registeredSupplier)
+                        <x-module.detail-field label="Manufacturer country" :value="$order->registeredSupplier->countryLabel()" />
+                    @endif
                     <x-module.detail-field label="Source" :value="ucfirst($order->source)" />
                     <x-module.detail-field label="Expected Delivery" :value="$order->formatDeliveryDate()" />
                     @if($order->isOverdue())

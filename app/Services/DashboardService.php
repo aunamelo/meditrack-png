@@ -49,7 +49,6 @@ class DashboardService
             'alerts' => [],
             'quickActions' => [],
             'recentItems' => [],
-            'supplyChainHighlight' => null,
             'charts' => [],
         ];
     }
@@ -96,7 +95,6 @@ class DashboardService
                 canManageUsers() ? ['label' => 'User management', 'description' => 'Manage portal accounts', 'url' => getDashboardUserRoute('index'), 'icon' => 'shield'] : null,
             ]))),
             'recentItems' => Order::with(['items.drug', 'drug'])->latest()->limit(4)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
-            'supplyChainHighlight' => 'ndoh',
             'charts' => DashboardChartService::forRole('admin'),
         ];
     }
@@ -129,7 +127,6 @@ class DashboardService
                 ['label' => 'Drug catalog', 'description' => 'NDoH medicine types', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
             ]),
             'recentItems' => Order::where('created_by', $user->id)->latest()->limit(4)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
-            'supplyChainHighlight' => 'ndoh',
             'charts' => DashboardChartService::forRole('procurement_officer', $user->id),
         ];
     }
@@ -209,7 +206,6 @@ class DashboardService
                 'meta' => hospitalOrderStatusLabel($order->status),
                 'url' => getDashboardHospitalOrderRoute('show', $order),
             ])->all(),
-            'supplyChainHighlight' => 'lae_ams',
             'charts' => DashboardChartService::forRole('store_manager', null, $level),
         ];
     }
@@ -271,7 +267,6 @@ class DashboardService
                 'meta' => hospitalOrderStatusLabel($order->status),
                 'url' => getDashboardHospitalOrderRoute('show', $order),
             ])->all(),
-            'supplyChainHighlight' => 'modilon_hospital',
             'charts' => DashboardChartService::forRole('pharmacy_manager', null, $level),
         ];
     }
@@ -318,7 +313,6 @@ class DashboardService
                 'meta' => 'Batch '.$drug->batch_number,
                 'url' => getDashboardDrugRoute('show', $drug),
             ])->all(),
-            'supplyChainHighlight' => 'modilon_hospital',
             'charts' => DashboardChartService::forRole('pharmacist', null, $level),
         ];
     }

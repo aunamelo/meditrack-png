@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Drug;
 use App\Models\Medicine;
 use App\Models\Order;
+use App\Models\Supplier;
 use App\Services\OrderNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +27,7 @@ class OrderController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $query = Order::with(['items.medicine', 'items.drug', 'medicine', 'drug', 'creator']);
+        $query = Order::with(['items.medicine', 'items.drug', 'medicine', 'drug', 'creator', 'registeredSupplier']);
 
         if ($user->hasRole('procurement_officer')) {
             $query->byCreatedBy($user->id);
@@ -37,6 +38,9 @@ class OrderController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
                     ->orWhere('supplier', 'like', "%{$search}%")
+                    ->orWhereHas('registeredSupplier', fn ($supplierQuery) => $supplierQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('country', 'like', "%{$search}%"))
                     ->orWhereHas('medicine', fn ($medicineQuery) => $medicineQuery->where('name', 'like', "%{$search}%"))
                     ->orWhereHas('drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"))
                     ->orWhereHas('items.medicine', fn ($medicineQuery) => $medicineQuery->where('name', 'like', "%{$search}%"))
@@ -72,11 +76,14 @@ class OrderController extends Controller
 
         $medicines = Medicine::query()
             ->active()
+            ->with('supplier')
             ->orderBy('name')
             ->orderBy('dosage')
             ->get();
 
-        return view('orders.create', compact('medicines'));
+        $suppliers = Supplier::query()->active()->orderBy('country')->orderBy('name')->get();
+
+        return view('orders.create', compact('medicines', 'suppliers'));
     }
 
     /**
@@ -85,11 +92,14 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request): RedirectResponse
     {
         $order = DB::transaction(function () use ($request) {
+            $supplier = Supplier::query()->findOrFail($request->supplier_id);
+
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
                 'medicine_id' => $request->input('items.0.medicine_id'),
                 'quantity_ordered' => collect($request->input('items'))->sum('quantity_ordered'),
-                'supplier' => $request->supplier,
+                'supplier_id' => $supplier->id,
+                'supplier' => $supplier->name,
                 'order_date' => $request->order_date,
                 'expected_delivery_date' => $request->expected_delivery_date,
                 'supplier_invoice' => $request->supplier_invoice,
@@ -127,7 +137,7 @@ class OrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['items.medicine', 'items.drug', 'medicine', 'drug', 'creator', 'approver', 'receiver']);
+        $order->load(['items.medicine', 'items.drug', 'medicine', 'drug', 'creator', 'approver', 'receiver', 'registeredSupplier']);
 
         if (auth()->user()->hasRole('admin')) {
             OrderNotificationService::markOrderNotificationsAsRead(auth()->user(), $order);
@@ -159,7 +169,9 @@ class OrderController extends Controller
 
         $order->load(['items.medicine']);
 
-        return view('orders.edit', compact('order', 'medicines'));
+        $suppliers = Supplier::query()->active()->orderBy('country')->orderBy('name')->get();
+
+        return view('orders.edit', compact('order', 'medicines', 'suppliers'));
     }
 
     /**
@@ -168,8 +180,11 @@ class OrderController extends Controller
     public function update(UpdateOrderRequest $request, Order $order): RedirectResponse
     {
         DB::transaction(function () use ($request, $order) {
+            $supplier = Supplier::query()->findOrFail($request->supplier_id);
+
             $order->update([
-                'supplier' => $request->supplier,
+                'supplier_id' => $supplier->id,
+                'supplier' => $supplier->name,
                 'expected_delivery_date' => $request->expected_delivery_date,
                 'notes' => $request->notes,
             ]);

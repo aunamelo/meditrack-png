@@ -5,17 +5,28 @@
         @if($roleMeta)
             @php
                 $quickActionCount = count($quickActions ?? []);
-                $hour = now()->hour;
-                $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+                $greeting = portalGreeting();
                 $firstName = explode(' ', trim(auth()->user()->name))[0];
                 $topStats = collect($stats ?? [])->take(4);
             @endphp
 
             {{-- Page header --}}
-            <div class="mb-6">
-                <div>
-                    <h1 class="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{{ $roleMeta['label'] }} Dashboard</h1>
-                    <p class="mt-1 text-sm text-muted">{{ $greeting }}, {{ $firstName }} · {{ now()->format('l, j F Y') }}</p>
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div @class(['flex gap-4', 'items-center' => in_array($roleMeta['key'] ?? '', ['pharmacy_manager', 'pharmacist'], true)])>
+                    @if(in_array($roleMeta['key'] ?? '', ['pharmacy_manager', 'pharmacist'], true))
+                        <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white p-1.5 shadow-soft ring-1 ring-line dark:bg-zinc-900 dark:ring-zinc-800">
+                            <x-app-icon size="lg" class="h-full w-full object-contain" />
+                        </div>
+                    @endif
+                    <div>
+                        <h1 class="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{{ $roleMeta['label'] }} Dashboard</h1>
+                        <p class="mt-1 text-sm text-muted">
+                            {{ $greeting }}, {{ $firstName }} · {{ now()->format('l, j F Y') }}
+                            @if(in_array($roleMeta['key'] ?? '', ['pharmacy_manager', 'pharmacist'], true))
+                                · {{ $roleMeta['brand_tagline'] ?? 'Modilon General Hospital' }}
+                            @endif
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -101,13 +112,6 @@
                     @if(count($recentItems ?? []))
                         <x-dashboard.recent-list :items="$recentItems" title="Recent activity" />
                     @endif
-                </section>
-            @endif
-
-            {{-- Supply chain --}}
-            @if($supplyChainHighlight ?? null)
-                <section>
-                    <x-dashboard.supply-chain :highlight="$supplyChainHighlight" />
                 </section>
             @endif
         @else

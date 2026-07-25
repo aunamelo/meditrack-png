@@ -47,9 +47,7 @@
         <x-dropdown align="right" width="48">
             <x-slot name="trigger">
                 <button class="inline-flex items-center gap-2.5 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-3 text-sm font-semibold text-ink transition hover:bg-canvas">
-                    <span class="flex h-8 w-8 items-center justify-center rounded-lg border border-accent bg-brand-600 text-xs font-bold text-white">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    </span>
+                    <x-user-avatar size="sm" class="!rounded-lg" />
                     <span class="hidden max-w-[120px] truncate sm:inline">{{ Auth::user()->name }}</span>
                     <svg class="h-4 w-4 text-ink-faint" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>

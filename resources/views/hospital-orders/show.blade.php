@@ -38,6 +38,11 @@
                     <a href="{{ getDashboardHospitalShipmentRoute('show', $hospitalOrder->stockTransfer) }}" class="module-table-link mt-4 inline-flex text-sm">
                         View road delivery {{ $hospitalOrder->stockTransfer->transfer_number }} →
                     </a>
+                    @if($hospitalOrder->stockTransfer->vehicle)
+                        <p class="mt-2 text-sm text-muted">
+                            Vehicle: <span class="font-medium text-ink dark:text-zinc-200">{{ $hospitalOrder->stockTransfer->vehicle->displayLabel() }}</span>
+                        </p>
+                    @endif
                 @endif
             </x-module.detail-card>
 
@@ -75,10 +80,24 @@
 
                 @if(auth()->user()->hasRole('store_manager') && $hospitalOrder->canShip())
                     <x-module.detail-card title="Dispatch to Modilon Hospital">
-                        <p class="mb-3 text-sm text-muted">This deducts stock from Lae AMS only. Modilon inventory is updated when the pharmacy manager confirms receipt.</p>
+                        <p class="mb-3 text-sm text-muted">Assign a vehicle and dispatch. Stock is deducted from Lae AMS; Modilon inventory updates when the pharmacy confirms receipt.</p>
                         <form action="{{ getDashboardHospitalOrderRoute('ship', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
-                            <textarea name="notes" rows="2" placeholder="Road delivery notes (optional)" class="input-field"></textarea>
+                            <div>
+                                <label for="vehicle_id" class="form-label">Assigned vehicle <span class="text-red-500">*</span></label>
+                                <select name="vehicle_id" id="vehicle_id" required class="input-field">
+                                    <option value="">Select vehicle...</option>
+                                    @foreach($vehicles as $vehicle)
+                                        <option value="{{ $vehicle->id }}" @selected(old('vehicle_id') == $vehicle->id)>
+                                            {{ $vehicle->displayLabel() }} · {{ $vehicle->typeLabel() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('vehicle_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                <p class="mt-1 text-xs text-muted">Vehicle registration is stored for future delivery tracking.</p>
+                            </div>
+                            <textarea name="notes" rows="2" placeholder="Road delivery notes (optional)" class="input-field">{{ old('notes') }}</textarea>
+                            @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             <button type="submit" class="w-full rounded-lg bg-purple-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-purple-700">Dispatch by road to hospital</button>
                         </form>
                     </x-module.detail-card>

@@ -284,6 +284,23 @@ if (! function_exists('hospitalOrderStatusLabel')) {
     }
 }
 
+if (! function_exists('portalGreeting')) {
+    /**
+     * Time-of-day greeting using the app timezone (Pacific/Port_Moresby).
+     */
+    function portalGreeting(?\Carbon\Carbon $at = null): string
+    {
+        $hour = ($at ?? now())->hour;
+
+        return match (true) {
+            $hour >= 5 && $hour < 12 => 'Good morning',
+            $hour >= 12 && $hour < 17 => 'Good afternoon',
+            $hour >= 17 && $hour < 22 => 'Good evening',
+            default => 'Good night',
+        };
+    }
+}
+
 if (! function_exists('getRoleDashboardRoute')) {
     /**
      * Return the main dashboard route for the authenticated user's portal role.

@@ -10,9 +10,19 @@
         <x-module.back-link :href="getDashboardMedicineRoute('index')" label="Back to catalog" class="mb-6" />
 
         <div class="module-form-shell">
-            <p class="mb-6 text-sm text-muted">Catalog entries describe what NDoH can order. Stock batches with batch numbers and expiry dates are created when goods are received against an approved order.</p>
+            <p class="mb-6 text-sm text-muted">Catalog entries describe essential medicines NDoH procures from registered manufacturers in India and China. Stock batches are created when goods are received against an approved order.</p>
 
-            <form action="{{ getDashboardMedicineRoute('store') }}" method="POST">
+            <form action="{{ getDashboardMedicineRoute('store') }}" method="POST"
+                  x-data="medicineCatalogForm({
+                      name: @js(old('name', '')),
+                      dosage: @js(old('dosage', '')),
+                      dosageForm: @js(old('dosage_form', '')),
+                      supplierId: @js(old('supplier_id', '')),
+                      description: @js(old('description', '')),
+                      descriptionEdited: @js(filled(old('description'))),
+                      supplierOptions: @js($suppliers->map(fn ($supplier) => ['id' => (string) $supplier->id, 'name' => $supplier->name])->values()),
+                      formLabels: @js(['tablet' => 'tablet', 'injection' => 'injection', 'syrup' => 'syrup', 'cream' => 'cream', 'ointment' => 'ointment', 'other' => 'other']),
+                  })">
                 @csrf
 
                 @if ($errors->any())
@@ -28,19 +38,19 @@
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
                         <label for="name" class="form-label">Medicine name <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}" required class="input-field" placeholder="e.g., Paracetamol">
+                        <input type="text" name="name" id="name" x-model="name" value="{{ old('name') }}" required class="input-field" placeholder="e.g., Paracetamol">
                         @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="dosage" class="form-label">Dosage <span class="text-red-500">*</span></label>
-                        <input type="text" name="dosage" id="dosage" value="{{ old('dosage') }}" required class="input-field" placeholder="e.g., 500mg">
+                        <input type="text" name="dosage" id="dosage" x-model="dosage" value="{{ old('dosage') }}" required class="input-field" placeholder="e.g., 500mg">
                         @error('dosage')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="dosage_form" class="form-label">Dosage form <span class="text-red-500">*</span></label>
-                        <select name="dosage_form" id="dosage_form" required class="input-field">
+                        <select name="dosage_form" id="dosage_form" x-model="dosageForm" required class="input-field">
                             <option value="">Select form...</option>
                             @foreach(['tablet' => 'Tablet', 'injection' => 'Injection', 'syrup' => 'Syrup', 'cream' => 'Cream', 'ointment' => 'Ointment', 'other' => 'Other'] as $value => $label)
                                 <option value="{{ $value }}" @selected(old('dosage_form') === $value)>{{ $label }}</option>
@@ -62,8 +72,27 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea name="description" id="description" rows="3" class="input-field">{{ old('description') }}</textarea>
+                        <label for="supplier_id" class="form-label">Registered supplier (India / China) <span class="text-red-500">*</span></label>
+                        <select name="supplier_id" id="supplier_id" x-model="supplierId" required class="input-field">
+                            <option value="">Select manufacturer...</option>
+                            @foreach($suppliers->groupBy('country') as $country => $group)
+                                <optgroup label="{{ $group->first()->countryLabel() }}">
+                                    @foreach($group as $supplier)
+                                        <option value="{{ $supplier->id }}" @selected(old('supplier_id') == $supplier->id)>{{ $supplier->name }}@if($supplier->headquarters) — {{ $supplier->headquarters }}@endif</option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
+                        @error('supplier_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <div class="mb-1 flex items-center justify-between">
+                            <label for="description" class="form-label">Description</label>
+                            <button type="button" x-show="descriptionEdited" x-cloak @click="descriptionEdited = false; refreshDescription()" class="text-xs font-medium text-brand-600 hover:underline">Regenerate from form</button>
+                        </div>
+                        <textarea name="description" id="description" rows="3" x-model="description" @input="descriptionEdited = true" class="input-field"></textarea>
+                        <p class="mt-1 text-xs text-muted">Auto-filled from medicine details and registered supplier. Edit to customize.</p>
                         @error('description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -75,4 +104,56 @@
             </form>
         </div>
     </x-page-container>
+
+    <script>
+        function medicineCatalogForm(initial) {
+            return {
+                name: initial.name ?? '',
+                dosage: initial.dosage ?? '',
+                dosageForm: initial.dosageForm ?? '',
+                supplierId: initial.supplierId ?? '',
+                description: initial.description ?? '',
+                descriptionEdited: initial.descriptionEdited ?? false,
+                supplierOptions: initial.supplierOptions ?? [],
+                formLabels: initial.formLabels ?? {},
+                get supplierName() {
+                    const option = this.supplierOptions.find((entry) => entry.id === String(this.supplierId));
+
+                    return option ? option.name : '';
+                },
+                init() {
+                    ['name', 'dosage', 'dosageForm', 'supplierId'].forEach((field) => {
+                        this.$watch(field, () => this.refreshDescription());
+                    });
+
+                    if (!this.descriptionEdited) {
+                        this.refreshDescription();
+                    }
+                },
+                buildDescription() {
+                    const supplier = this.supplierName;
+
+                    if (!supplier) {
+                        return '';
+                    }
+
+                    const medicineName = String(this.name).trim();
+                    const medicineDosage = String(this.dosage).trim();
+
+                    if (medicineName && medicineDosage && this.dosageForm) {
+                        const form = this.formLabels[this.dosageForm] ?? this.dosageForm;
+
+                        return `Essential medicine (${medicineName} ${medicineDosage}, ${form}) — imported from ${supplier}.`;
+                    }
+
+                    return `Essential medicine — imported from ${supplier}.`;
+                },
+                refreshDescription() {
+                    if (!this.descriptionEdited) {
+                        this.description = this.buildDescription();
+                    }
+                },
+            };
+        }
+    </script>
 </x-app-layout>

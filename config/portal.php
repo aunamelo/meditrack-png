@@ -39,6 +39,9 @@ return [
             'inventory_level' => 'modilon_hospital',
             'inventory_label' => 'Modilon Hospital',
             'dashboard_route' => 'dashboard.pharmacy_manager',
+            'brand_icon' => 'images/modilon-hospital.webp',
+            'brand_alt' => 'Modilon General Hospital — Madang',
+            'brand_tagline' => 'Modilon General Hospital',
         ],
         'pharmacist' => [
             'label' => 'Pharmacist',
@@ -46,6 +49,9 @@ return [
             'inventory_level' => 'modilon_hospital',
             'inventory_label' => 'Modilon Hospital',
             'dashboard_route' => 'dashboard.pharmacist',
+            'brand_icon' => 'images/modilon-hospital.webp',
+            'brand_alt' => 'Modilon General Hospital — Madang',
+            'brand_tagline' => 'Modilon General Hospital',
         ],
     ],
 
@@ -68,18 +74,6 @@ return [
     'nav_groups' => [
         'menu' => ['overview', 'inventory', 'procurement', 'logistics', 'hospital'],
         'other' => ['reports', 'administration'],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Supply chain nodes (dashboard visual)
-    |--------------------------------------------------------------------------
-    */
-
-    'supply_chain' => [
-        ['key' => 'ndoh', 'label' => 'NDoH', 'description' => 'Central procurement & shipments to Lae AMS'],
-        ['key' => 'lae_ams', 'label' => 'Lae AMS', 'description' => 'Regional warehouse'],
-        ['key' => 'modilon_hospital', 'label' => 'Modilon Hospital', 'description' => 'Patient dispensing'],
     ],
 
 ];

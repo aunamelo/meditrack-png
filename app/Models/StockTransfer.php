@@ -16,6 +16,7 @@ class StockTransfer extends Model
         'drug_id',
         'destination_drug_id',
         'hospital_order_id',
+        'vehicle_id',
         'batch_number',
         'quantity_sent',
         'from_level',
@@ -66,6 +67,11 @@ class StockTransfer extends Model
     public function hospitalOrder(): BelongsTo
     {
         return $this->belongsTo(HospitalOrder::class);
+    }
+
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
     }
 
     public function sender(): BelongsTo

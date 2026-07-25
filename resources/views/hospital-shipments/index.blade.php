@@ -11,7 +11,7 @@
 
         <x-module.hero
             icon="truck"
-            description="Track drugs dispatched by road from the regional warehouse to Modilon Hospital."
+            description="Track drugs dispatched by road from Lae AMS to Modilon Hospital — each delivery is linked to an assigned vehicle."
         />
 
         <div class="module-panel p-6">
@@ -21,6 +21,7 @@
                         <tr>
                             <th>Transfer #</th>
                             <th>Drug</th>
+                            <th>Vehicle</th>
                             <th>Qty</th>
                             <th>Sent</th>
                             <th>Status</th>
@@ -32,6 +33,14 @@
                             <tr>
                                 <td class="font-semibold text-ink dark:text-zinc-100">{{ $transfer->transfer_number }}</td>
                                 <td>{{ $transfer->drug->drug_name ?? 'N/A' }}</td>
+                                <td>
+                                    @if($transfer->vehicle)
+                                        <span class="font-medium text-ink dark:text-zinc-100">{{ $transfer->vehicle->registration }}</span>
+                                        <span class="block text-xs text-muted">{{ $transfer->vehicle->name }}</span>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                                 <td>{{ number_format($transfer->quantity_sent) }}</td>
                                 <td>{{ $transfer->formatSentDate() }}</td>
                                 <td>
@@ -45,7 +54,7 @@
                             </tr>
                         @empty
                             <x-module.empty-row
-                                :colspan="6"
+                                :colspan="7"
                                 title="No hospital road deliveries yet"
                                 description="Deliveries appear when Lae AMS dispatches approved hospital orders."
                             />

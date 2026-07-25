@@ -13,6 +13,7 @@
             <x-module.back-link :href="getDashboardMedicineRoute('index')" label="Back to catalog" />
             <div class="flex flex-wrap gap-3">
                 <a href="{{ getDashboardMedicineRoute('edit', $medicine) }}" class="btn-module-secondary">Edit</a>
+                @include('medicines.partials.status-actions', ['medicine' => $medicine])
                 @if(auth()->user()->hasRole('admin'))
                     <form action="{{ getDashboardMedicineRoute('destroy', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Remove or deactivate this catalog entry?');">
                         @csrf
@@ -30,6 +31,13 @@
                     <x-module.detail-field label="Dosage" :value="$medicine->dosage" />
                     <x-module.detail-field label="Form" :value="$medicine->formLabel()" />
                     <x-module.detail-field label="Unit" :value="$medicine->unit" />
+                    <x-module.detail-field label="Registered supplier">
+                        @if($medicine->supplier)
+                            {{ $medicine->supplier->name }} ({{ $medicine->supplier->countryLabel() }})
+                        @else
+                            —
+                        @endif
+                    </x-module.detail-field>
                     <x-module.detail-field label="Reorder point" :value="number_format($medicine->reorder_point)" />
                     <x-module.detail-field label="Status">
                         <x-module.status-badge :variant="$medicine->is_active ? 'green' : 'gray'" :label="$medicine->is_active ? 'Active' : 'Inactive'" />

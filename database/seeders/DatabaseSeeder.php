@@ -22,7 +22,10 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
+        $this->call(SupplierSeeder::class);
+        $this->call(VehicleSeeder::class);
         $this->call(MedicineSeeder::class);
+        $this->call(BackfillSupplierLinksSeeder::class);
         $this->call(OrderSeeder::class);
     }
 }

@@ -11,7 +11,7 @@
 
         <x-module.hero
             icon="clipboard"
-            description="Monitor orders across the NDoH supply chain"
+            description="Monitor orders from registered India & China manufacturers (NDoH import policy)"
             :action-url="canManageOrders() ? getDashboardOrderRoute('create') : null"
             :action-label="canManageOrders() ? 'New Order' : null"
         />
@@ -74,7 +74,14 @@
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap">{{ number_format($order->quantity_ordered) }}</td>
-                                    <td class="whitespace-nowrap">{{ $order->supplier }}</td>
+                                    <td class="whitespace-nowrap">
+                                        @if($order->registeredSupplier)
+                                            <span class="font-medium text-ink dark:text-zinc-100">{{ $order->registeredSupplier->name }}</span>
+                                            <span class="block text-xs text-muted">{{ $order->registeredSupplier->countryLabel() }}</span>
+                                        @else
+                                            {{ $order->getAttribute('supplier') ?? '—' }}
+                                        @endif
+                                    </td>
                                     <td class="whitespace-nowrap">{{ $order->formatOrderDate() }}</td>
                                     <td class="whitespace-nowrap">
                                         {{ $order->formatDeliveryDate() }}

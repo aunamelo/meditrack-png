@@ -228,22 +228,6 @@
         @apply rounded-full bg-surface-muted px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-muted dark:bg-zinc-800 dark:text-zinc-400;
     }
 
-    .dashboard-supply-chain {
-        @apply medcare-panel p-6;
-    }
-
-    .dashboard-chain-node {
-        @apply rounded-xl border border-line bg-surface-muted/60 p-4 transition dark:border-zinc-800 dark:bg-zinc-900/60;
-    }
-
-    .dashboard-chain-node-active {
-        @apply border-brand-300 bg-brand-50/80 ring-2 ring-brand-500/15 dark:border-brand-700 dark:bg-brand-950/40 dark:ring-brand-500/20;
-    }
-
-    .dashboard-chain-icon {
-        @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-lg;
-    }
-
     .dashboard-empty-state {
         @apply surface-panel flex flex-col items-center px-6 py-16 text-center;
     }

@@ -63,6 +63,8 @@ Route::middleware('auth')->group(function () {
 // Drug Inventory & Procurement Orders — scoped under each role's portal prefix.
 // Dashboard home stays at /{role}/dashboard; modules live at /{role}/drugs and /{role}/orders.
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.dashboard.')->group(function () {
+    Route::post('medicines/{medicine}/deactivate', [MedicineController::class, 'deactivate'])->name('medicines.deactivate');
+    Route::post('medicines/{medicine}/activate', [MedicineController::class, 'activate'])->name('medicines.activate');
     Route::resource('medicines', MedicineController::class);
     Route::resource('drugs', DrugController::class);
     Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
@@ -75,6 +77,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 });
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {
+    Route::post('medicines/{medicine}/deactivate', [MedicineController::class, 'deactivate'])->name('medicines.deactivate');
+    Route::post('medicines/{medicine}/activate', [MedicineController::class, 'activate'])->name('medicines.activate');
     Route::resource('medicines', MedicineController::class)->except(['destroy']);
     Route::resource('drugs', DrugController::class);
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');

@@ -28,6 +28,10 @@ class UpdateMedicineRequest extends FormRequest
             'unit' => 'required|string|max:50',
             'description' => 'nullable|string',
             'reorder_point' => 'nullable|integer|min:1|max:999999',
+            'supplier_id' => [
+                'required',
+                Rule::exists('suppliers', 'id')->where(fn ($query) => $query->where('is_active', true)->whereIn('country', ['india', 'china'])),
+            ],
             'is_active' => 'sometimes|boolean',
         ];
     }

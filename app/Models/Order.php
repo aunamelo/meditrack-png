@@ -21,6 +21,7 @@ class Order extends Model
         'drug_id',
         'quantity_ordered',
         'quantity_received',
+        'supplier_id',
         'supplier',
         'order_date',
         'expected_delivery_date',
@@ -83,6 +84,11 @@ class Order extends Model
     public function medicine(): BelongsTo
     {
         return $this->belongsTo(Medicine::class);
+    }
+
+    public function registeredSupplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
     public function drug(): BelongsTo

@@ -11,7 +11,7 @@
 
         <x-module.hero
             icon="clipboard"
-            description="Approved medicines NDoH can procure — inventory batches are created on receipt"
+            description="Essential medicines procured from registered India & China manufacturers (NDoH import policy)"
             :action-url="getDashboardMedicineRoute('create')"
             action-label="Add medicine"
         />
@@ -45,6 +45,7 @@
                             <tr>
                                 <th>Medicine</th>
                                 <th>Form</th>
+                                <th>Registered supplier</th>
                                 <th>Unit</th>
                                 <th class="text-right">Reorder point</th>
                                 <th>Status</th>
@@ -59,6 +60,14 @@
                                         <span class="block text-xs text-muted">{{ $medicine->dosage }}</span>
                                     </td>
                                     <td>{{ $medicine->formLabel() }}</td>
+                                    <td>
+                                        @if($medicine->supplier)
+                                            <span class="font-medium text-ink dark:text-zinc-100">{{ $medicine->supplier->name }}</span>
+                                            <span class="block text-xs text-muted">{{ $medicine->supplier->countryLabel() }}</span>
+                                        @else
+                                            <span class="text-muted">Not set</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $medicine->unit }}</td>
                                     <td class="text-right">{{ number_format($medicine->reorder_point) }}</td>
                                     <td>

@@ -19,7 +19,7 @@
                           @pgk-applied="applyPgkAmount($event.detail)"
                           x-data="createOrderForm({
                               items: @js($defaultItems),
-                              supplier: @js(old('supplier', '')),
+                              supplierId: @js(old('supplier_id', '')),
                               source: @js(old('source', 'overseas')),
                               orderDate: @js(old('order_date', now()->format('Y-m-d'))),
                               expectedDeliveryDate: @js(old('expected_delivery_date', '')),
@@ -27,7 +27,8 @@
                               invoiceAmount: @js(old('invoice_amount', '')),
                               notes: @js(old('notes', '')),
                               notesEdited: @js(filled(old('notes'))),
-                              medicineOptions: @js($medicines->map(fn ($medicine) => ['id' => (string) $medicine->id, 'label' => $medicine->displayLabel()])->values()),
+                              medicineOptions: @js($medicines->map(fn ($medicine) => ['id' => (string) $medicine->id, 'label' => $medicine->displayLabel(), 'supplier_id' => $medicine->supplier_id ? (string) $medicine->supplier_id : ''])->values()),
+                              supplierOptions: @js($suppliers->map(fn ($supplier) => ['id' => (string) $supplier->id, 'name' => $supplier->name, 'label' => $supplier->displayLabel(), 'country' => $supplier->country])->values()),
                           })">
                         @csrf
 
@@ -86,9 +87,15 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-500">*</span></label>
-                                <input type="text" name="supplier" id="supplier" x-model="supplier" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
-                                @error('supplier')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                <label for="supplier_id" class="block text-sm font-medium text-gray-700 mb-1">Registered supplier <span class="text-red-500">*</span></label>
+                                <select name="supplier_id" id="supplier_id" x-model="supplierId" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
+                                    <option value="">Select supplier...</option>
+                                    <template x-for="option in availableSuppliers" :key="option.id">
+                                        <option :value="option.id" x-text="option.label"></option>
+                                    </template>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500" x-show="source === 'overseas'">Overseas orders use registered manufacturers from India or China (~80% of PNG medicine imports).</p>
+                                @error('supplier_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
@@ -163,7 +170,8 @@
             return {
                 items: initial.items ?? [{ medicine_id: '', quantity_ordered: '' }],
                 medicineOptions: initial.medicineOptions ?? [],
-                supplier: initial.supplier ?? '',
+                supplierOptions: initial.supplierOptions ?? [],
+                supplierId: initial.supplierId ?? '',
                 source: initial.source ?? 'overseas',
                 orderDate: initial.orderDate ?? '',
                 expectedDeliveryDate: initial.expectedDeliveryDate ?? '',
@@ -180,11 +188,34 @@
                 get totalQuantity() {
                     return this.items.reduce((sum, item) => sum + (Number(item.quantity_ordered) || 0), 0);
                 },
+                get availableSuppliers() {
+                    const allowed = {
+                        overseas: ['india', 'china'],
+                        local: ['png'],
+                        donation: ['international'],
+                    }[this.source] ?? [];
+
+                    return this.supplierOptions.filter((option) => allowed.includes(option.country));
+                },
+                get supplierName() {
+                    const option = this.supplierOptions.find((entry) => entry.id === String(this.supplierId));
+
+                    return option ? option.name : '';
+                },
                 init() {
-                    ['supplier', 'source', 'orderDate', 'expectedDeliveryDate', 'supplierInvoice', 'invoiceAmount']
+                    ['supplierId', 'source', 'orderDate', 'expectedDeliveryDate', 'supplierInvoice', 'invoiceAmount']
                         .forEach((field) => this.$watch(field, () => this.refreshNotes()));
 
-                    this.$watch('items', () => this.refreshNotes(), { deep: true });
+                    this.$watch('source', () => {
+                        if (!this.availableSuppliers.some((option) => option.id === String(this.supplierId))) {
+                            this.supplierId = '';
+                        }
+                    });
+
+                    this.$watch('items', () => {
+                        this.applyPreferredSupplierFromItems();
+                        this.refreshNotes();
+                    }, { deep: true });
 
                     if (!this.notesEdited) {
                         this.refreshNotes();
@@ -200,6 +231,22 @@
                 removeItem(index) {
                     if (this.items.length > 1) {
                         this.items.splice(index, 1);
+                    }
+                },
+                applyPreferredSupplierFromItems() {
+                    const firstWithSupplier = this.items.find((item) => item.medicine_id);
+                    if (!firstWithSupplier) {
+                        return;
+                    }
+
+                    const medicine = this.medicineOptions.find((entry) => entry.id === String(firstWithSupplier.medicine_id));
+                    if (!medicine?.supplier_id) {
+                        return;
+                    }
+
+                    const isAvailable = this.availableSuppliers.some((option) => option.id === medicine.supplier_id);
+                    if (isAvailable && !this.supplierId) {
+                        this.supplierId = medicine.supplier_id;
                     }
                 },
                 medicineLabel(medicineId) {
@@ -246,9 +293,9 @@
                         lines.push(`Multi-line procurement order (${itemLines.length} medicines): ${itemLines.join('; ')}.`);
                     }
 
-                    if (this.supplier) {
+                    if (this.supplierName) {
                         const sourceLabel = this.sourceLabels[this.source] ?? this.source;
-                        lines.push(`Supplier: ${this.supplier} (${sourceLabel} source).`);
+                        lines.push(`Supplier: ${this.supplierName} (${sourceLabel} source).`);
                     }
 
                     const orderDate = this.formatDate(this.orderDate);

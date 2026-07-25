@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ApproveHospitalOrderRequest;
 use App\Http\Requests\RejectHospitalOrderRequest;
+use App\Http\Requests\ShipHospitalOrderRequest;
 use App\Http\Requests\StoreHospitalOrderRequest;
 use App\Models\Drug;
 use App\Models\HospitalOrder;
+use App\Models\Vehicle;
 use App\Services\HospitalShipmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,9 +79,10 @@ class HospitalOrderController extends Controller
             abort(403, 'You can only view your own hospital orders.');
         }
 
-        $hospitalOrder->load(['requester', 'reviewer', 'sourceDrug', 'stockTransfer.drug', 'stockTransfer.destinationDrug', 'discrepancyReports']);
+        $hospitalOrder->load(['requester', 'reviewer', 'sourceDrug', 'stockTransfer.drug', 'stockTransfer.destinationDrug', 'stockTransfer.vehicle', 'discrepancyReports']);
 
         $availableDrugs = collect();
+        $vehicles = collect();
         if ($user->hasRole('store_manager') && $hospitalOrder->canApprove()) {
             $availableDrugs = Drug::query()
                 ->inInventory()
@@ -91,7 +94,11 @@ class HospitalOrderController extends Controller
                 ->get();
         }
 
-        return view('hospital-orders.show', compact('hospitalOrder', 'availableDrugs'));
+        if ($user->hasRole('store_manager') && $hospitalOrder->canShip()) {
+            $vehicles = Vehicle::query()->active()->atDepot('lae_ams')->orderBy('name')->get();
+        }
+
+        return view('hospital-orders.show', compact('hospitalOrder', 'availableDrugs', 'vehicles'));
     }
 
     public function approve(ApproveHospitalOrderRequest $request, HospitalOrder $hospitalOrder): RedirectResponse
@@ -124,21 +131,13 @@ class HospitalOrderController extends Controller
             ->with('success', 'Hospital order rejected due to stock unavailability.');
     }
 
-    public function ship(Request $request, HospitalOrder $hospitalOrder): RedirectResponse
+    public function ship(ShipHospitalOrderRequest $request, HospitalOrder $hospitalOrder): RedirectResponse
     {
-        if (! auth()->user()->hasRole('store_manager')) {
-            abort(403, 'Only Store Managers can dispatch stock by road to Modilon Hospital.');
-        }
-
-        if (! $hospitalOrder->canShip()) {
-            return redirect(getDashboardHospitalOrderRoute('show', $hospitalOrder))
-                ->with('error', 'This order must be approved before it can be dispatched by road.');
-        }
-
         $transfer = HospitalShipmentService::ship(
             $hospitalOrder,
             auth()->id(),
-            $request->input('notes')
+            (int) $request->validated('vehicle_id'),
+            $request->validated('notes')
         );
 
         return redirect(getDashboardHospitalShipmentRoute('show', $transfer))

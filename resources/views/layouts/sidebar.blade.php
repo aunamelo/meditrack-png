@@ -22,7 +22,7 @@
                 </div>
                 <div class="sidebar-brand-text min-w-0">
                     <p class="truncate font-display text-lg font-bold text-white">MediTrack</p>
-                    <p class="truncate text-xs font-medium text-brand-100">NDoH eLog Portal</p>
+                    <p class="truncate text-xs font-medium text-brand-100">{{ $roleMeta['brand_tagline'] ?? 'NDoH eLog Portal' }}</p>
                 </div>
             </a>
             <button
