@@ -116,6 +116,7 @@ This project has been approved by the Department of Information Systems at Divin
 
 ## References
 
+- The National. (2026, March 26). *Medicine supply queried.* [The National](https://www.thenational.com.pg/medicine-supply-queried/)
 - NBC News PNG. (2023, November 22). *Medicine shortage affects health services in Madang.* NBC PNG.
 - RNZ Pacific. (2025, December 11). *Illegal sales undermine essential medicine supply in PNG.* RNZ.
 - Papua New Guinea Today. (2026). *Parliament report blames system failure for PNG drug shortages.* PNG Facts.
