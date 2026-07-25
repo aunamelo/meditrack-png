@@ -75,6 +75,7 @@
 
                 @if(auth()->user()->hasRole('store_manager') && $hospitalOrder->canShip())
                     <x-module.detail-card title="Dispatch to Modilon Hospital">
+                        <p class="mb-3 text-sm text-muted">This deducts stock from Lae AMS only. Modilon inventory is updated when the pharmacy manager confirms receipt.</p>
                         <form action="{{ getDashboardHospitalOrderRoute('ship', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
                             <textarea name="notes" rows="2" placeholder="Road delivery notes (optional)" class="input-field"></textarea>
@@ -85,6 +86,7 @@
 
                 @if(auth()->user()->hasRole('pharmacy_manager') && $hospitalOrder->canReceive())
                     <x-module.detail-card title="Confirm receipt">
+                        <p class="mb-3 text-sm text-muted">Confirming receipt will add {{ number_format($hospitalOrder->quantity_approved ?? $hospitalOrder->quantity_requested) }} units to Modilon Hospital inventory.</p>
                         <form action="{{ getDashboardHospitalOrderRoute('receive', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
                             <textarea name="notes" rows="2" placeholder="Receipt notes (optional)" class="input-field"></textarea>

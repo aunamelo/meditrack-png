@@ -38,11 +38,11 @@
     }
 
     .text-section-label {
-        @apply text-[11px] font-bold uppercase tracking-[0.14em] text-accent dark:text-accent;
+        @apply text-[11px] font-bold uppercase tracking-[0.14em] text-brand-600 dark:text-brand-300;
     }
 
     .medcare-sidebar {
-        @apply w-[260px] shrink-0 bg-gradient-to-b from-brand-700 via-brand-700 to-brand-900 text-white shadow-sidebar transition-[width] duration-300 ease-in-out;
+        @apply w-[260px] shrink-0 border-r border-brand-800/40 bg-gradient-to-b from-brand-600 via-brand-700 to-brand-900 text-white shadow-sidebar transition-[width] duration-300 ease-in-out;
     }
 
     .medcare-sidebar-collapsed {
@@ -65,7 +65,7 @@
     }
 
     .medcare-sidebar-collapsed .sidebar-link {
-        @apply lg:relative lg:justify-center lg:gap-0 lg:px-2;
+        @apply lg:relative lg:justify-center lg:gap-0 lg:rounded-xl lg:px-2 lg:py-2;
     }
 
     .medcare-sidebar-collapsed .sidebar-link-badge-count {
@@ -125,7 +125,7 @@
     }
 
     .medcare-stat-featured {
-        @apply rounded-[20px] bg-gradient-to-br from-brand-700 via-brand-600 to-accent p-5 text-white shadow-glow;
+        @apply rounded-[20px] border border-brand-500 bg-brand-600 p-5 text-white shadow-soft;
     }
 
     .surface-panel {
@@ -145,15 +145,15 @@
     }
 
     .surface-card-hover {
-        @apply surface-card hover:border-brand-200 hover:shadow-glow dark:hover:border-brand-800;
+        @apply surface-card hover:border-brand-200 hover:shadow-card dark:hover:border-brand-800;
     }
 
     .hero-banner {
-        @apply rounded-2xl border border-line bg-gradient-to-br from-surface via-brand-50/40 to-surface p-6 shadow-soft dark:border-zinc-800 dark:from-zinc-900 dark:via-brand-950/30 dark:to-zinc-900 sm:p-8;
+        @apply rounded-2xl border border-line bg-gradient-to-br from-surface via-brand-100/60 to-surface p-6 shadow-soft dark:border-zinc-800 dark:from-zinc-900 dark:via-brand-950/30 dark:to-zinc-900 sm:p-8;
     }
 
     .btn-brand {
-        @apply inline-flex items-center justify-center rounded-xl border border-brand-600 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 hover:border-brand-700 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2;
+        @apply inline-flex items-center justify-center rounded-xl border border-brand-500 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 hover:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30 focus:ring-offset-2;
     }
 
     .btn-brand-outline {
@@ -165,7 +165,7 @@
     }
 
     .input-field {
-        @apply w-full rounded-xl border-line bg-canvas text-sm text-ink shadow-sm placeholder:text-ink-faint focus:border-accent focus:ring focus:ring-accent/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-accent;
+        @apply w-full rounded-xl border-line bg-canvas text-sm text-ink shadow-sm placeholder:text-ink-faint focus:border-brand-600 focus:ring focus:ring-brand-600/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-brand-500;
     }
 
     .sidebar-shell {
@@ -181,17 +181,15 @@
     }
 
     .dashboard-hero {
-        @apply relative mb-8 overflow-hidden rounded-2xl border border-brand-700/20 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-6 shadow-glow sm:p-8;
+        @apply relative mb-8 overflow-hidden rounded-2xl border border-brand-500/30 bg-brand-600 p-6 shadow-soft sm:p-8;
     }
 
     .dashboard-hero-pattern {
-        @apply pointer-events-none absolute inset-0 opacity-20;
-        background-image: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.25) 0, transparent 45%),
-            radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.12) 0, transparent 35%);
+        @apply pointer-events-none absolute inset-0 hidden;
     }
 
     .dashboard-hero-cta {
-        @apply inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-5 py-3 text-sm font-semibold text-white shadow-lg backdrop-blur-sm transition hover:bg-white/25 hover:shadow-xl;
+        @apply inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20;
     }
 
     .dashboard-stat-card {
@@ -203,7 +201,7 @@
     }
 
     .dashboard-module-card-primary {
-        @apply border-transparent bg-gradient-to-br from-brand-700 to-accent text-white shadow-glow hover:from-brand-600 hover:to-accent-light;
+        @apply border border-brand-500 bg-brand-600 text-white shadow-soft hover:bg-brand-700;
     }
 
     .dashboard-module-icon {
@@ -259,7 +257,7 @@
     }
 
     .module-hero {
-        @apply relative mb-6 overflow-hidden rounded-[20px] bg-gradient-to-br from-brand-700 via-brand-600 to-accent p-5 shadow-glow sm:p-6;
+        @apply relative mb-6 overflow-hidden rounded-[20px] border border-brand-500/30 bg-brand-600 p-5 shadow-soft sm:p-6;
     }
 
     .module-hero-compact {
@@ -267,8 +265,7 @@
     }
 
     .module-hero-pattern {
-        @apply pointer-events-none absolute inset-0 opacity-20;
-        background-image: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.22) 0, transparent 42%);
+        @apply pointer-events-none absolute inset-0 hidden;
     }
 
     .module-hero-icon {
@@ -276,7 +273,7 @@
     }
 
     .module-hero-action {
-        @apply inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25;
+        @apply inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20;
     }
 
     .module-flash {
@@ -329,6 +326,18 @@
 
     .module-table-link {
         @apply font-semibold text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300;
+    }
+
+    .module-table-action {
+        @apply inline-flex items-center rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 shadow-sm transition hover:border-brand-300 hover:bg-brand-100 hover:text-brand-800 dark:border-brand-700/60 dark:bg-brand-900/40 dark:text-brand-300 dark:hover:border-brand-600 dark:hover:bg-brand-900/60 dark:hover:text-brand-200;
+    }
+
+    .module-table-action-edit {
+        @apply border-accent/50 bg-accent/15 text-brand-900 hover:border-accent hover:bg-accent/25 hover:text-brand-900 dark:border-accent/40 dark:bg-accent/10 dark:text-accent dark:hover:bg-accent/20 dark:hover:text-accent;
+    }
+
+    .module-table-actions {
+        @apply inline-flex flex-wrap items-center justify-end gap-2;
     }
 
     .module-badge {
@@ -387,37 +396,59 @@
         @apply h-full rounded-full bg-brand-600 transition-all;
     }
 
+    .order-pipeline-track {
+        @apply h-2 overflow-hidden rounded-full bg-surface-muted dark:bg-zinc-800;
+    }
+
+    .order-pipeline-bar {
+        @apply h-full rounded-full bg-brand-600 transition-all;
+    }
+
+    .order-pipeline-steps {
+        @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .order-pipeline-step {
+        @apply flex items-start gap-3 rounded-xl border border-line bg-surface p-4 dark:border-zinc-800 dark:bg-zinc-900;
+    }
+
+    .order-pipeline-step-completed {
+        @apply border-brand-200 bg-brand-50/60 dark:border-brand-800 dark:bg-brand-950/20;
+    }
+
+    .order-pipeline-step-current {
+        @apply border-brand-400 ring-2 ring-brand-200 dark:border-brand-600 dark:ring-brand-900/50;
+    }
+
+    .order-pipeline-marker {
+        @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-line bg-surface text-transparent dark:border-zinc-700 dark:bg-zinc-900;
+    }
+
+    .order-pipeline-step-completed .order-pipeline-marker {
+        @apply border-brand-600 bg-brand-600 text-white;
+    }
+
+    .order-pipeline-step-current .order-pipeline-marker {
+        @apply border-brand-600 bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300;
+    }
+
+    .order-pipeline-step-current .order-pipeline-marker::after {
+        content: '';
+        @apply h-2.5 w-2.5 rounded-full bg-brand-600;
+    }
+
     .guest-portal-body {
-        @apply relative flex h-dvh flex-col overflow-hidden font-sans antialiased text-ink dark:text-zinc-100;
-        background: linear-gradient(165deg, #0b5a52 0%, #073d38 40%, #031f1c 100%);
-    }
-
-    .guest-portal-bg-glow {
-        @apply pointer-events-none absolute left-1/2 top-[52%] z-0 h-[min(640px,72vh)] w-[min(520px,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-90;
-        background: radial-gradient(
-            ellipse at center,
-            rgba(43, 179, 129, 0.2) 0%,
-            rgba(13, 112, 92, 0.08) 42%,
-            transparent 72%
-        );
-        filter: blur(48px);
-    }
-
-    .guest-portal-official-bar {
-        @apply relative z-10 shrink-0 border-b border-white/10 bg-black/20 px-4 py-2 text-center backdrop-blur-sm;
-    }
-
-    .guest-portal-official-bar p {
-        @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-white/85 sm:text-xs;
+        @apply relative flex h-dvh flex-col overflow-hidden font-sans antialiased text-ink;
+        background: #1e3a5f;
     }
 
     .guest-portal-shell {
-        @apply relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5 px-4 py-3;
+        @apply relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5 px-4 py-6;
     }
 
     .guest-portal-card {
-        @apply relative z-10 w-full max-w-[420px] shrink-0 overflow-y-auto overflow-x-hidden rounded-2xl border border-white/20 bg-surface shadow-[0_28px_70px_-20px_rgba(0,0,0,0.5)] dark:border-zinc-600/40 dark:bg-zinc-900;
-        max-height: calc(100dvh - 5.5rem);
+        @apply relative z-10 w-full max-w-[420px] shrink-0 overflow-y-auto overflow-x-hidden rounded-lg border border-[#c5d0de] bg-white shadow-lg;
+        max-height: calc(100dvh - 3rem);
     }
 
     .guest-portal-card-inner {
@@ -425,51 +456,71 @@
     }
 
     .guest-portal-back {
-        @apply absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-muted transition hover:bg-canvas hover:text-brand-600 dark:hover:bg-zinc-800;
+        @apply absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-[#1e3a5f] transition hover:bg-[#e8eef4];
     }
 
     .guest-portal-brand {
-        @apply px-5 pb-0 pt-5 text-center sm:px-6 sm:pt-6;
+        @apply px-5 pb-1 pt-6 text-center sm:px-6 sm:pt-7;
     }
 
     .guest-portal-logo-ring {
-        @apply mx-auto mb-3 flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-2xl bg-gradient-to-br from-brand-50 to-brand-100 p-1 shadow-inner dark:from-zinc-800 dark:to-zinc-900;
+        @apply mx-auto mb-4 flex items-center justify-center rounded-lg border border-[#c5d0de] bg-[#e8eef4] p-3;
+        width: 10.5rem;
+        height: 10.5rem;
+    }
+
+    @media (min-width: 640px) {
+        .guest-portal-logo-ring {
+            width: 11.5rem;
+            height: 11.5rem;
+        }
     }
 
     .guest-portal-logo {
-        @apply flex h-full w-full items-center justify-center rounded-[14px] bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-md [&_svg]:h-6 [&_svg]:w-6;
+        @apply hidden;
+    }
+
+    .guest-portal-logo-img {
+        @apply h-full w-full object-contain;
+        max-height: 9.5rem;
+    }
+
+    @media (min-width: 640px) {
+        .guest-portal-logo-img {
+            max-height: 10.5rem;
+        }
     }
 
     .guest-portal-name {
-        @apply font-display text-[1.35rem] font-bold leading-tight tracking-tight text-ink dark:text-zinc-50;
+        @apply font-display text-[1.35rem] font-bold leading-tight tracking-tight text-[#1e3a5f];
     }
 
     .guest-portal-tag {
-        @apply mt-1 inline-block rounded-full bg-brand-50 px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-brand-700 dark:bg-brand-950/60 dark:text-brand-300;
+        @apply mt-1 inline-block rounded border border-[#c5d0de] bg-[#e8eef4] px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-[#1e3a5f];
     }
 
     .guest-portal-scope {
-        @apply mt-2 text-xs text-muted;
+        @apply mt-2 text-xs text-slate-600;
     }
 
     .guest-portal-divider {
-        @apply mx-5 border-t border-line/90 dark:border-zinc-800 sm:mx-6;
+        @apply mx-5 border-t border-[#e8eef4] sm:mx-6;
     }
 
     .guest-portal-title {
-        @apply px-5 pb-0 pt-4 text-center font-display text-base font-semibold text-ink dark:text-zinc-50 sm:px-6;
+        @apply px-5 pb-0 pt-4 text-center font-display text-base font-semibold text-[#1e3a5f] sm:px-6;
     }
 
     .guest-portal-role-badge {
-        @apply mx-5 mt-4 rounded-xl border border-brand-200/80 bg-brand-50/80 px-4 py-3 text-center dark:border-brand-800/60 dark:bg-brand-950/30 sm:mx-6;
+        @apply mx-5 mt-4 rounded-lg border border-[#c5d0de] bg-[#e8eef4] px-4 py-3 text-center sm:mx-6;
     }
 
     .guest-portal-role-label {
-        @apply block text-[10px] font-semibold uppercase tracking-widest text-muted;
+        @apply block text-[10px] font-semibold uppercase tracking-widest text-slate-600;
     }
 
     .guest-portal-role-name {
-        @apply mt-0.5 block font-display text-sm font-bold text-brand-800 dark:text-brand-200;
+        @apply mt-0.5 block font-display text-sm font-bold text-[#1e3a5f];
     }
 
     .guest-portal-form-wrap {
@@ -485,31 +536,35 @@
     }
 
     .guest-portal-label {
-        @apply mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-ink-secondary dark:text-zinc-400;
+        @apply mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-700;
     }
 
     .guest-portal-input {
-        @apply h-11 w-full rounded-lg border border-line bg-white px-3.5 text-sm text-ink shadow-sm transition placeholder:text-ink-faint focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/15 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500;
+        @apply h-11 w-full rounded-md border border-[#c5d0de] bg-white px-3.5 text-sm text-ink transition placeholder:text-slate-400 focus:border-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/15;
     }
 
     .guest-portal-select {
-        @apply cursor-pointer pr-10;
+        @apply cursor-pointer appearance-none pr-10;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%231e3a5f' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+        background-position: right 0.75rem center !important;
+        background-repeat: no-repeat !important;
+        background-size: 1.25em 1.25em !important;
     }
 
     .guest-portal-select-icon {
-        @apply pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-muted;
+        @apply hidden;
     }
 
     .guest-portal-btn {
-        @apply flex h-11 w-full items-center justify-center rounded-lg bg-brand-700 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2 dark:focus:ring-offset-zinc-900;
+        @apply flex h-11 w-full items-center justify-center rounded-md border border-brand-500 bg-[#1e3a5f] text-sm font-bold uppercase tracking-wide text-white transition hover:bg-[#163052] focus:outline-none focus:ring-2 focus:ring-brand-400/30 focus:ring-offset-2;
     }
 
     .guest-portal-error {
-        @apply mt-1.5 text-xs font-medium text-red-600 dark:text-red-400;
+        @apply mt-1.5 text-xs font-medium text-[#ce1126];
     }
 
     .guest-portal-notice {
-        @apply mx-5 mb-3 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-center text-xs font-medium text-brand-800 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-200 sm:mx-6;
+        @apply mx-5 mb-3 rounded-md border border-[#c5d0de] bg-[#e8eef4] px-3 py-2 text-center text-xs font-medium text-[#1e3a5f] sm:mx-6;
     }
 
     .guest-portal-check {
@@ -517,19 +572,61 @@
     }
 
     .guest-portal-link {
-        @apply text-xs font-semibold text-brand-600 transition hover:text-brand-800 dark:text-brand-400;
+        @apply text-xs font-semibold text-[#1e3a5f] underline-offset-2 transition hover:text-[#0f172a] hover:underline;
     }
 
     .guest-portal-trust {
-        @apply mx-5 mb-4 flex items-center justify-center gap-1.5 border-t border-line/80 pt-3 text-[10px] font-medium uppercase tracking-wide text-muted dark:border-zinc-800 sm:mx-6;
+        @apply mx-5 mb-4 flex items-center justify-center gap-1.5 border-t border-[#e8eef4] pt-3 text-[10px] font-medium uppercase tracking-wide text-slate-500 sm:mx-6;
     }
 
     .guest-portal-footer {
-        @apply shrink-0 px-4 pb-3 text-center text-[10px] leading-snug text-white/45;
+        @apply shrink-0 px-4 pb-3 text-center text-[10px] leading-snug text-[#e8eef4]/80;
     }
 
     .guest-portal-theme {
         @apply fixed right-3 top-3 z-50 sm:right-4;
+    }
+
+    /* Login/welcome card stays light even when app dark mode is on */
+    .dark .guest-portal-card {
+        @apply border-[#c5d0de] bg-white;
+    }
+
+    .dark .guest-portal-card h1,
+    .dark .guest-portal-card h2,
+    .dark .guest-portal-name,
+    .dark .guest-portal-title,
+    .dark .guest-portal-tag,
+    .dark .guest-portal-role-name,
+    .dark .guest-portal-link,
+    .dark .guest-portal-notice {
+        color: #1e3a5f !important;
+    }
+
+    .dark .guest-portal-scope,
+    .dark .guest-portal-label,
+    .dark .guest-portal-role-label,
+    .dark .guest-portal-trust,
+    .dark .guest-portal-check {
+        @apply text-slate-600;
+    }
+
+    .dark .guest-portal-tag,
+    .dark .guest-portal-role-badge,
+    .dark .guest-portal-notice {
+        @apply border-[#c5d0de] bg-[#e8eef4];
+    }
+
+    .dark .guest-portal-logo-ring {
+        @apply border-[#c5d0de] bg-[#e8eef4];
+    }
+
+    .dark .guest-portal-input {
+        @apply border-[#c5d0de] bg-white text-slate-900;
+    }
+
+    .dark .guest-portal-back {
+        @apply text-[#1e3a5f] hover:bg-[#e8eef4];
     }
 }
 

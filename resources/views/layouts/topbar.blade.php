@@ -47,7 +47,7 @@
         <x-dropdown align="right" width="48">
             <x-slot name="trigger">
                 <button class="inline-flex items-center gap-2.5 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-3 text-sm font-semibold text-ink transition hover:bg-canvas">
-                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-600 to-accent text-xs font-bold text-white">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg border border-accent bg-brand-600 text-xs font-bold text-white">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </span>
                     <span class="hidden max-w-[120px] truncate sm:inline">{{ Auth::user()->name }}</span>

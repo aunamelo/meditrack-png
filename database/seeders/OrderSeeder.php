@@ -75,15 +75,75 @@ class OrderSeeder extends Seeder
                 'supplier_invoice' => 'INV-2026-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT),
                 'invoice_amount' => 15000 + ($i * 2500),
                 'source' => 'overseas',
-                'status' => 'ordered',
-                'notes' => 'Approved and awaiting supplier shipment.',
+                'status' => 'manufacturing',
+                'notes' => 'Approved — supplier manufacturing in progress.',
                 'created_by' => $procurementOfficer->id,
                 'approved_by' => $admin->id,
                 'approved_at' => Carbon::now()->subDays(5),
+                'manufacturing_started_at' => Carbon::now()->subDays(5),
             ], [
                 ['medicine_id' => $medicines[($i - 1) % $medicines->count()]->id, 'quantity_ordered' => 1000],
             ]);
         }
+
+        $this->createOrderWithItems([
+            'order_number' => 'ORD-2026-014',
+            'supplier' => 'Global Health Distributors',
+            'order_date' => Carbon::now()->subDays(35),
+            'expected_delivery_date' => Carbon::now()->addDays(45),
+            'supplier_invoice' => 'INV-2026-0014',
+            'invoice_amount' => 42000,
+            'source' => 'overseas',
+            'status' => 'shipped',
+            'notes' => 'Left Mumbai port — en route to Port Moresby.',
+            'created_by' => $procurementOfficer->id,
+            'approved_by' => $admin->id,
+            'approved_at' => Carbon::now()->subDays(30),
+            'manufacturing_started_at' => Carbon::now()->subDays(30),
+            'shipped_at' => Carbon::now()->subDays(7),
+        ], [
+            ['medicine_id' => $medicines[0]->id, 'quantity_ordered' => 2500],
+        ]);
+
+        $this->createOrderWithItems([
+            'order_number' => 'ORD-2026-015',
+            'supplier' => 'PharmaCorp International',
+            'order_date' => Carbon::now()->subDays(60),
+            'expected_delivery_date' => Carbon::now()->addDays(20),
+            'supplier_invoice' => 'INV-2026-0015',
+            'invoice_amount' => 38500,
+            'source' => 'overseas',
+            'status' => 'customs',
+            'notes' => 'Awaiting customs clearance at Port Moresby.',
+            'created_by' => $procurementOfficer->id,
+            'approved_by' => $admin->id,
+            'approved_at' => Carbon::now()->subDays(55),
+            'manufacturing_started_at' => Carbon::now()->subDays(55),
+            'shipped_at' => Carbon::now()->subDays(21),
+        ], [
+            ['medicine_id' => $medicines[1 % $medicines->count()]->id, 'quantity_ordered' => 1800],
+        ]);
+
+        $this->createOrderWithItems([
+            'order_number' => 'ORD-2026-016',
+            'supplier' => 'Pacific Pharma Co.',
+            'order_date' => Carbon::now()->subDays(90),
+            'expected_delivery_date' => Carbon::now()->addDays(7),
+            'supplier_invoice' => 'INV-2026-0016',
+            'invoice_amount' => 51000,
+            'source' => 'overseas',
+            'status' => 'fx_cleared',
+            'notes' => 'FX approved — ready for NDoH warehouse receipt.',
+            'created_by' => $procurementOfficer->id,
+            'approved_by' => $admin->id,
+            'approved_at' => Carbon::now()->subDays(85),
+            'manufacturing_started_at' => Carbon::now()->subDays(85),
+            'shipped_at' => Carbon::now()->subDays(40),
+            'customs_cleared_at' => Carbon::now()->subDays(14),
+            'fx_cleared_at' => Carbon::now()->subDays(3),
+        ], [
+            ['medicine_id' => $medicines[2 % $medicines->count()]->id, 'quantity_ordered' => 3200],
+        ]);
 
         foreach (range(7, 9) as $i) {
             $this->createOrderWithItems([

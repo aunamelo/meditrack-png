@@ -65,8 +65,10 @@
                                         <x-module.status-badge :variant="$medicine->is_active ? 'green' : 'gray'" :label="$medicine->is_active ? 'Active' : 'Inactive'" />
                                     </td>
                                     <td class="text-right whitespace-nowrap">
-                                        <a href="{{ getDashboardMedicineRoute('show', $medicine) }}" class="module-table-link mr-3">View</a>
-                                        <a href="{{ getDashboardMedicineRoute('edit', $medicine) }}" class="module-table-link">Edit</a>
+                                        <div class="module-table-actions">
+                                            <a href="{{ getDashboardMedicineRoute('show', $medicine) }}" class="module-table-action">View</a>
+                                            <a href="{{ getDashboardMedicineRoute('edit', $medicine) }}" class="module-table-action module-table-action-edit">Edit</a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

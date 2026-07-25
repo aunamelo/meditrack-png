@@ -34,6 +34,10 @@ class Order extends Model
         'approved_by',
         'received_by',
         'approved_at',
+        'manufacturing_started_at',
+        'shipped_at',
+        'customs_cleared_at',
+        'fx_cleared_at',
         'received_at',
     ];
 
@@ -46,6 +50,10 @@ class Order extends Model
         'actual_delivery_date' => 'date',
         'invoice_amount' => 'decimal:2',
         'approved_at' => 'datetime',
+        'manufacturing_started_at' => 'datetime',
+        'shipped_at' => 'datetime',
+        'customs_cleared_at' => 'datetime',
+        'fx_cleared_at' => 'datetime',
         'received_at' => 'datetime',
     ];
 
@@ -166,7 +174,12 @@ class Order extends Model
 
     public function scopeOrdered($query)
     {
-        return $query->where('status', 'ordered');
+        return $query->where('status', 'manufacturing');
+    }
+
+    public function scopeInPipeline($query)
+    {
+        return $query->whereIn('status', ['manufacturing', 'shipped', 'customs', 'fx_cleared']);
     }
 
     public function scopeShipped($query)
@@ -241,13 +254,189 @@ class Order extends Model
     {
         return match ($this->status) {
             'pending' => 'gray',
-            'ordered' => 'blue',
+            'manufacturing' => 'blue',
             'shipped' => 'purple',
+            'customs' => 'amber',
+            'fx_cleared' => 'teal',
             'received' => 'green',
             'partial' => 'yellow',
             'cancelled' => 'red',
             default => 'gray',
         };
+    }
+
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            'pending' => 'Pending approval',
+            'manufacturing' => 'Manufacturing',
+            'shipped' => 'In transit',
+            'customs' => 'Customs clearance',
+            'fx_cleared' => 'FX cleared',
+            'received' => 'Received',
+            'partial' => 'Partial delivery',
+            'cancelled' => 'Cancelled',
+            default => ucfirst((string) $this->status),
+        };
+    }
+
+    /**
+     * @return array<int, array{key: string, label: string, date: \Carbon\Carbon|null, completed: bool, current: bool}>
+     */
+    public function pipelineStages(): array
+    {
+        $stages = [
+            ['key' => 'pending', 'label' => 'Awaiting approval'],
+            ['key' => 'manufacturing', 'label' => 'Manufacturing'],
+            ['key' => 'shipped', 'label' => 'International shipping'],
+        ];
+
+        if ($this->requiresImportClearance()) {
+            $stages[] = ['key' => 'customs', 'label' => 'Customs clearance'];
+            $stages[] = ['key' => 'fx_cleared', 'label' => 'FX cleared'];
+        }
+
+        $stages[] = ['key' => 'received', 'label' => 'Received at NDoH'];
+
+        $currentIndex = $this->pipelineStageIndex();
+
+        return collect($stages)->values()->map(function (array $stage, int $index) use ($currentIndex) {
+            return [
+                'key' => $stage['key'],
+                'label' => $stage['label'],
+                'date' => $this->pipelineStageDate($stage['key']),
+                'completed' => $index < $currentIndex,
+                'current' => $index === $currentIndex,
+            ];
+        })->all();
+    }
+
+    public function requiresImportClearance(): bool
+    {
+        return $this->source === 'overseas';
+    }
+
+    public function pipelineStageIndex(): int
+    {
+        if ($this->status === 'cancelled') {
+            return 0;
+        }
+
+        if (in_array($this->status, ['received', 'partial'], true)) {
+            return $this->requiresImportClearance() ? 5 : 3;
+        }
+
+        return match ($this->status) {
+            'pending' => 0,
+            'manufacturing' => 1,
+            'shipped' => 2,
+            'customs' => 3,
+            'fx_cleared' => 4,
+            default => 0,
+        };
+    }
+
+    public function pipelineStageDate(string $stageKey): ?Carbon
+    {
+        return match ($stageKey) {
+            'pending' => $this->created_at,
+            'manufacturing' => $this->manufacturing_started_at ?? $this->approved_at,
+            'shipped' => $this->shipped_at,
+            'customs' => $this->customs_cleared_at,
+            'fx_cleared' => $this->fx_cleared_at,
+            'received' => $this->actual_delivery_date ?? $this->received_at,
+            default => null,
+        };
+    }
+
+    public function pipelineProgressPercentage(): int
+    {
+        $stages = $this->pipelineStages();
+        $total = max(count($stages) - 1, 1);
+        $current = $this->pipelineStageIndex();
+
+        if (in_array($this->status, ['received', 'partial'], true)) {
+            return 100;
+        }
+
+        return (int) round(($current / $total) * 100);
+    }
+
+    public function canAdvancePipeline(): bool
+    {
+        if ($this->status === 'manufacturing') {
+            return true;
+        }
+
+        if ($this->status === 'shipped' && $this->requiresImportClearance()) {
+            return true;
+        }
+
+        return $this->status === 'customs';
+    }
+
+    public function nextPipelineStatus(): ?string
+    {
+        return match ($this->status) {
+            'manufacturing' => 'shipped',
+            'shipped' => $this->requiresImportClearance() ? 'customs' : null,
+            'customs' => 'fx_cleared',
+            default => null,
+        };
+    }
+
+    public function nextPipelineActionLabel(): ?string
+    {
+        return match ($this->nextPipelineStatus()) {
+            'shipped' => 'Mark as shipped',
+            'customs' => 'Mark customs cleared',
+            'fx_cleared' => 'Mark FX cleared',
+            default => null,
+        };
+    }
+
+    public function advancePipeline(?string $notes = null): void
+    {
+        $nextStatus = $this->nextPipelineStatus();
+
+        if (! $nextStatus) {
+            return;
+        }
+
+        $updates = ['status' => $nextStatus];
+
+        match ($nextStatus) {
+            'shipped' => $updates['shipped_at'] = now(),
+            'customs' => $updates['customs_cleared_at'] = now(),
+            'fx_cleared' => $updates['fx_cleared_at'] = now(),
+            default => null,
+        };
+
+        if ($notes) {
+            $updates['notes'] = trim(($this->notes ?? '')."\n\nPipeline update ({$this->statusLabel()} → ".ucfirst(str_replace('_', ' ', $nextStatus))."): ".$notes);
+        }
+
+        $this->update($updates);
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public static function pipelineCounts(?int $userId = null): array
+    {
+        $query = static::query()->inPipeline();
+
+        if ($userId) {
+            $query->where('created_by', $userId);
+        }
+
+        return [
+            'total' => (clone $query)->count(),
+            'manufacturing' => (clone $query)->where('status', 'manufacturing')->count(),
+            'shipped' => (clone $query)->where('status', 'shipped')->count(),
+            'customs' => (clone $query)->where('status', 'customs')->count(),
+            'fx_cleared' => (clone $query)->where('status', 'fx_cleared')->count(),
+        ];
     }
 
     public function getProgressPercentage(): float
@@ -284,7 +473,15 @@ class Order extends Model
 
     public function canReceive(): bool
     {
-        return in_array($this->status, ['ordered', 'shipped', 'partial'], true);
+        if ($this->status === 'partial') {
+            return true;
+        }
+
+        if ($this->requiresImportClearance()) {
+            return $this->status === 'fx_cleared';
+        }
+
+        return $this->status === 'shipped';
     }
 
     public function formatOrderDate(): string
@@ -309,7 +506,8 @@ class Order extends Model
         $this->update([
             'approved_by' => $userId,
             'approved_at' => now(),
-            'status' => 'ordered',
+            'manufacturing_started_at' => now(),
+            'status' => 'manufacturing',
         ]);
     }
 

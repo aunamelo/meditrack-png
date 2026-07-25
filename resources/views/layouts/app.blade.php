@@ -7,6 +7,8 @@
 
         <title>{{ config('app.name', 'MediTrack PNG') }}</title>
 
+        @include('partials.app-icon')
+
         @include('partials.theme-init')
         @include('partials.fonts')
 

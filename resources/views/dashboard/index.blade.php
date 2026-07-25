@@ -4,7 +4,6 @@
     <div class="dashboard-shell">
         @if($roleMeta)
             @php
-                $primaryAction = collect($quickActions ?? [])->firstWhere('primary', true);
                 $quickActionCount = count($quickActions ?? []);
                 $hour = now()->hour;
                 $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
@@ -13,17 +12,11 @@
             @endphp
 
             {{-- Page header --}}
-            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div class="mb-6">
                 <div>
                     <h1 class="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{{ $roleMeta['label'] }} Dashboard</h1>
                     <p class="mt-1 text-sm text-muted">{{ $greeting }}, {{ $firstName }} · {{ now()->format('l, j F Y') }}</p>
                 </div>
-                @if($primaryAction)
-                    <a href="{{ $primaryAction['url'] }}" class="btn-brand inline-flex rounded-xl text-xs font-bold uppercase tracking-wide">
-                        <x-dashboard.icon :name="$primaryAction['icon'] ?? 'plus'" class="mr-1.5 h-4 w-4" />
-                        {{ $primaryAction['label'] }}
-                    </a>
-                @endif
             </div>
 
             {{-- Key metrics --}}
@@ -42,6 +35,12 @@
                             />
                         @endforeach
                     </div>
+                </section>
+            @endif
+
+            @if(isset($pipelineCounts) && in_array($roleMeta['key'] ?? '', ['admin', 'procurement_officer'], true))
+                <section class="mb-6">
+                    <x-dashboard.pipeline-summary :counts="$pipelineCounts" />
                 </section>
             @endif
 

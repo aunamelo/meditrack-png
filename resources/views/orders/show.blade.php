@@ -48,14 +48,32 @@
                 @if(canApproveOrders() && $order->canReceive())
                     <button type="button" @click="showReceiveModal = true" class="btn-brand text-xs uppercase tracking-wider">Receive</button>
                 @endif
+                @if($order->canAdvancePipeline() && (canApproveOrders() || (canManageOrders() && $order->created_by === auth()->id())))
+                    <details class="relative inline-block">
+                        <summary class="btn-brand inline-flex cursor-pointer list-none text-xs uppercase tracking-wider">{{ $order->nextPipelineActionLabel() }}</summary>
+                        <form action="{{ getDashboardOrderRoute('advance-pipeline', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+                            @csrf
+                            <p class="mb-3 text-sm text-muted">Move this order to the next import pipeline stage.</p>
+                            <label for="pipeline_notes" class="form-label">Notes (optional)</label>
+                            <textarea name="notes" id="pipeline_notes" rows="2" class="input-field" placeholder="Shipment ref, customs entry, FX approval..."></textarea>
+                            <button type="submit" class="btn-brand mt-3 w-full text-xs uppercase">Confirm</button>
+                        </form>
+                    </details>
+                @endif
             </div>
         </div>
+
+        @if(! in_array($order->status, ['cancelled'], true))
+            <div class="module-panel mb-6 p-6">
+                <x-order-pipeline :order="$order" />
+            </div>
+        @endif
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <x-module.detail-card title="Order Information">
                 <p class="font-display text-2xl font-bold text-brand-600 dark:text-brand-400">{{ $order->order_number }}</p>
                 <div class="mt-3">
-                    <x-module.status-badge :variant="$order->status" :label="ucfirst($order->status)" />
+                    <x-module.status-badge :variant="$order->status" :label="$order->statusLabel()" />
                 </div>
                 <dl class="mt-4 space-y-4">
                     <x-module.detail-field label="Order Date" :value="$order->formatOrderDate()" />

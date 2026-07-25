@@ -62,11 +62,14 @@ class DashboardService
     {
         $level = $meta['inventory_level'];
         $pendingCount = Order::pending()->count();
+        $pipelineCounts = Order::pipelineCounts();
 
         return [
             'roleMeta' => $meta,
+            'pipelineCounts' => $pipelineCounts,
             'stats' => [
                 self::stat('Pending approvals', (string) $pendingCount, 'Awaiting sign-off', 'amber', getDashboardOrderRoute('index').'?status=pending', 'bell'),
+                self::stat('In import pipeline', (string) $pipelineCounts['total'], 'Manufacturing to FX cleared', 'blue', getDashboardOrderRoute('index'), 'clipboard'),
                 self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'NDoH inventory', 'teal', getDashboardDrugRoute('index'), 'cube'),
                 self::stat('In transit', (string) StockTransfer::sent()->toLevel('lae_ams')->count(), 'Shipments to Lae AMS', 'blue', getDashboardTransferRoute('index').'?status=sent', 'truck'),
             ],
@@ -107,11 +110,14 @@ class DashboardService
         $level = $meta['inventory_level'];
         $myPending = Order::pending()->where('created_by', $user->id)->count();
         $myOrders = Order::where('created_by', $user->id)->count();
+        $pipelineCounts = Order::pipelineCounts($user->id);
 
         return [
             'roleMeta' => $meta,
+            'pipelineCounts' => $pipelineCounts,
             'stats' => [
                 self::stat('Pending', (string) $myPending, 'Awaiting approval', 'amber', getDashboardOrderRoute('index').'?status=pending', 'bell'),
+                self::stat('In pipeline', (string) $pipelineCounts['total'], 'Awaiting delivery stages', 'blue', getDashboardOrderRoute('index'), 'truck'),
                 self::stat('My orders', (string) $myOrders, 'Total submitted', 'teal', getDashboardOrderRoute('index'), 'clipboard'),
                 self::stat('In transit', (string) StockTransfer::sent()->fromLevel('ndoh')->count(), 'Sent to Lae AMS', 'blue', getDashboardTransferRoute('index'), 'truck'),
             ],
@@ -342,7 +348,7 @@ class DashboardService
         return [
             'title' => $order->order_number,
             'subtitle' => $order->itemsSummary().' · '.$order->supplier,
-            'meta' => ucfirst($order->status),
+            'meta' => $order->statusLabel(),
             'url' => getDashboardOrderRoute('show', $order),
         ];
     }

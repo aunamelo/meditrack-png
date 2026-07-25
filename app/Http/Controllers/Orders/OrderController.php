@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Orders;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AdvanceOrderPipelineRequest;
 use App\Http\Requests\CancelOrderRequest;
 use App\Http\Requests\ReceiveOrderRequest;
 use App\Http\Requests\StoreOrderRequest;
@@ -189,6 +190,26 @@ class OrderController extends Controller
 
         return redirect(getDashboardOrderRoute('show', $order))
             ->with('success', 'Order updated successfully.');
+    }
+
+    /**
+     * Advance an order through the import pipeline (manufacturing → shipping → customs → FX).
+     */
+    public function advancePipeline(AdvanceOrderPipelineRequest $request, Order $order): RedirectResponse
+    {
+        if (! $order->canAdvancePipeline()) {
+            return redirect(getDashboardOrderRoute('show', $order))
+                ->with('error', 'This order cannot be advanced further in the pipeline.');
+        }
+
+        $order->advancePipeline($request->validated('notes'));
+
+        $order->refresh();
+
+        \Log::info("Order [{$order->order_number}] advanced to {$order->status} by user ID: ".auth()->id());
+
+        return redirect(getDashboardOrderRoute('show', $order))
+            ->with('success', 'Order moved to: '.$order->statusLabel().'.');
     }
 
     /**

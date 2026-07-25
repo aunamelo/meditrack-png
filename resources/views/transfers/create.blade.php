@@ -35,7 +35,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="md:col-span-2">
                                 <label for="drug_id" class="block text-sm font-medium text-gray-700 mb-1">NDoH Drug <span class="text-red-500">*</span></label>
-                                <select name="drug_id" id="drug_id" x-model="drugId" @change="updateMaxQuantity()" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                <select name="drug_id" id="drug_id" x-model="drugId" @change="updateMaxQuantity()" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
                                     <option value="">Select drug to ship to Lae AMS...</option>
                                     @forelse($drugs as $drug)
                                         <option value="{{ $drug->id }}" data-qty="{{ $drug->quantity_on_hand }}" data-batch="{{ $drug->batch_number }}" data-expiry="{{ $drug->formatExpiry() }}" data-name="{{ $drug->drug_name }} ({{ $drug->dosage }})">
@@ -46,7 +46,7 @@
                                     @endforelse
                                 </select>
                                 @if($drugs->isEmpty())
-                                    <p class="mt-1 text-sm text-amber-700">No active NDoH batches with stock. Receive a procurement order first, then return here to ship stock to Lae AMS. <a href="{{ getDashboardOrderRoute('index') }}" class="font-medium text-[#0f766e] underline">View orders →</a></p>
+                                    <p class="mt-1 text-sm text-amber-700">No active NDoH batches with stock. Receive a procurement order first, then return here to ship stock to Lae AMS. <a href="{{ getDashboardOrderRoute('index') }}" class="font-medium text-brand-600 underline">View orders →</a></p>
                                 @else
                                     <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. Stock is deducted from NDoH and a new batch is created at Lae AMS when the shipment is recorded.</p>
                                 @endif
@@ -55,29 +55,29 @@
 
                             <div>
                                 <label for="quantity_sent" class="block text-sm font-medium text-gray-700 mb-1">Quantity Shipped <span class="text-red-500">*</span></label>
-                                <input type="number" name="quantity_sent" id="quantity_sent" x-model="quantitySent" :max="maxQuantity || undefined" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                <input type="number" name="quantity_sent" id="quantity_sent" x-model="quantitySent" :max="maxQuantity || undefined" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
                                 <p class="mt-1 text-xs text-gray-500" x-show="maxQuantity > 0" x-cloak>Maximum available: <span x-text="maxQuantity.toLocaleString()"></span> units</p>
                                 @error('quantity_sent')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
                                 <label for="sent_date" class="block text-sm font-medium text-gray-700 mb-1">Date Shipped <span class="text-red-500">*</span></label>
-                                <input type="date" name="sent_date" id="sent_date" x-model="sentDate" max="{{ now()->format('Y-m-d') }}" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                                <input type="date" name="sent_date" id="sent_date" x-model="sentDate" max="{{ now()->format('Y-m-d') }}" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
                                 @error('sent_date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div class="md:col-span-2">
                                 <div class="flex items-center justify-between mb-1">
                                     <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                                    <button type="button" x-show="notesEdited" x-cloak @click="notesEdited = false; refreshNotes()" class="text-xs font-medium text-[#0f766e] hover:underline">Regenerate from form</button>
+                                    <button type="button" x-show="notesEdited" x-cloak @click="notesEdited = false; refreshNotes()" class="text-xs font-medium text-brand-600 hover:underline">Regenerate from form</button>
                                 </div>
-                                <textarea name="notes" id="notes" rows="3" x-model="notes" @input="notesEdited = true" class="w-full rounded-md border-gray-300 shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50"></textarea>
+                                <textarea name="notes" id="notes" rows="3" x-model="notes" @input="notesEdited = true" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50"></textarea>
                                 <p class="mt-1 text-xs text-gray-500">Auto-filled from your selections above. Edit to customize.</p>
                                 @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
                         </div>
 
-                        <div class="mt-6 p-4 bg-teal-50 border border-teal-200 rounded-md text-sm text-teal-800">
+                        <div class="mt-6 p-4 bg-brand-50 border border-brand-200 rounded-md text-sm text-brand-800">
                             Recording this shipment will deduct stock from NDoH national storage and create a new inventory entry at Lae AMS. The Store Manager will be notified to confirm receipt when the shipment arrives.
                         </div>
 

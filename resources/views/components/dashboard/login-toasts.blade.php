@@ -5,7 +5,7 @@
          x-transition:leave="transition ease-in duration-500"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="fixed top-20 right-6 z-50 flex max-w-sm items-center gap-3 rounded-xl bg-gradient-to-r from-[#0f766e] to-[#0d5f59] px-5 py-3.5 shadow-xl">
+         class="fixed top-20 right-6 z-50 flex max-w-sm items-center gap-3 rounded-xl border border-brand-500 bg-brand-600 px-5 py-3.5 shadow-lg">
         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20">
             <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>

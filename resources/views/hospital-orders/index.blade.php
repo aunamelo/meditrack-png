@@ -62,7 +62,9 @@
                                     <x-module.status-badge :variant="$order->status" :label="hospitalOrderStatusLabel($order->status)" />
                                 </td>
                                 <td class="text-right">
-                                    <a href="{{ getDashboardHospitalOrderRoute('show', $order) }}" class="module-table-link">View</a>
+                                    <div class="module-table-actions">
+                                        <a href="{{ getDashboardHospitalOrderRoute('show', $order) }}" class="module-table-action">View</a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

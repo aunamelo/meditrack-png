@@ -22,10 +22,10 @@
     })"
     x-init="init()"
     @currency-recalculate.window="if (Number(amount) > 0) convert()"
-    {{ $attributes->merge(['class' => 'overflow-hidden rounded-xl border border-teal-200 bg-gradient-to-br from-teal-50/80 via-white to-emerald-50/50 shadow-sm']) }}
+    {{ $attributes->merge(['class' => 'overflow-hidden rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50/80 via-white to-brand-100/50 shadow-sm']) }}
 >
     {{-- Live rates header --}}
-    <div class="border-b border-teal-100 bg-white/70 px-4 py-3">
+    <div class="border-b border-brand-100 bg-white/70 px-4 py-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
                 <h4 class="text-sm font-semibold text-gray-900">Currency converter</h4>
@@ -43,7 +43,7 @@
                     Offline estimate
                 </span>
                 <span x-show="loadingRates" x-cloak class="inline-flex items-center gap-1.5 text-[11px] text-gray-500">
-                    <svg class="h-3.5 w-3.5 animate-spin text-[#0f766e]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg class="h-3.5 w-3.5 animate-spin text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
@@ -67,18 +67,18 @@
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 -translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
-             class="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-teal-100 bg-white px-3 py-2.5 shadow-sm">
-            <span class="text-[11px] font-semibold uppercase tracking-wide text-[#0f766e]">Spot rate</span>
+             class="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-brand-100 bg-white px-3 py-2.5 shadow-sm">
+            <span class="text-[11px] font-semibold uppercase tracking-wide text-brand-600">Spot rate</span>
             <p class="text-sm font-medium text-gray-900">
                 1 <span x-text="fromCurrency"></span>
                 <span class="mx-1 text-gray-400">=</span>
                 K <span x-text="formatMoney(spotRate, 4)"></span>
                 <span class="text-gray-500">PGK</span>
             </p>
-            <span x-show="loading" x-cloak class="ml-auto inline-flex items-center gap-1 text-[11px] text-[#0f766e]">
+            <span x-show="loading" x-cloak class="ml-auto inline-flex items-center gap-1 text-[11px] text-brand-600">
                 <span class="relative flex h-1.5 w-1.5">
-                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0f766e] opacity-60"></span>
-                    <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#0f766e]"></span>
+                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-600 opacity-60"></span>
+                    <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-600"></span>
                 </span>
                 Updating
             </span>
@@ -89,12 +89,12 @@
             <label class="block text-xs font-medium text-gray-700 mb-1">Amount</label>
             <input type="number" x-model="amount" min="0" step="0.01" placeholder="e.g. 10000"
                    @input.debounce.400ms="convert()"
-                   class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                   class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
         </div>
         <div class="sm:col-span-1">
             <label class="block text-xs font-medium text-gray-700 mb-1">Currency</label>
             <select x-model="fromCurrency" @change="convert()"
-                    class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-[#0f766e] focus:ring focus:ring-[#0f766e] focus:ring-opacity-50">
+                    class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
                 <template x-for="group in currencyGroups" :key="group.label">
                     <optgroup :label="group.label">
                         <template x-for="currency in group.items" :key="currency.code">
@@ -106,7 +106,7 @@
         </div>
         <div class="sm:col-span-1 flex items-end">
             <button type="button" @click="convert()" :disabled="loading"
-                    class="w-full inline-flex justify-center items-center gap-2 px-3 py-2 bg-[#0f766e] text-white text-xs font-semibold uppercase rounded-md hover:bg-[#0d5f59] disabled:opacity-60 transition-colors">
+                    class="w-full inline-flex justify-center items-center gap-2 px-3 py-2 bg-brand-600 text-white text-xs font-semibold uppercase rounded-md hover:bg-brand-700 disabled:opacity-60 transition-colors">
                 <svg x-show="loading" x-cloak class="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -120,7 +120,7 @@
     <div x-show="error" x-cloak class="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600" x-text="error"></div>
 
     <div x-show="result || loading" x-cloak class="mt-4 space-y-3">
-        <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#0f766e] to-[#0d5f59] text-white px-4 py-4 shadow-md"
+        <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 text-white px-4 py-4 shadow-md"
              :class="{ 'opacity-90': loading }">
             <div x-show="loading" class="absolute inset-0 overflow-hidden">
                 <div class="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
@@ -151,18 +151,18 @@
 
         <div class="flex flex-wrap gap-2" x-show="!autoApply" x-cloak>
             <button type="button" @click="applyPgk()"
-                    class="inline-flex items-center px-3 py-1.5 bg-[#0f766e] text-white text-xs font-semibold uppercase rounded-md hover:bg-[#0d5f59]">
+                    class="inline-flex items-center px-3 py-1.5 bg-brand-600 text-white text-xs font-semibold uppercase rounded-md hover:bg-brand-700">
                 {{ $applyLabel }}
             </button>
             @if($perUnitEvent)
                 <button type="button" x-show="result?.per_unit_pgk" @click="applyPerUnit()"
-                        class="inline-flex items-center px-3 py-1.5 bg-white border border-[#0f766e] text-[#0f766e] text-xs font-semibold uppercase rounded-md hover:bg-teal-50">
+                        class="inline-flex items-center px-3 py-1.5 bg-white border border-brand-600 text-brand-600 text-xs font-semibold uppercase rounded-md hover:bg-brand-50">
                     {{ $perUnitLabel }}
                 </button>
             @endif
         </div>
 
-        <p x-show="autoApply && applied" x-cloak class="flex items-center gap-2 text-xs text-teal-800">
+        <p x-show="autoApply && applied" x-cloak class="flex items-center gap-2 text-xs text-brand-800">
             <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
             </svg>
@@ -184,7 +184,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <template x-for="row in equivalentRows" :key="row.code">
-                            <tr :class="row.code === 'PGK' ? 'bg-teal-50 font-semibold' : 'hover:bg-gray-50 transition-colors'">
+                            <tr :class="row.code === 'PGK' ? 'bg-brand-50 font-semibold' : 'hover:bg-gray-50 transition-colors'">
                                 <td class="px-3 py-2 text-gray-700">
                                     <span x-text="row.code" class="font-medium"></span>
                                     <span class="text-gray-400" x-text="` · ${row.label}`"></span>

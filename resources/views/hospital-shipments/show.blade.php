@@ -22,6 +22,15 @@
                 <x-module.detail-field label="Status">
                     <x-module.status-badge :variant="$transfer->status" :label="logisticsTransferStatusLabel($transfer->status)" />
                 </x-module.detail-field>
+                <x-module.detail-field label="Modilon inventory">
+                    @if($transfer->destinationDrug)
+                        <a href="{{ getDashboardDrugRoute('show', $transfer->destinationDrug) }}" class="module-table-link">
+                            Batch {{ $transfer->destinationDrug->batch_number }} · {{ number_format($transfer->destinationDrug->quantity_on_hand) }} on hand
+                        </a>
+                    @else
+                        <span class="text-sm text-muted">Not added until pharmacy confirms receipt</span>
+                    @endif
+                </x-module.detail-field>
                 <x-module.detail-field label="Dispatched by" :value="$transfer->sender->name ?? 'N/A'" />
                 @if($transfer->receiver)
                     <x-module.detail-field label="Received by" :value="$transfer->receiver->name . ' · ' . $transfer->received_at?->format('M d, Y')" />

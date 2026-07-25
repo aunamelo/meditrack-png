@@ -69,11 +69,12 @@
                                         <x-module.status-badge :variant="$transfer->status" :label="ndohToLaeAmsTransferStatusLabel($transfer->status)" />
                                     </td>
                                     <td class="whitespace-nowrap text-right">
-                                        <a href="{{ getDashboardTransferRoute('show', $transfer) }}" class="module-table-link">View</a>
+                                        <div class="module-table-actions">
+                                            <a href="{{ getDashboardTransferRoute('show', $transfer) }}" class="module-table-action">View</a>
                                         @if(canReceiveTransfers() && $transfer->canReceive())
-                                            <span class="mx-1 text-muted">|</span>
-                                            <a href="{{ getDashboardTransferRoute('show', $transfer) }}" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Confirm</a>
+                                            <a href="{{ getDashboardTransferRoute('show', $transfer) }}" class="module-table-action">Confirm</a>
                                         @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

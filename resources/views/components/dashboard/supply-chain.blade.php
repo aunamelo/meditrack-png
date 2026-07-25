@@ -30,7 +30,7 @@ $nodeIcons = [
                 <div class="flex items-center gap-3">
                     <div @class([
                         'dashboard-chain-icon',
-                        'bg-brand-600 text-white shadow-glow' => $highlight === $node['key'],
+                        'bg-brand-600 text-white shadow-soft' => $highlight === $node['key'],
                         'bg-surface-muted text-ink-muted dark:bg-zinc-800 dark:text-zinc-400' => $highlight !== $node['key'],
                     ])>
                         <x-dashboard.icon :name="$nodeIcons[$node['key']] ?? 'cube'" class="h-5 w-5" />

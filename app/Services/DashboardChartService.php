@@ -54,19 +54,19 @@ class DashboardChartService
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $labels = ['Pending', 'Ordered', 'Shipped', 'Partial', 'Received', 'Cancelled'];
-        $keys = ['pending', 'ordered', 'shipped', 'partial', 'received', 'cancelled'];
+        $labels = ['Pending', 'Manufacturing', 'In transit', 'Customs', 'FX cleared', 'Partial', 'Received', 'Cancelled'];
+        $keys = ['pending', 'manufacturing', 'shipped', 'customs', 'fx_cleared', 'partial', 'received', 'cancelled'];
         $data = array_map(fn (string $key) => (int) ($counts[$key] ?? 0), $keys);
 
         return [
             'id' => 'order-status-'.($userId ?? 'all'),
             'type' => 'doughnut',
             'title' => $userId ? 'My orders by status' : 'Orders by status',
-            'subtitle' => 'Current procurement pipeline',
+            'subtitle' => 'Import pipeline and receipt status',
             'labels' => $labels,
             'datasets' => [[
                 'data' => $data,
-                'backgroundColor' => ['#f59e0b', '#3b82f6', '#8b5cf6', '#eab308', '#10b981', '#ef4444'],
+                'backgroundColor' => ['#f59e0b', '#3b82f6', '#8b5cf6', '#f97316', '#14b8a6', '#eab308', '#10b981', '#ef4444'],
             ]],
         ];
     }

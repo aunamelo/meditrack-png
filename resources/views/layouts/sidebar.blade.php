@@ -17,12 +17,12 @@
         {{-- Brand + collapse toggle --}}
         <div class="sidebar-header flex items-center gap-2 px-4 py-5 lg:px-3">
             <a href="{{ getRoleDashboardRoute() }}" class="sidebar-header-brand flex min-w-0 flex-1 items-center gap-3 overflow-hidden" title="MediTrack PNG">
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white shadow-glow backdrop-blur-sm [&_svg]:h-6 [&_svg]:w-6">
-                    @include('components.icons.medical-cross')
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white p-1">
+                    <x-app-icon size="sm" class="h-9 w-9 object-contain" />
                 </div>
                 <div class="sidebar-brand-text min-w-0">
                     <p class="truncate font-display text-lg font-bold text-white">MediTrack</p>
-                    <p class="truncate text-xs font-medium text-white/60">PNG Supply Chain</p>
+                    <p class="truncate text-xs font-medium text-brand-100">NDoH eLog Portal</p>
                 </div>
             </a>
             <button

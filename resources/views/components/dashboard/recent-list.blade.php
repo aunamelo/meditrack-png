@@ -2,7 +2,7 @@
 
 <div class="medcare-panel flex h-full flex-col">
     <div class="border-b border-line/80 px-5 py-4">
-        <p class="text-[11px] font-bold uppercase tracking-widest text-accent">Today</p>
+        <p class="text-[11px] font-bold uppercase tracking-widest text-brand-200">Today</p>
         <h3 class="mt-1 font-display text-base font-bold text-ink">{{ $title }}</h3>
     </div>
     @if(count($items))

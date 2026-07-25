@@ -38,7 +38,9 @@
                                     <x-module.status-badge :variant="$transfer->status" :label="logisticsTransferStatusLabel($transfer->status)" />
                                 </td>
                                 <td class="text-right">
-                                    <a href="{{ getDashboardHospitalShipmentRoute('show', $transfer) }}" class="module-table-link">View</a>
+                                    <div class="module-table-actions">
+                                        <a href="{{ getDashboardHospitalShipmentRoute('show', $transfer) }}" class="module-table-action">View</a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

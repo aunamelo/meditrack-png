@@ -118,17 +118,19 @@
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap text-right">
-                                        <a href="{{ getDashboardDrugRoute('show', $drug->id) }}" class="module-table-link mr-3">View</a>
-                                        @if(auth()->user()->hasRole('procurement_officer') && $drug->level == 'ndoh')
-                                            <a href="{{ getDashboardDrugRoute('edit', $drug->id) }}" class="module-table-link mr-3">Edit</a>
-                                        @endif
-                                        @if(auth()->user()->hasRole('admin'))
-                                            <form action="{{ getDashboardDrugRoute('destroy', $drug->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this drug?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-sm font-medium text-rose-600 hover:text-rose-700">Delete</button>
-                                            </form>
-                                        @endif
+                                        <div class="module-table-actions">
+                                            <a href="{{ getDashboardDrugRoute('show', $drug->id) }}" class="module-table-action">View</a>
+                                            @if(auth()->user()->hasRole('procurement_officer') && $drug->level == 'ndoh')
+                                                <a href="{{ getDashboardDrugRoute('edit', $drug->id) }}" class="module-table-action module-table-action-edit">Edit</a>
+                                            @endif
+                                            @if(auth()->user()->hasRole('admin'))
+                                                <form action="{{ getDashboardDrugRoute('destroy', $drug->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this drug?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-sm font-medium text-rose-600 hover:text-rose-700">Delete</button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

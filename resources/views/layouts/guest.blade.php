@@ -7,6 +7,8 @@
     <meta name="description" content="MediTrack PNG eLog Portal — National Department of Health medicine supply chain system." />
     <title>@yield('title', 'MediTrack PNG | eLog Portal')</title>
 
+    @include('partials.app-icon')
+
     @include('partials.theme-init')
     @include('partials.fonts')
 
@@ -15,12 +17,6 @@
 </head>
 
 <body class="guest-portal-body">
-    <div class="guest-portal-bg-glow" aria-hidden="true"></div>
-
-    <header class="guest-portal-official-bar">
-        <p>Papua New Guinea · National Department of Health</p>
-    </header>
-
     <div class="guest-portal-shell">
         <div class="guest-portal-card">
             @hasSection('content-top')

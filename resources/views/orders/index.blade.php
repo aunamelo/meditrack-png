@@ -27,8 +27,8 @@
                         <label for="status" class="form-label">Status</label>
                         <select name="status" id="status" class="input-field">
                             <option value="">All Statuses</option>
-                            @foreach(['pending', 'ordered', 'shipped', 'received', 'partial', 'cancelled'] as $status)
-                                <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ ucfirst($status) }}</option>
+                            @foreach(['pending', 'manufacturing', 'shipped', 'customs', 'fx_cleared', 'received', 'partial', 'cancelled'] as $status)
+                                <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ \App\Models\Order::make(['status' => $status])->statusLabel() }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -83,7 +83,7 @@
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap">
-                                        <x-module.status-badge :variant="$order->status" :label="ucfirst($order->status)" />
+                                        <x-module.status-badge :variant="$order->status" :label="$order->statusLabel()" />
                                     </td>
                                     <td class="whitespace-nowrap">
                                         <div class="module-progress-track">
@@ -92,10 +92,11 @@
                                         <span class="text-xs text-muted">{{ $order->getProgressPercentage() }}%</span>
                                     </td>
                                     <td class="whitespace-nowrap text-right">
-                                        <a href="{{ getDashboardOrderRoute('show', $order) }}" class="module-table-link mr-3">View</a>
-                                        @if(canManageOrders() && $order->status === 'pending' && $order->created_by === auth()->id())
-                                            <a href="{{ getDashboardOrderRoute('edit', $order) }}" class="module-table-link mr-3">Edit</a>
-                                        @endif
+                                        <div class="module-table-actions">
+                                            <a href="{{ getDashboardOrderRoute('show', $order) }}" class="module-table-action">View</a>
+                                            @if(canManageOrders() && $order->status === 'pending' && $order->created_by === auth()->id())
+                                                <a href="{{ getDashboardOrderRoute('edit', $order) }}" class="module-table-action module-table-action-edit">Edit</a>
+                                            @endif
                                         @if(canApproveOrders() && $order->canApprove())
                                             <form action="{{ getDashboardOrderRoute('approve', $order) }}" method="POST" class="inline">
                                                 @csrf
@@ -109,6 +110,7 @@
                                                 <button type="submit" class="text-sm font-medium text-rose-600 hover:text-rose-700">Delete</button>
                                             </form>
                                         @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::resource('medicines', MedicineController::class);
     Route::resource('drugs', DrugController::class);
     Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
+    Route::post('orders/{order}/advance-pipeline', [OrderController::class, 'advancePipeline'])->name('orders.advance-pipeline');
     Route::post('orders/{order}/receive', [OrderController::class, 'receive'])->name('orders.receive');
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::resource('orders', OrderController::class);
@@ -77,6 +78,7 @@ Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('pro
     Route::resource('medicines', MedicineController::class)->except(['destroy']);
     Route::resource('drugs', DrugController::class);
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('orders/{order}/advance-pipeline', [OrderController::class, 'advancePipeline'])->name('orders.advance-pipeline');
     Route::resource('orders', OrderController::class);
     Route::resource('transfers', StockTransferController::class)->only(['index', 'create', 'store', 'show']);
 });

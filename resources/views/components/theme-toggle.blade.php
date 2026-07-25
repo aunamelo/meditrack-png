@@ -7,7 +7,7 @@
     {{ $attributes->merge([
         'class' => $compact
             ? 'inline-flex items-center justify-center rounded-lg border border-line p-2 text-ink-muted transition hover:bg-surface-muted hover:text-brand-600 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-brand-400'
-            : 'inline-flex items-center justify-center rounded-full bg-brand-600 p-3.5 text-white shadow-glow transition hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400',
+            : 'inline-flex items-center justify-center rounded-full bg-brand-600 p-3.5 text-white shadow-soft transition hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400',
     ]) }}
     x-data="{
         dark: document.documentElement.classList.contains('dark'),
