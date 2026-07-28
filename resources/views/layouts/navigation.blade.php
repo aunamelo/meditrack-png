@@ -4,7 +4,7 @@
             <div class="flex">
                 <div class="flex shrink-0 items-center">
                     <a href="{{ getRoleDashboardRoute() }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-ink dark:text-zinc-100" />
+                        <x-application-logo class="block h-9 w-auto" />
                     </a>
                 </div>
 
