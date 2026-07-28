@@ -86,9 +86,24 @@ Configure your database credentials in `.env`, then run:
 
 ```bash
 php artisan migrate
+php artisan db:seed
 npm run build
 php artisan serve
 ```
+
+### Demo login accounts
+
+After seeding, sign in with any account below. **Password for all:** `password`
+
+| Role | Email |
+|------|-------|
+| NDoH Admin | `admin@health.gov.pg` |
+| Procurement Officer | `procurement@health.gov.pg` |
+| Store Manager (Lae AMS) | `manager@lae-ams.health.gov.pg` |
+| Pharmacy Manager (Modilon) | `pharmacy.manager@modilon.gov.pg` |
+| Pharmacist (Modilon) | `pharmacist@modilon.gov.pg` |
+
+On a fresh server (Oracle, Replit, etc.), run `php artisan migrate --seed` after configuring `.env`.
 
 ### Assigning Roles
 

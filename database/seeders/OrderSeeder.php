@@ -16,8 +16,8 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        $procurementOfficer = User::where('email', 'procurement@example.com')->first() ?? User::first();
-        $admin = User::where('email', 'admin@example.com')->first() ?? User::skip(1)->first() ?? $procurementOfficer;
+        $procurementOfficer = User::where('email', 'procurement@health.gov.pg')->first() ?? User::first();
+        $admin = User::where('email', 'admin@health.gov.pg')->first() ?? User::skip(1)->first() ?? $procurementOfficer;
 
         $medicines = Medicine::query()->active()->take(6)->get();
 
