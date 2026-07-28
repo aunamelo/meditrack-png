@@ -57,6 +57,7 @@ RUN composer dump-autoload --optimize \
     && chmod -R 775 storage bootstrap/cache
 
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY docker/php/zz-meditrack.conf /usr/local/etc/php-fpm.d/zz-meditrack.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
