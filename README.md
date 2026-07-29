@@ -107,49 +107,30 @@ On a fresh server (Oracle, Replit, etc.), run `php artisan migrate --seed` after
 
 ### Deploy with Docker (Oracle VPS)
 
-**Prerequisites on the VPS:** Docker Engine + Docker Compose plugin, ports **80** (and **443** later for HTTPS) open in Oracle security lists.
+Full step-by-step reference (networking, `.env`, build, sync, migrations, troubleshooting):
+
+**[docs/ORACLE_DOCKER_DEPLOYMENT.md](docs/ORACLE_DOCKER_DEPLOYMENT.md)**
+
+Quick first deploy:
 
 ```bash
 # On your Oracle VPS
 sudo apt update && sudo apt install -y git docker.io docker-compose-v2
-sudo usermod -aG docker $USER
-# log out and back in, then:
-
 git clone https://github.com/aunamelo/meditrack-png.git
 cd meditrack-png
 cp .env.docker.example .env
-nano .env   # set APP_URL, DB_PASSWORD, DB_ROOT_PASSWORD
-```
-
-Edit `.env`:
-
-| Variable | Example |
-|----------|---------|
-| `APP_URL` | `http://203.0.113.45` (your Oracle public IP) |
-| `DB_PASSWORD` | strong password |
-| `DB_ROOT_PASSWORD` | strong root password |
-| `RUN_SEED` | `true` on first deploy only |
-
-Build and start:
-
-```bash
+nano .env   # set APP_URL, DB_PASSWORD, DB_ROOT_PASSWORD, RUN_SEED=true
 docker compose up -d --build
-docker compose logs -f web
 ```
 
-Open `http://YOUR_PUBLIC_IP` in a browser. After the first successful deploy, set `RUN_SEED=false` in `.env` and run `docker compose up -d` again so re-starts do not re-seed.
+After a successful first login, set `RUN_SEED=false` in `.env`.
 
-**Useful commands:**
+Everyday update:
 
-```bash
-docker compose ps
-docker compose logs -f web
-docker compose exec web php artisan migrate --force
-docker compose down
-docker compose up -d --build   # after git pull
+```text
+PC:     git push
+Oracle: git pull && docker compose up -d --build
 ```
-
-Uploaded files (profile photos) persist in the Docker volume `app_storage`.
 
 ### Assigning Roles
 
@@ -160,6 +141,10 @@ php artisan tinker
 $user = \App\Models\User::find(1);
 $user->assignRole('admin'); // or: pharmacist, pharmacy_manager, procurement_officer, store_manager
 ```
+
+## Entity Relationship Diagram
+
+See **[docs/ERD.md](docs/ERD.md)** for the current database ERD (Mermaid), cardinality table, and design notes derived from migrations.
 
 ## Key Deliverables
 
