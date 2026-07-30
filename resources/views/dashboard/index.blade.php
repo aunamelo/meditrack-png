@@ -4,7 +4,6 @@
     <div class="dashboard-shell">
         @if($roleMeta)
             @php
-                $quickActionCount = count($quickActions ?? []);
                 $greeting = portalGreeting();
                 $firstName = explode(' ', trim(auth()->user()->name))[0];
                 $topStats = collect($stats ?? [])->take(4);
@@ -72,29 +71,42 @@
                 </section>
             @endif
 
-            {{-- Quick access --}}
-            @if(count($quickActions ?? []))
-                <section class="mb-6">
-                    <div class="mb-4">
+            {{-- Quick access (workflow groups matching sidebar) --}}
+            @php
+                $actionGroups = $quickActionGroups ?? [];
+                if ($actionGroups === [] && count($quickActions ?? [])) {
+                    $actionGroups = [['label' => 'Shortcuts', 'actions' => $quickActions]];
+                }
+            @endphp
+            @if(count($actionGroups))
+                <section class="mb-6 space-y-6">
+                    <div class="mb-1">
                         <p class="text-section-label">Shortcuts</p>
                         <h3 class="heading-section">Quick access</h3>
                     </div>
-                    <div @class([
-                        'grid grid-cols-1 gap-4 sm:grid-cols-2',
-                        'xl:grid-cols-2' => $quickActionCount === 2,
-                        'xl:grid-cols-3' => $quickActionCount === 3,
-                        'xl:grid-cols-4' => $quickActionCount >= 4,
-                    ])>
-                        @foreach($quickActions as $action)
-                            <x-dashboard.module-card
-                                :label="$action['label']"
-                                :description="$action['description']"
-                                :url="$action['url']"
-                                :primary="$action['primary'] ?? false"
-                                :icon="$action['icon'] ?? 'cube'"
-                            />
-                        @endforeach
-                    </div>
+                    @foreach($actionGroups as $group)
+                        @php $groupActions = $group['actions'] ?? []; @endphp
+                        @if(count($groupActions))
+                            <div>
+                                <p class="mb-3 text-xs font-bold uppercase tracking-widest text-muted">{{ $group['label'] }}</p>
+                                <div @class([
+                                    'grid grid-cols-1 gap-4 sm:grid-cols-2',
+                                    'xl:grid-cols-2' => count($groupActions) <= 2,
+                                    'xl:grid-cols-3' => count($groupActions) >= 3,
+                                ])>
+                                    @foreach($groupActions as $action)
+                                        <x-dashboard.module-card
+                                            :label="$action['label']"
+                                            :description="$action['description']"
+                                            :url="$action['url']"
+                                            :primary="$action['primary'] ?? false"
+                                            :icon="$action['icon'] ?? 'cube'"
+                                        />
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
                 </section>
             @endif
 
@@ -110,7 +122,7 @@
                     @endif
 
                     @if(count($recentItems ?? []))
-                        <x-dashboard.recent-list :items="$recentItems" title="Recent activity" />
+                        <x-dashboard.recent-list :items="$recentItems" :title="$recentTitle ?? 'Recent activity'" />
                     @endif
                 </section>
             @endif
