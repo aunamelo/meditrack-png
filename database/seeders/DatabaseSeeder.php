@@ -20,5 +20,6 @@ class DatabaseSeeder extends Seeder
         $this->call(MedicineSeeder::class);
         $this->call(BackfillSupplierLinksSeeder::class);
         $this->call(OrderSeeder::class);
+        $this->call(PatientSeeder::class);
     }
 }

@@ -186,6 +186,32 @@ if (! function_exists('getDashboardHospitalOrderRoute')) {
     }
 }
 
+if (! function_exists('getDashboardPatientRoute')) {
+    function getDashboardPatientRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['pharmacist', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to patients.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'patients.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardDispensingRoute')) {
+    function getDashboardDispensingRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['pharmacist', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to dispensing.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'dispensing.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
 if (! function_exists('getDashboardHospitalShipmentRoute')) {
     function getDashboardHospitalShipmentRoute(string $routeName, mixed $params = null): string
     {

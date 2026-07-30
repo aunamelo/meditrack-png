@@ -164,6 +164,54 @@ class PortalNavigationService
                     icon: 'clipboard',
                 );
 
+                $items[] = self::item(
+                    section: 'hospital',
+                    label: 'Patients',
+                    description: 'Modilon patient register',
+                    href: getDashboardPatientRoute('index'),
+                    active: request()->routeIs('*.dashboard.patients.*'),
+                    icon: 'users',
+                );
+
+                $items[] = self::item(
+                    section: 'hospital',
+                    label: 'Dispensing',
+                    description: 'Review dispensed medicines',
+                    href: getDashboardDispensingRoute('index'),
+                    active: request()->routeIs('*.dashboard.dispensing.*'),
+                    icon: 'pill',
+                );
+
+                $orderBadge = self::orderNavBadge($user);
+
+                $items[] = self::item(
+                    section: 'procurement',
+                    label: 'Procurement Orders',
+                    description: 'Track national supply status',
+                    href: getDashboardOrderRoute('index'),
+                    active: request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'),
+                    icon: 'clipboard',
+                    badge: $orderBadge,
+                );
+            } elseif ($user->hasRole('pharmacist')) {
+                $items[] = self::item(
+                    section: 'hospital',
+                    label: 'Patients',
+                    description: 'Register and look up patients',
+                    href: getDashboardPatientRoute('index'),
+                    active: request()->routeIs('*.dashboard.patients.*'),
+                    icon: 'users',
+                );
+
+                $items[] = self::item(
+                    section: 'hospital',
+                    label: 'Dispensing',
+                    description: 'Dispense Modilon pharmacy stock',
+                    href: getDashboardDispensingRoute('index'),
+                    active: request()->routeIs('*.dashboard.dispensing.*'),
+                    icon: 'pill',
+                );
+
                 $orderBadge = self::orderNavBadge($user);
 
                 $items[] = self::item(
@@ -307,7 +355,7 @@ class PortalNavigationService
         }
 
         if ($user->hasRole('pharmacist')) {
-            return ['label' => 'View inventory', 'url' => getDashboardDrugRoute('index')];
+            return ['label' => 'Dispense', 'url' => getDashboardDispensingRoute('create')];
         }
 
         return null;

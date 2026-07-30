@@ -35,8 +35,8 @@ Users connect via Spatie roles (`admin`, `procurement_officer`, `store_manager`,
 | suppliers, medicines, drugs, orders, order_items | Yes | Live |
 | vehicles, stock_transfers, hospital_orders, discrepancy_reports | Yes | Live |
 | notifications | Yes | Live |
-| **patients** | **No** | Planned for pharmacist dispensing |
-| **dispensing_records** | **No** | Referenced by `Drug::dispensingRecords()`; table not created yet |
+| **patients** | **Yes** | Modilon patient register |
+| **dispensing_records** | **Yes** | Pharmacist dispensing from hospital lots |
 
 ---
 

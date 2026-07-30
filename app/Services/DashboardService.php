@@ -304,8 +304,9 @@ class DashboardService
             ],
             'alerts' => $alerts,
             'quickActions' => self::quickActions([
-                ['label' => 'View inventory', 'description' => 'Check stock before dispensing', 'url' => getDashboardDrugRoute('index'), 'primary' => true, 'icon' => 'cube'],
-                ['label' => 'Procurement status', 'description' => 'Track incoming supply', 'url' => getDashboardOrderRoute('index'), 'icon' => 'clipboard'],
+                ['label' => 'Dispense medicine', 'description' => 'Issue stock to a registered patient', 'url' => getDashboardDispensingRoute('create'), 'primary' => true, 'icon' => 'pill'],
+                ['label' => 'Patients', 'description' => 'Register or look up patients', 'url' => getDashboardPatientRoute('index'), 'icon' => 'users'],
+                ['label' => 'View inventory', 'description' => 'Check stock before dispensing', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
             ]),
             'recentItems' => Drug::atLevel($level)->inInventory()->latest()->limit(4)->get()->map(fn (Drug $drug) => [
                 'title' => $drug->drug_name.' ('.$drug->dosage.')',

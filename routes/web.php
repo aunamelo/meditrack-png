@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscrepancyReportController;
+use App\Http\Controllers\DispensingRecordController;
 use App\Http\Controllers\DrugController;
 use App\Http\Controllers\HospitalOrderController;
 use App\Http\Controllers\HospitalShipmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegionalReportController;
 use App\Http\Controllers\StockTransferController;
@@ -110,12 +112,16 @@ Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharma
     Route::post('hospital-orders/{hospitalOrder}/receive', [HospitalOrderController::class, 'receive'])->name('hospital-orders.receive');
     Route::resource('hospital-shipments', HospitalShipmentController::class)->only(['index', 'show'])->parameters(['hospital-shipments' => 'transfer']);
     Route::resource('discrepancies', DiscrepancyReportController::class)->only(['index', 'create', 'store', 'show']);
+    Route::resource('patients', PatientController::class)->except(['destroy']);
+    Route::resource('dispensing', DispensingRecordController::class)->only(['index', 'show'])->parameters(['dispensing' => 'dispensing']);
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')->name('pharmacist.dashboard.')->group(function () {
     Route::resource('drugs', DrugController::class);
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::resource('patients', PatientController::class)->except(['destroy']);
+    Route::resource('dispensing', DispensingRecordController::class)->only(['index', 'create', 'store', 'show'])->parameters(['dispensing' => 'dispensing']);
 });
 
 Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')->group(function () {
