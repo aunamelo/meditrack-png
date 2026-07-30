@@ -251,6 +251,19 @@ if (! function_exists('getDashboardRegionalReportRoute')) {
     }
 }
 
+if (! function_exists('getDashboardStockStatusRoute')) {
+    function getDashboardStockStatusRoute(string $routeName = 'index', mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager', 'pharmacist'])) {
+            abort(403, 'You do not have access to stock status reports.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'reports.stock-status.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
 if (! function_exists('canManageHospitalOrders')) {
     function canManageHospitalOrders(): bool
     {

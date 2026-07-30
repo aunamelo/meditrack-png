@@ -29,6 +29,7 @@
                               notesEdited: @js(filled(old('notes'))),
                               medicineOptions: @js($medicines->map(fn ($medicine) => ['id' => (string) $medicine->id, 'label' => $medicine->displayLabel(), 'supplier_id' => $medicine->supplier_id ? (string) $medicine->supplier_id : ''])->values()),
                               supplierOptions: @js($suppliers->map(fn ($supplier) => ['id' => (string) $supplier->id, 'name' => $supplier->name, 'label' => $supplier->displayLabel(), 'country' => $supplier->country])->values()),
+                              lmisSuggestions: @js($lmisSuggestions),
                           })">
                         @csrf
 
@@ -46,7 +47,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-900">Medicines in this order</h3>
-                                    <p class="text-xs text-gray-500 mt-0.5">Select medicines from the NDoH catalog — all items share the same supplier and delivery details.</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">Select medicines from the NDoH catalog. Suggested quantities use Modilon consumption and corridor stock ({{ \App\Services\LmisService::PROCUREMENT_MONTHS_OF_COVER }} months cover).</p>
                                 </div>
                                 <button type="button" @click="addItem()" class="inline-flex items-center px-3 py-1.5 bg-white border border-brand-600 rounded-md text-xs font-semibold text-brand-600 uppercase hover:bg-brand-50">
                                     + Add line
@@ -55,24 +56,38 @@
 
                             <div class="space-y-3">
                                 <template x-for="(item, index) in items" :key="index">
-                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start bg-white rounded-md border border-gray-200 p-3">
-                                        <div class="md:col-span-7">
-                                            <label class="block text-xs font-medium text-gray-700 mb-1">Medicine <span class="text-red-500">*</span></label>
-                                            <select :name="`items[${index}][medicine_id]`" x-model="item.medicine_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
-                                                <option value="">Select a medicine...</option>
-                                                <template x-for="option in medicineOptions" :key="option.id">
-                                                    <option :value="option.id" x-text="option.label"></option>
-                                                </template>
-                                            </select>
+                                    <div class="bg-white rounded-md border border-gray-200 p-3 space-y-3">
+                                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+                                            <div class="md:col-span-7">
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">Medicine <span class="text-red-500">*</span></label>
+                                                <select :name="`items[${index}][medicine_id]`" x-model="item.medicine_id" @change="applySuggestion(index)" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
+                                                    <option value="">Select a medicine...</option>
+                                                    <template x-for="option in medicineOptions" :key="option.id">
+                                                        <option :value="option.id" x-text="option.label"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <div class="md:col-span-3">
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
+                                                <input type="number" :name="`items[${index}][quantity_ordered]`" x-model="item.quantity_ordered" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
+                                            </div>
+                                            <div class="md:col-span-2 flex items-end">
+                                                <button type="button" x-show="items.length > 1" @click="removeItem(index)" class="w-full inline-flex justify-center items-center px-3 py-2 border border-red-200 rounded-md text-xs font-semibold text-red-600 uppercase hover:bg-red-50">
+                                                    Remove
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="md:col-span-3">
-                                            <label class="block text-xs font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
-                                            <input type="number" :name="`items[${index}][quantity_ordered]`" x-model="item.quantity_ordered" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
-                                        </div>
-                                        <div class="md:col-span-2 flex items-end">
-                                            <button type="button" x-show="items.length > 1" @click="removeItem(index)" class="w-full inline-flex justify-center items-center px-3 py-2 border border-red-200 rounded-md text-xs font-semibold text-red-600 uppercase hover:bg-red-50">
-                                                Remove
-                                            </button>
+                                        <div class="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600" x-show="suggestionFor(item.medicine_id)" x-cloak>
+                                            <template x-if="suggestionFor(item.medicine_id)">
+                                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                                    <span>Status: <strong x-text="suggestionFor(item.medicine_id).status_label"></strong></span>
+                                                    <span>AMC: <strong x-text="Number(suggestionFor(item.medicine_id).amc).toLocaleString()"></strong></span>
+                                                    <span>Corridor SOH: <strong x-text="Number(suggestionFor(item.medicine_id).stock_on_hand).toLocaleString()"></strong></span>
+                                                    <span>On order: <strong x-text="Number(suggestionFor(item.medicine_id).pending_on_order).toLocaleString()"></strong></span>
+                                                    <span>Suggested: <strong class="text-brand-700" x-text="Number(suggestionFor(item.medicine_id).suggested_quantity).toLocaleString()"></strong></span>
+                                                    <button type="button" class="font-semibold text-brand-600 hover:underline" @click="useSuggestion(index)" x-show="Number(suggestionFor(item.medicine_id).suggested_quantity) > 0">Use suggestion</button>
+                                                </div>
+                                            </template>
                                         </div>
                                     </div>
                                 </template>
@@ -171,6 +186,7 @@
                 items: initial.items ?? [{ medicine_id: '', quantity_ordered: '' }],
                 medicineOptions: initial.medicineOptions ?? [],
                 supplierOptions: initial.supplierOptions ?? [],
+                lmisSuggestions: initial.lmisSuggestions ?? {},
                 supplierId: initial.supplierId ?? '',
                 source: initial.source ?? 'overseas',
                 orderDate: initial.orderDate ?? '',
@@ -184,6 +200,28 @@
                     overseas: 'Overseas',
                     local: 'Local',
                     donation: 'Donation',
+                },
+                suggestionFor(medicineId) {
+                    if (!medicineId) {
+                        return null;
+                    }
+
+                    return this.lmisSuggestions[String(medicineId)] ?? null;
+                },
+                applySuggestion(index) {
+                    const suggestion = this.suggestionFor(this.items[index].medicine_id);
+                    if (suggestion && Number(suggestion.suggested_quantity) > 0 && !this.items[index].quantity_ordered) {
+                        this.items[index].quantity_ordered = String(suggestion.suggested_quantity);
+                    }
+                    this.applyPreferredSupplierFromItems();
+                    this.refreshNotes();
+                },
+                useSuggestion(index) {
+                    const suggestion = this.suggestionFor(this.items[index].medicine_id);
+                    if (suggestion && Number(suggestion.suggested_quantity) > 0) {
+                        this.items[index].quantity_ordered = String(suggestion.suggested_quantity);
+                        this.refreshNotes();
+                    }
                 },
                 get totalQuantity() {
                     return this.items.reduce((sum, item) => sum + (Number(item.quantity_ordered) || 0), 0);

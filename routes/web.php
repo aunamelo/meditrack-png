@@ -11,6 +11,7 @@ use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegionalReportController;
+use App\Http\Controllers\StockStatusController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -76,6 +77,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::resource('orders', OrderController::class);
     Route::resource('transfers', StockTransferController::class)->only(['index', 'show']);
     Route::resource('users', UserController::class)->except(['show']);
+    Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
 });
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {
@@ -87,6 +89,7 @@ Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('pro
     Route::post('orders/{order}/advance-pipeline', [OrderController::class, 'advancePipeline'])->name('orders.advance-pipeline');
     Route::resource('orders', OrderController::class);
     Route::resource('transfers', StockTransferController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
 });
 
 Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-manager')->name('store-manager.dashboard.')->group(function () {
@@ -101,6 +104,7 @@ Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-man
     Route::resource('discrepancies', DiscrepancyReportController::class)->only(['index', 'show']);
     Route::post('discrepancies/{discrepancy}/resolve', [DiscrepancyReportController::class, 'resolve'])->name('discrepancies.resolve');
     Route::get('reports/regional', [RegionalReportController::class, 'index'])->name('reports.regional.index');
+    Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharmacy-manager')->name('pharmacy-manager.dashboard.')->group(function () {
@@ -114,6 +118,7 @@ Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharma
     Route::resource('discrepancies', DiscrepancyReportController::class)->only(['index', 'create', 'store', 'show']);
     Route::resource('patients', PatientController::class)->except(['destroy']);
     Route::resource('dispensing', DispensingRecordController::class)->only(['index', 'show'])->parameters(['dispensing' => 'dispensing']);
+    Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')->name('pharmacist.dashboard.')->group(function () {
@@ -122,6 +127,7 @@ Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::resource('patients', PatientController::class)->except(['destroy']);
     Route::resource('dispensing', DispensingRecordController::class)->only(['index', 'create', 'store', 'show'])->parameters(['dispensing' => 'dispensing']);
+    Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
 });
 
 Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')->group(function () {

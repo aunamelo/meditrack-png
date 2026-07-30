@@ -130,6 +130,15 @@ class PortalNavigationService
 
                 $items[] = self::item(
                     section: 'reports',
+                    label: 'Stock Status',
+                    description: 'Consumption, days of stock, suggestions',
+                    href: getDashboardStockStatusRoute('index'),
+                    active: request()->routeIs('*.dashboard.reports.stock-status.*'),
+                    icon: 'chart',
+                );
+
+                $items[] = self::item(
+                    section: 'reports',
                     label: 'Regional Reports',
                     description: 'Lae AMS warehouse summary',
                     href: getDashboardRegionalReportRoute('index'),
@@ -182,6 +191,15 @@ class PortalNavigationService
                     icon: 'pill',
                 );
 
+                $items[] = self::item(
+                    section: 'reports',
+                    label: 'Stock Status',
+                    description: 'Consumption & suggested requests',
+                    href: getDashboardStockStatusRoute('index'),
+                    active: request()->routeIs('*.dashboard.reports.stock-status.*'),
+                    icon: 'chart',
+                );
+
                 $orderBadge = self::orderNavBadge($user);
 
                 $items[] = self::item(
@@ -210,6 +228,15 @@ class PortalNavigationService
                     href: getDashboardDispensingRoute('index'),
                     active: request()->routeIs('*.dashboard.dispensing.*'),
                     icon: 'pill',
+                );
+
+                $items[] = self::item(
+                    section: 'reports',
+                    label: 'Stock Status',
+                    description: 'Modilon consumption & days of stock',
+                    href: getDashboardStockStatusRoute('index'),
+                    active: request()->routeIs('*.dashboard.reports.stock-status.*'),
+                    icon: 'chart',
                 );
 
                 $orderBadge = self::orderNavBadge($user);
@@ -245,6 +272,15 @@ class PortalNavigationService
                         active: request()->routeIs('*.dashboard.transfers.*'),
                         icon: 'truck',
                         badge: self::shipmentNavBadge($user),
+                    );
+
+                    $items[] = self::item(
+                        section: 'reports',
+                        label: 'Stock Status',
+                        description: 'Corridor consumption & procurement suggestions',
+                        href: getDashboardStockStatusRoute('index'),
+                        active: request()->routeIs('*.dashboard.reports.stock-status.*'),
+                        icon: 'chart',
                     );
                 }
             }

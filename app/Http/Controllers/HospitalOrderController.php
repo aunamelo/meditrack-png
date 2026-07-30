@@ -10,6 +10,7 @@ use App\Models\Drug;
 use App\Models\HospitalOrder;
 use App\Models\Vehicle;
 use App\Services\HospitalShipmentService;
+use App\Services\LmisService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -51,7 +52,9 @@ class HospitalOrderController extends Controller
             abort(403, 'Only Pharmacy Managers can request stock from Lae AMS.');
         }
 
-        return view('hospital-orders.create');
+        $stockOptions = LmisService::hospitalRequisitionOptions();
+
+        return view('hospital-orders.create', compact('stockOptions'));
     }
 
     public function store(StoreHospitalOrderRequest $request): RedirectResponse

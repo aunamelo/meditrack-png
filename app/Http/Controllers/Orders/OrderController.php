@@ -12,6 +12,7 @@ use App\Models\Drug;
 use App\Models\Medicine;
 use App\Models\Order;
 use App\Models\Supplier;
+use App\Services\LmisService;
 use App\Services\OrderNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -82,8 +83,9 @@ class OrderController extends Controller
             ->get();
 
         $suppliers = Supplier::query()->active()->orderBy('country')->orderBy('name')->get();
+        $lmisSuggestions = LmisService::procurementSuggestions()->keyBy('medicine_id');
 
-        return view('orders.create', compact('medicines', 'suppliers'));
+        return view('orders.create', compact('medicines', 'suppliers', 'lmisSuggestions'));
     }
 
     /**

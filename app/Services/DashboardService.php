@@ -90,6 +90,7 @@ class DashboardService
             ]] : [],
             'quickActions' => self::quickActions(array_values(array_filter([
                 ['label' => 'Review orders', 'description' => 'Approve pending procurement', 'url' => getDashboardOrderRoute('index'), 'primary' => true, 'icon' => 'clipboard'],
+                ['label' => 'Stock status', 'description' => 'Corridor consumption & suggestions', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                 ['label' => 'Drug inventory', 'description' => 'NDoH central stock', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
                 ['label' => 'Track shipments', 'description' => 'NDoH → Lae AMS logistics', 'url' => getDashboardTransferRoute('index'), 'icon' => 'truck'],
                 canManageUsers() ? ['label' => 'User management', 'description' => 'Manage portal accounts', 'url' => getDashboardUserRoute('index'), 'icon' => 'shield'] : null,
@@ -109,6 +110,22 @@ class DashboardService
         $myPending = Order::pending()->where('created_by', $user->id)->count();
         $myOrders = Order::where('created_by', $user->id)->count();
         $pipelineCounts = Order::pipelineCounts($user->id);
+        $procurementNeeds = LmisService::procurementSuggestions()
+            ->filter(fn (array $row) => $row['suggested_quantity'] > 0 && in_array($row['status'], ['stock_out', 'critical', 'low'], true))
+            ->count();
+
+        $alerts = [];
+        if ($procurementNeeds > 0) {
+            $alerts[] = [
+                'tone' => 'amber',
+                'title' => 'Procurement suggestions ready',
+                'message' => $procurementNeeds === 1
+                    ? '1 medicine needs restocking based on Modilon consumption and corridor stock.'
+                    : "{$procurementNeeds} medicines need restocking based on Modilon consumption and corridor stock.",
+                'action_label' => 'Stock status',
+                'action_url' => getDashboardStockStatusRoute('index').'?level=corridor',
+            ];
+        }
 
         return [
             'roleMeta' => $meta,
@@ -119,12 +136,12 @@ class DashboardService
                 self::stat('My orders', (string) $myOrders, 'Total submitted', 'teal', getDashboardOrderRoute('index'), 'clipboard'),
                 self::stat('In transit', (string) StockTransfer::sent()->fromLevel('ndoh')->count(), 'Sent to Lae AMS', 'blue', getDashboardTransferRoute('index'), 'truck'),
             ],
-            'alerts' => [],
+            'alerts' => $alerts,
             'quickActions' => self::quickActions([
                 ['label' => 'New order', 'description' => 'Create procurement order', 'url' => getDashboardOrderRoute('create'), 'primary' => true, 'icon' => 'plus'],
+                ['label' => 'Stock status', 'description' => 'Corridor consumption & suggestions', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                 ['label' => 'My orders', 'description' => 'Track approval status', 'url' => getDashboardOrderRoute('index'), 'icon' => 'clipboard'],
                 ['label' => 'Ship to Lae AMS', 'description' => 'Dispatch NDoH stock to Lae AMS', 'url' => getDashboardTransferRoute('create'), 'icon' => 'truck'],
-                ['label' => 'Drug catalog', 'description' => 'NDoH medicine types', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
             ]),
             'recentItems' => Order::where('created_by', $user->id)->latest()->limit(4)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
             'charts' => DashboardChartService::forRole('procurement_officer', $user->id),
@@ -141,6 +158,8 @@ class DashboardService
         $pendingShipments = StockTransfer::sent()->toLevel('lae_ams')->count();
         $pendingHospitalOrders = \App\Models\HospitalOrder::pending()->count();
         $lowStock = Drug::atLevel($level)->lowStock()->count();
+        $lmisCounts = LmisService::statusCountsForLevel($level);
+        $atRisk = $lmisCounts['stock_out'] + $lmisCounts['critical'];
 
         $alerts = [];
 
@@ -156,7 +175,17 @@ class DashboardService
             ];
         }
 
-        if ($lowStock > 0) {
+        if ($atRisk > 0) {
+            $alerts[] = [
+                'tone' => 'red',
+                'title' => 'Stock-out risk at Lae AMS',
+                'message' => $atRisk === 1
+                    ? '1 medicine is stocked out or below 2 weeks of cover based on warehouse issues.'
+                    : "{$atRisk} medicines are stocked out or below 2 weeks of cover based on warehouse issues.",
+                'action_label' => 'Stock status',
+                'action_url' => getDashboardStockStatusRoute('index').'?level=lae_ams',
+            ];
+        } elseif ($lowStock > 0) {
             $alerts[] = [
                 'tone' => 'amber',
                 'title' => 'Low stock at Lae AMS',
@@ -198,6 +227,7 @@ class DashboardService
             'quickActions' => self::quickActions([
                 ['label' => 'Hospital orders', 'description' => 'Approve Modilon requests', 'url' => getDashboardHospitalOrderRoute('index'), 'primary' => true, 'icon' => 'hospital'],
                 ['label' => 'Confirm NDoH receipts', 'description' => 'Receive national shipments', 'url' => getDashboardTransferRoute('index'), 'icon' => 'truck'],
+                ['label' => 'Stock status', 'description' => 'Consumption & days of stock', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                 ['label' => 'Regional report', 'description' => 'Lae AMS summary', 'url' => getDashboardRegionalReportRoute('index'), 'icon' => 'chart'],
             ]),
             'recentItems' => \App\Models\HospitalOrder::latest()->limit(4)->get()->map(fn ($order) => [
@@ -220,10 +250,22 @@ class DashboardService
         $lowStock = Drug::atLevel($level)->lowStock()->count();
         $expiring = Drug::atLevel($level)->expiring()->count();
         $pendingRequests = \App\Models\HospitalOrder::where('requested_by', $user->id)->pending()->count();
+        $lmisCounts = LmisService::statusCountsForLevel($level);
+        $atRisk = $lmisCounts['stock_out'] + $lmisCounts['critical'];
 
         $alerts = [];
 
-        if ($lowStock > 0) {
+        if ($atRisk > 0) {
+            $alerts[] = [
+                'tone' => 'red',
+                'title' => 'Stock-out risk at Modilon',
+                'message' => $atRisk === 1
+                    ? '1 medicine is stocked out or has under 2 weeks of cover from recent dispensing.'
+                    : "{$atRisk} medicines are stocked out or have under 2 weeks of cover from recent dispensing.",
+                'action_label' => 'Request stock',
+                'action_url' => getDashboardHospitalOrderRoute('create'),
+            ];
+        } elseif ($lowStock > 0) {
             $alerts[] = [
                 'tone' => 'amber',
                 'title' => 'Low stock at Modilon Hospital',
@@ -257,6 +299,7 @@ class DashboardService
             'alerts' => $alerts,
             'quickActions' => self::quickActions(array_values(array_filter([
                 ['label' => 'Request from Lae AMS', 'description' => 'Submit hospital order', 'url' => getDashboardHospitalOrderRoute('create'), 'primary' => true, 'icon' => 'plus'],
+                ['label' => 'Stock status', 'description' => 'Consumption & suggested qty', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                 ['label' => 'Hospital inventory', 'description' => 'Manage Modilon stock', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
                 ['label' => 'Incoming deliveries', 'description' => 'Track Lae AMS road deliveries', 'url' => getDashboardHospitalShipmentRoute('index'), 'icon' => 'truck'],
                 canManageUsers() ? ['label' => 'Manage pharmacists', 'description' => 'Pharmacy team accounts', 'url' => getDashboardUserRoute('index'), 'icon' => 'shield'] : null,
@@ -306,6 +349,7 @@ class DashboardService
             'quickActions' => self::quickActions([
                 ['label' => 'Dispense medicine', 'description' => 'Issue stock to a registered patient', 'url' => getDashboardDispensingRoute('create'), 'primary' => true, 'icon' => 'pill'],
                 ['label' => 'Patients', 'description' => 'Register or look up patients', 'url' => getDashboardPatientRoute('index'), 'icon' => 'users'],
+                ['label' => 'Stock status', 'description' => 'Modilon consumption & days of stock', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                 ['label' => 'View inventory', 'description' => 'Check stock before dispensing', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
             ]),
             'recentItems' => Drug::atLevel($level)->inInventory()->latest()->limit(4)->get()->map(fn (Drug $drug) => [
