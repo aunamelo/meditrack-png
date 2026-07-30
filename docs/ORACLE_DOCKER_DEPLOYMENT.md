@@ -201,7 +201,10 @@ nano .env
 | `DB_PASSWORD` | strong password | App DB user password |
 | `DB_ROOT_PASSWORD` | strong root password | MySQL root password |
 | `RUN_SEED` | `true` | First deploy only |
-| `HTTP_PORT` | `80` | Host port mapped to Nginx |
+| `HTTP_PORT` | `80` | Host HTTP port (Caddy; redirects to HTTPS) |
+| `HTTPS_PORT` | `443` | Host HTTPS port (Caddy / Let's Encrypt) |
+| `DOMAIN` | `meditrackpng.duckdns.org` | Public hostname for TLS certificates |
+| `ACME_EMAIL` | your email | Let's Encrypt contact email |
 
 ### Keep these as-is for Docker
 
