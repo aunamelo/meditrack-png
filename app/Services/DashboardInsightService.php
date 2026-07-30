@@ -251,7 +251,7 @@ class DashboardInsightService
             ->take($limit)
             ->values();
 
-        $items = $sorted->map(function (array $row) {
+        $items = $sorted->map(function (array $row) use ($moreUrl) {
             $dos = $row['days_of_stock'];
             $status = $row['status'] ?? 'adequate';
             $percent = self::coverPercent($dos, $status);
