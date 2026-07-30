@@ -264,6 +264,32 @@ if (! function_exists('getDashboardStockStatusRoute')) {
     }
 }
 
+if (! function_exists('getDashboardStockMovementRoute')) {
+    function getDashboardStockMovementRoute(string $routeName = 'index', mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager', 'pharmacist'])) {
+            abort(403, 'You do not have access to stock movement reports.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'reports.stock-movements.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardStockAdjustmentRoute')) {
+    function getDashboardStockAdjustmentRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to stock takes.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'stock-adjustments.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
 if (! function_exists('canManageHospitalOrders')) {
     function canManageHospitalOrders(): bool
     {

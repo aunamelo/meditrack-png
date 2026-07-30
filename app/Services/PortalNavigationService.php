@@ -139,6 +139,24 @@ class PortalNavigationService
 
                 $items[] = self::item(
                     section: 'reports',
+                    label: 'Stock Movements',
+                    description: 'What entered and left the warehouse',
+                    href: getDashboardStockMovementRoute('index'),
+                    active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
+                    icon: 'truck',
+                );
+
+                $items[] = self::item(
+                    section: 'inventory',
+                    label: 'Stock Takes',
+                    description: 'Physical count and adjustments',
+                    href: getDashboardStockAdjustmentRoute('index'),
+                    active: request()->routeIs('*.dashboard.stock-adjustments.*'),
+                    icon: 'clipboard',
+                );
+
+                $items[] = self::item(
+                    section: 'reports',
                     label: 'Regional Reports',
                     description: 'Lae AMS warehouse summary',
                     href: getDashboardRegionalReportRoute('index'),
@@ -200,6 +218,24 @@ class PortalNavigationService
                     icon: 'chart',
                 );
 
+                $items[] = self::item(
+                    section: 'reports',
+                    label: 'Stock Movements',
+                    description: 'Receipts, issues, and dispensing',
+                    href: getDashboardStockMovementRoute('index'),
+                    active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
+                    icon: 'truck',
+                );
+
+                $items[] = self::item(
+                    section: 'inventory',
+                    label: 'Stock Takes',
+                    description: 'Physical count and adjustments',
+                    href: getDashboardStockAdjustmentRoute('index'),
+                    active: request()->routeIs('*.dashboard.stock-adjustments.*'),
+                    icon: 'clipboard',
+                );
+
                 $orderBadge = self::orderNavBadge($user);
 
                 $items[] = self::item(
@@ -237,6 +273,15 @@ class PortalNavigationService
                     href: getDashboardStockStatusRoute('index'),
                     active: request()->routeIs('*.dashboard.reports.stock-status.*'),
                     icon: 'chart',
+                );
+
+                $items[] = self::item(
+                    section: 'reports',
+                    label: 'Stock Movements',
+                    description: 'Dispensing and receipts history',
+                    href: getDashboardStockMovementRoute('index'),
+                    active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
+                    icon: 'truck',
                 );
 
                 $orderBadge = self::orderNavBadge($user);
@@ -281,6 +326,24 @@ class PortalNavigationService
                         href: getDashboardStockStatusRoute('index'),
                         active: request()->routeIs('*.dashboard.reports.stock-status.*'),
                         icon: 'chart',
+                    );
+
+                    $items[] = self::item(
+                        section: 'reports',
+                        label: 'Stock Movements',
+                        description: 'NDoH receipts and shipments',
+                        href: getDashboardStockMovementRoute('index'),
+                        active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
+                        icon: 'truck',
+                    );
+
+                    $items[] = self::item(
+                        section: 'inventory',
+                        label: 'Stock Takes',
+                        description: 'Physical count and adjustments',
+                        href: getDashboardStockAdjustmentRoute('index'),
+                        active: request()->routeIs('*.dashboard.stock-adjustments.*'),
+                        icon: 'clipboard',
                     );
                 }
             }

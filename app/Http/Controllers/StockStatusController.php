@@ -99,6 +99,7 @@ class StockStatusController extends Controller
             'monthsOfCover' => $level === 'modilon_hospital'
                 ? LmisService::HOSPITAL_MONTHS_OF_COVER
                 : LmisService::PROCUREMENT_MONTHS_OF_COVER,
+            'canRequestFromLae' => $user->hasRole('pharmacy_manager') && $level === 'modilon_hospital',
         ]);
     }
 }

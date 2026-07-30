@@ -76,6 +76,9 @@
                                 <th class="px-3 py-2 text-right font-semibold text-gray-600">On order</th>
                             @endif
                             <th class="px-3 py-2 text-right font-semibold text-gray-600">Suggested qty</th>
+                            @if($canRequestFromLae)
+                                <th class="px-3 py-2 text-right font-semibold text-gray-600">Action</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
@@ -103,10 +106,28 @@
                                 <td class="px-3 py-2.5 text-right font-semibold tabular-nums text-brand-700">
                                     {{ number_format($row['suggested_quantity']) }}
                                 </td>
+                                @if($canRequestFromLae)
+                                    <td class="px-3 py-2.5 text-right">
+                                        @if($row['suggested_quantity'] > 0 || in_array($row['status'], ['stock_out', 'critical', 'low'], true))
+                                            <form action="{{ getDashboardHospitalOrderRoute('store') }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="drug_name" value="{{ $row['drug_name'] }}">
+                                                <input type="hidden" name="dosage" value="{{ $row['dosage'] }}">
+                                                <input type="hidden" name="quantity_requested" value="{{ max(1, (int) $row['suggested_quantity']) }}">
+                                                <input type="hidden" name="notes" value="Requested from Stock Status on {{ now()->format('d M Y') }}. Status: {{ $row['status_label'] }}. AMC: {{ number_format($row['amc'], 1) }}. Suggested: {{ number_format($row['suggested_quantity']) }} units.">
+                                                <button type="submit" class="text-xs font-semibold text-brand-700 hover:underline">
+                                                    Request from Lae AMS
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-xs text-muted">—</span>
+                                        @endif
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $level === 'corridor' ? 8 : 7 }}" class="px-3 py-8 text-center text-gray-500">
+                                <td colspan="{{ ($level === 'corridor' ? 8 : 7) + ($canRequestFromLae ? 1 : 0) }}" class="px-3 py-8 text-center text-gray-500">
                                     No stock or consumption data for this selection yet. Dispense medicines or receive inventory to populate the report.
                                 </td>
                             </tr>
