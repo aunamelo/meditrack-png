@@ -554,19 +554,74 @@ docker compose ps
 
 ---
 
-## 16. Optional: HTTPS / domain
+## 16. HTTPS / domain (Caddy + Let's Encrypt)
 
-When you have a domain:
+MediTrack uses a **Caddy** reverse proxy container for automatic HTTPS.
 
-1. Point domain **A record** → Oracle public IP  
-2. Set `APP_URL=https://your-domain` in `.env`  
-3. Add SSL (Certbot reverse proxy or TLS container)  
-4. Open port **443** in Oracle security lists  
+### Prerequisites
+
+1. Domain **A record** (e.g. DuckDNS) → Oracle public IP  
+2. Oracle security list / firewall: allow **TCP 80** and **TCP 443** from `0.0.0.0/0`  
+3. DNS already resolving (check with `nslookup meditrackpng.duckdns.org`)
+
+### Configure `.env` on the VPS
+
+```bash
+cd /home/ubuntu/meditrack-png
+nano .env
+```
+
+Set at least:
+
+```env
+APP_URL=https://meditrackpng.duckdns.org
+DOMAIN=meditrackpng.duckdns.org
+ACME_EMAIL=your-real-email@example.com
+SESSION_SECURE_COOKIE=true
+HTTP_PORT=80
+HTTPS_PORT=443
+```
+
+`DOMAIN` must match the hostname clients use. `ACME_EMAIL` is used by Let's Encrypt.
+
+### Apply
+
+```bash
+git pull origin main   # or: git fetch origin && git reset --hard origin/main
+docker compose up -d --build
+docker compose ps
+docker compose logs -f caddy
+```
+
+Wait until Caddy obtains a certificate (look for “certificate obtained successfully”). Then open:
+
+```text
+https://meditrackpng.duckdns.org
+```
+
+HTTP on port 80 is automatically redirected to HTTPS.
+
+### Laravel cache after URL change
+
+```bash
+docker compose exec web php artisan config:clear
+docker compose exec web php artisan optimize:clear
+docker compose exec web php artisan config:cache
+```
+
+### Troubleshooting
+
+| Issue | Check |
+|-------|--------|
+| Certificate fails | DNS A record, ports 80/443 open, `DOMAIN` exact match |
+| Mixed content / login loops | `APP_URL` must be `https://...`, `SESSION_SECURE_COOKIE=true`, then config:clear |
+| Caddy not starting | `docker compose logs caddy` |
+| Still on HTTP only | Old compose without `caddy` service — pull latest and recreate |
 
 For future Microsoft 365 login, register:
 
 ```text
-https://your-domain/auth/microsoft/callback
+https://meditrackpng.duckdns.org/auth/microsoft/callback
 ```
 
 Keep local development URI too if needed:
@@ -616,9 +671,10 @@ Oracle: git pull → docker compose up -d --build
 
 | Item | Value |
 |------|-------|
-| Public URL | `http://149.118.69.130` |
-| Stack | Docker Compose (`web` + `mysql`) |
+| Public URL | `https://meditrackpng.duckdns.org` |
+| Stack | Docker Compose (`caddy` + `web` + `mysql`) |
 | App | MediTrack PNG (Laravel) |
+| TLS | Caddy automatic Let's Encrypt |
 
 ---
 

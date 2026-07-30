@@ -1,0 +1,8 @@
+{
+	email {$ACME_EMAIL:admin@meditrackpng.duckdns.org}
+}
+
+{$DOMAIN:localhost} {
+	encode gzip
+	reverse_proxy web:80
+}
