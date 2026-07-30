@@ -55,6 +55,12 @@ class DashboardService
             'recentItems' => [],
             'recentTitle' => 'Recent activity',
             'charts' => [],
+            'insights' => [
+                'stockHealth' => null,
+                'atRisk' => null,
+                'expiry' => null,
+                'dispenseTrend' => null,
+            ],
         ];
     }
 
@@ -113,6 +119,7 @@ class DashboardService
             'recentItems' => Order::with(['items.drug', 'drug'])->latest()->limit(4)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
             'recentTitle' => 'Recent procurement orders',
             'charts' => DashboardChartService::forRole('admin'),
+            'insights' => DashboardInsightService::forRole('admin', $level),
         ];
     }
 
@@ -172,6 +179,7 @@ class DashboardService
             'recentItems' => Order::where('created_by', $user->id)->latest()->limit(4)->get()->map(fn (Order $order) => self::recentOrderRow($order))->all(),
             'recentTitle' => 'My recent orders',
             'charts' => DashboardChartService::forRole('procurement_officer', $user->id),
+            'insights' => DashboardInsightService::forRole('procurement_officer', $meta['inventory_level'], $user->id),
         ];
     }
 
@@ -290,6 +298,7 @@ class DashboardService
             ])->all(),
             'recentTitle' => 'Recent hospital orders',
             'charts' => DashboardChartService::forRole('store_manager', null, $level),
+            'insights' => DashboardInsightService::forRole('store_manager', $level),
         ];
     }
 
@@ -413,6 +422,7 @@ class DashboardService
             ])->all(),
             'recentTitle' => 'My recent requests',
             'charts' => DashboardChartService::forRole('pharmacy_manager', null, $level),
+            'insights' => DashboardInsightService::forRole('pharmacy_manager', $level),
         ];
     }
 
@@ -491,6 +501,7 @@ class DashboardService
                 ])->all(),
             'recentTitle' => 'My recent dispenses',
             'charts' => DashboardChartService::forRole('pharmacist', null, $level),
+            'insights' => DashboardInsightService::forRole('pharmacist', $level, $user->id),
         ];
     }
 

@@ -71,6 +71,48 @@
                 </section>
             @endif
 
+            {{-- Interactive insights --}}
+            @php
+                $insights = $insights ?? [];
+                $hasInsights = ($insights['stockHealth'] ?? null)
+                    || ($insights['atRisk'] ?? null)
+                    || ($insights['expiry'] ?? null)
+                    || ($insights['dispenseTrend'] ?? null);
+            @endphp
+            @if($hasInsights)
+                <section class="mb-6 space-y-6">
+                    <div>
+                        <p class="text-section-label">Insights</p>
+                        <h3 class="heading-section">Stock intelligence</h3>
+                    </div>
+
+                    @if(($insights['stockHealth'] ?? null) || ($insights['atRisk'] ?? null))
+                        <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                            @if($insights['stockHealth'] ?? null)
+                                <x-dashboard.stock-health-panel :panel="$insights['stockHealth']" />
+                            @endif
+                            @if($insights['atRisk'] ?? null)
+                                <x-dashboard.at-risk-panel :panel="$insights['atRisk']" />
+                            @endif
+                        </div>
+                    @endif
+
+                    @if(($insights['expiry'] ?? null) || ($insights['dispenseTrend'] ?? null))
+                        <div @class([
+                            'grid grid-cols-1 gap-6',
+                            'xl:grid-cols-2' => ($insights['expiry'] ?? null) && ($insights['dispenseTrend'] ?? null),
+                        ])>
+                            @if($insights['expiry'] ?? null)
+                                <x-dashboard.expiry-timeline :panel="$insights['expiry']" />
+                            @endif
+                            @if($insights['dispenseTrend'] ?? null)
+                                <x-dashboard.dispense-trend :panel="$insights['dispenseTrend']" />
+                            @endif
+                        </div>
+                    @endif
+                </section>
+            @endif
+
             {{-- Quick access (workflow groups matching sidebar) --}}
             @php
                 $actionGroups = $quickActionGroups ?? [];
