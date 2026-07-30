@@ -20,25 +20,55 @@ if [ ! -f .env ]; then
     fi
 fi
 
-# Docker env_file can inject APP_KEY= (empty). An empty env var overrides .env
-# and causes "No application encryption key has been specified."
-if [ -z "${APP_KEY:-}" ] || [ "$APP_KEY" = "base64:" ]; then
-    unset APP_KEY
+# Docker env_file often injects APP_KEY= (empty). An empty env var blocks
+# `php artisan key:generate` ("already present in the environment") and also
+# overrides a real key written only inside the container .env file.
+is_valid_app_key() {
+    case "${1:-}" in
+        base64:?*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+FILE_KEY="$(grep -E '^APP_KEY=' .env 2>/dev/null | head -n1 | cut -d= -f2- || true)"
+# Persist across restarts when host .env still has APP_KEY= empty
+KEY_FILE="storage/app/.app_key"
+STORED_KEY=""
+if [ -f "$KEY_FILE" ]; then
+    STORED_KEY="$(tr -d '\r\n' < "$KEY_FILE")"
 fi
 
-if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then
+if is_valid_app_key "${APP_KEY:-}"; then
+    echo "==> Using APP_KEY from environment"
+elif is_valid_app_key "$FILE_KEY"; then
+    echo "==> Using APP_KEY from .env file"
+    APP_KEY="$FILE_KEY"
+elif is_valid_app_key "$STORED_KEY"; then
+    echo "==> Using APP_KEY from persistent storage"
+    APP_KEY="$STORED_KEY"
+else
     echo "==> Generating APP_KEY"
-    php artisan key:generate --force --no-interaction
+    unset APP_KEY
+    APP_KEY="base64:$(php -r 'echo base64_encode(random_bytes(32));')"
 fi
 
-# Ensure the generated key is in this process env for config:cache / PHP-FPM
-APP_KEY="$(grep "^APP_KEY=" .env | head -n1 | cut -d= -f2-)"
 export APP_KEY
 
-if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then
-    echo "ERROR: APP_KEY is still empty after key:generate."
+if ! is_valid_app_key "$APP_KEY"; then
+    echo "ERROR: APP_KEY is still empty after key resolution."
     exit 1
 fi
+
+# Keep container .env + volume copy in sync (host .env may still be empty)
+if grep -qE '^APP_KEY=' .env 2>/dev/null; then
+    sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|" .env
+else
+    echo "APP_KEY=${APP_KEY}" >> .env
+fi
+
+mkdir -p storage/app
+printf '%s' "$APP_KEY" > "$KEY_FILE"
+chmod 600 "$KEY_FILE" 2>/dev/null || true
 
 php artisan storage:link --force --no-interaction 2>/dev/null || true
 
