@@ -57,23 +57,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Navigation sections
+    | Navigation
     |--------------------------------------------------------------------------
+    |
+    | Sidebar groups and link order are defined per role in
+    | App\Services\PortalNavigationService (workflow order).
+    |
     */
-
-    'sections' => [
-        'overview' => 'Menu',
-        'inventory' => 'Menu',
-        'procurement' => 'Menu',
-        'logistics' => 'Menu',
-        'hospital' => 'Menu',
-        'reports' => 'Other Menu',
-        'administration' => 'Other Menu',
-    ],
-
-    'nav_groups' => [
-        'menu' => ['overview', 'inventory', 'procurement', 'logistics', 'hospital'],
-        'other' => ['reports', 'administration'],
-    ],
 
 ];

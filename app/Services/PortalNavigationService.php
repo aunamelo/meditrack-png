@@ -31,7 +31,8 @@ class PortalNavigationService
     }
 
     /**
-     * Navigation grouped by section for the authenticated user.
+     * Role-ordered navigation groups for the sidebar.
+     * Keys are display labels; values are link items in workflow order.
      *
      * @return array<string, array<int, array<string, mixed>>>
      */
@@ -43,14 +44,137 @@ class PortalNavigationService
             return [];
         }
 
-        $items = [];
+        $meta = self::currentRoleMeta();
 
-        $items[] = self::item(
-            section: 'overview',
-            label: 'Dashboard',
-            description: 'Overview & alerts',
-            href: getRoleDashboardRoute(),
-            active: request()->routeIs(
+        $items = match (true) {
+            $user->hasRole('admin') => self::adminNav($user, $meta),
+            $user->hasRole('procurement_officer') => self::procurementNav($user, $meta),
+            $user->hasRole('store_manager') => self::storeManagerNav($user, $meta),
+            $user->hasRole('pharmacy_manager') => self::pharmacyManagerNav($user, $meta),
+            $user->hasRole('pharmacist') => self::pharmacistNav($user, $meta),
+            default => [self::dashboardItem()],
+        };
+
+        return collect($items)
+            ->groupBy('group')
+            ->map(fn ($group) => $group->values()->all())
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $meta
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function adminNav($user, ?array $meta): array
+    {
+        return array_values(array_filter([
+            self::dashboardItem(),
+            self::item('Procurement', 'Procurement Orders', 'Approve & receive supplier orders', getDashboardOrderRoute('index'), request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'), 'clipboard', self::orderNavBadge($user)),
+            self::item('Procurement', 'Medicine Catalog', 'Approved medicines for procurement', getDashboardMedicineRoute('index'), request()->routeIs('*.dashboard.medicines.*'), 'clipboard'),
+            self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'NDoH stock batches', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
+            self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
+            self::item('Logistics', 'Shipments to Lae AMS', 'NDoH → Lae AMS logistics', getDashboardTransferRoute('index'), request()->routeIs('*.dashboard.transfers.*'), 'truck', self::shipmentNavBadge($user)),
+            self::item('Reports', 'Stock Status', 'Corridor consumption & procurement suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
+            self::item('Reports', 'Stock Movements', 'NDoH receipts and shipments', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
+            canManageUsers()
+                ? self::item('Administration', 'User Management', 'Procurement, store & pharmacy managers', getDashboardUserRoute('index'), request()->routeIs('*.dashboard.users.*'), 'users')
+                : null,
+        ]));
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $meta
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function procurementNav($user, ?array $meta): array
+    {
+        return [
+            self::dashboardItem(),
+            self::item('Procurement', 'Procurement Orders', 'Create & track supplier orders', getDashboardOrderRoute('index'), request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'), 'clipboard', self::orderNavBadge($user)),
+            self::item('Procurement', 'Medicine Catalog', 'Approved medicines for procurement', getDashboardMedicineRoute('index'), request()->routeIs('*.dashboard.medicines.*'), 'clipboard'),
+            self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'NDoH stock batches', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
+            self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
+            self::item('Logistics', 'Shipments to Lae AMS', 'NDoH → Lae AMS logistics', getDashboardTransferRoute('index'), request()->routeIs('*.dashboard.transfers.*'), 'truck', self::shipmentNavBadge($user)),
+            self::item('Reports', 'Stock Status', 'Corridor consumption & procurement suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
+            self::item('Reports', 'Stock Movements', 'NDoH receipts and shipments', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $meta
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function storeManagerNav($user, ?array $meta): array
+    {
+        $pendingHospital = HospitalOrder::pending()->count();
+        $openDiscrepancies = DiscrepancyReport::open()->count();
+
+        return [
+            self::dashboardItem(),
+            self::item('Warehouse ops', 'Hospital Orders', 'Approve & ship Modilon requests', getDashboardHospitalOrderRoute('index'), request()->routeIs('*.dashboard.hospital-orders.*'), 'clipboard', $pendingHospital > 0 ? $pendingHospital : null),
+            self::item('Warehouse ops', 'NDoH Shipments', 'Confirm incoming national stock', getDashboardTransferRoute('index'), request()->routeIs('*.dashboard.transfers.*'), 'truck', self::shipmentNavBadge($user)),
+            self::item('Warehouse ops', 'Hospital Road Deliveries', 'Lae AMS → Modilon by car', getDashboardHospitalShipmentRoute('index'), request()->routeIs('*.dashboard.hospital-shipments.*'), 'truck'),
+            self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'Lae AMS stock', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
+            self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
+            self::item('Reports', 'Discrepancy Reports', 'Hospital receipt issues', getDashboardDiscrepancyRoute('index'), request()->routeIs('*.dashboard.discrepancies.*'), 'clipboard', $openDiscrepancies > 0 ? $openDiscrepancies : null),
+            self::item('Reports', 'Stock Status', 'Consumption, days of stock, suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
+            self::item('Reports', 'Stock Movements', 'What entered and left the warehouse', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
+            self::item('Reports', 'Regional Reports', 'Lae AMS warehouse summary', getDashboardRegionalReportRoute('index'), request()->routeIs('*.dashboard.reports.regional.*'), 'chart'),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $meta
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function pharmacyManagerNav($user, ?array $meta): array
+    {
+        return array_values(array_filter([
+            self::dashboardItem(),
+            self::item('Supply', 'Hospital Orders', 'Request stock from Lae AMS', getDashboardHospitalOrderRoute('index'), request()->routeIs('*.dashboard.hospital-orders.*'), 'clipboard'),
+            self::item('Supply', 'Incoming Deliveries', 'Verify Lae AMS road deliveries', getDashboardHospitalShipmentRoute('index'), request()->routeIs('*.dashboard.hospital-shipments.*'), 'truck'),
+            self::item('Supply', 'Discrepancy Reports', 'Report receipt issues', getDashboardDiscrepancyRoute('index'), request()->routeIs('*.dashboard.discrepancies.*'), 'clipboard'),
+            self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'Modilon stock', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
+            self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
+            self::item('Pharmacy', 'Patients', 'Modilon patient register', getDashboardPatientRoute('index'), request()->routeIs('*.dashboard.patients.*'), 'users'),
+            self::item('Pharmacy', 'Dispensing', 'Review dispensed medicines', getDashboardDispensingRoute('index'), request()->routeIs('*.dashboard.dispensing.*'), 'pill'),
+            self::item('Reports', 'Stock Status', 'Consumption & suggested requests', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
+            self::item('Reports', 'Stock Movements', 'Receipts, issues, and dispensing', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
+            self::item('Reports', 'Hospital Report', 'Modilon pharmacy period summary', getDashboardHospitalReportRoute('index'), request()->routeIs('*.dashboard.reports.hospital.*'), 'chart'),
+            self::item('National', 'Procurement Orders', 'Track national supply status', getDashboardOrderRoute('index'), request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'), 'clipboard'),
+            canManageUsers()
+                ? self::item('Administration', 'User Management', 'Pharmacist accounts', getDashboardUserRoute('index'), request()->routeIs('*.dashboard.users.*'), 'users')
+                : null,
+        ]));
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $meta
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function pharmacistNav($user, ?array $meta): array
+    {
+        return [
+            self::dashboardItem(),
+            self::item('Dispensing', 'Dispense Medicine', 'Audit Rx and issue Modilon stock', getDashboardDispensingRoute('index'), request()->routeIs('*.dashboard.dispensing.*'), 'pill'),
+            self::item('Dispensing', 'Patients', 'Register and look up patients', getDashboardPatientRoute('index'), request()->routeIs('*.dashboard.patients.*'), 'users'),
+            self::item('Stock', 'Drug Inventory', 'Batch, quantity, and expiry', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
+            self::item('Stock', 'Stock Status', 'Modilon consumption & days of stock', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
+            self::item('Stock', 'Stock Movements', 'Dispensing and receipts history', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected static function dashboardItem(): array
+    {
+        return self::item(
+            'Overview',
+            'Dashboard',
+            'Overview & alerts',
+            getRoleDashboardRoute(),
+            request()->routeIs(
                 'dashboard',
                 'dashboard.admin',
                 'dashboard.procurement_officer',
@@ -58,318 +182,15 @@ class PortalNavigationService
                 'dashboard.pharmacy_manager',
                 'dashboard.pharmacist',
             ),
-            icon: 'home',
+            'home',
         );
-
-        if ($user->hasAnyRole(['admin', 'procurement_officer'])) {
-            $items[] = self::item(
-                section: 'procurement',
-                label: 'Medicine Catalog',
-                description: 'Approved medicines for procurement',
-                href: getDashboardMedicineRoute('index'),
-                active: request()->routeIs('*.dashboard.medicines.*'),
-                icon: 'clipboard',
-            );
-        }
-
-        if ($user->hasAnyRole(['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager', 'pharmacist'])) {
-            $meta = self::currentRoleMeta();
-
-            $items[] = self::item(
-                section: 'inventory',
-                label: 'Drug Inventory',
-                description: $meta['inventory_label'] ?? 'Stock batches',
-                href: getDashboardDrugRoute('index'),
-                active: request()->routeIs('*.dashboard.drugs.*'),
-                icon: 'cube',
-            );
-
-            if ($user->hasRole('store_manager')) {
-                $pendingHospital = HospitalOrder::pending()->count();
-
-                $items[] = self::item(
-                    section: 'hospital',
-                    label: 'Hospital Orders',
-                    description: 'Modilon requests from Lae AMS',
-                    href: getDashboardHospitalOrderRoute('index'),
-                    active: request()->routeIs('*.dashboard.hospital-orders.*'),
-                    icon: 'clipboard',
-                    badge: $pendingHospital > 0 ? $pendingHospital : null,
-                );
-
-                $items[] = self::item(
-                    section: 'logistics',
-                    label: 'NDoH Shipments',
-                    description: 'Confirm incoming national stock',
-                    href: getDashboardTransferRoute('index'),
-                    active: request()->routeIs('*.dashboard.transfers.*'),
-                    icon: 'truck',
-                    badge: self::shipmentNavBadge($user),
-                );
-
-                $items[] = self::item(
-                    section: 'logistics',
-                    label: 'Hospital Road Deliveries',
-                    description: 'Lae AMS → Modilon by car',
-                    href: getDashboardHospitalShipmentRoute('index'),
-                    active: request()->routeIs('*.dashboard.hospital-shipments.*'),
-                    icon: 'truck',
-                );
-
-                $openDiscrepancies = DiscrepancyReport::open()->count();
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Discrepancy Reports',
-                    description: 'Hospital receipt issues',
-                    href: getDashboardDiscrepancyRoute('index'),
-                    active: request()->routeIs('*.dashboard.discrepancies.*'),
-                    icon: 'clipboard',
-                    badge: $openDiscrepancies > 0 ? $openDiscrepancies : null,
-                );
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Stock Status',
-                    description: 'Consumption, days of stock, suggestions',
-                    href: getDashboardStockStatusRoute('index'),
-                    active: request()->routeIs('*.dashboard.reports.stock-status.*'),
-                    icon: 'chart',
-                );
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Stock Movements',
-                    description: 'What entered and left the warehouse',
-                    href: getDashboardStockMovementRoute('index'),
-                    active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
-                    icon: 'truck',
-                );
-
-                $items[] = self::item(
-                    section: 'inventory',
-                    label: 'Stock Takes',
-                    description: 'Physical count and adjustments',
-                    href: getDashboardStockAdjustmentRoute('index'),
-                    active: request()->routeIs('*.dashboard.stock-adjustments.*'),
-                    icon: 'clipboard',
-                );
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Regional Reports',
-                    description: 'Lae AMS warehouse summary',
-                    href: getDashboardRegionalReportRoute('index'),
-                    active: request()->routeIs('*.dashboard.reports.regional.*'),
-                    icon: 'chart',
-                );
-            } elseif ($user->hasRole('pharmacy_manager')) {
-                $items[] = self::item(
-                    section: 'hospital',
-                    label: 'Hospital Orders',
-                    description: 'Request stock from Lae AMS',
-                    href: getDashboardHospitalOrderRoute('index'),
-                    active: request()->routeIs('*.dashboard.hospital-orders.*'),
-                    icon: 'clipboard',
-                );
-
-                $items[] = self::item(
-                    section: 'hospital',
-                    label: 'Incoming Road Deliveries',
-                    description: 'Track Lae AMS deliveries by car',
-                    href: getDashboardHospitalShipmentRoute('index'),
-                    active: request()->routeIs('*.dashboard.hospital-shipments.*'),
-                    icon: 'truck',
-                );
-
-                $items[] = self::item(
-                    section: 'hospital',
-                    label: 'Discrepancy Reports',
-                    description: 'Report receipt issues',
-                    href: getDashboardDiscrepancyRoute('index'),
-                    active: request()->routeIs('*.dashboard.discrepancies.*'),
-                    icon: 'clipboard',
-                );
-
-                $items[] = self::item(
-                    section: 'hospital',
-                    label: 'Patients',
-                    description: 'Modilon patient register',
-                    href: getDashboardPatientRoute('index'),
-                    active: request()->routeIs('*.dashboard.patients.*'),
-                    icon: 'users',
-                );
-
-                $items[] = self::item(
-                    section: 'hospital',
-                    label: 'Dispensing',
-                    description: 'Review dispensed medicines',
-                    href: getDashboardDispensingRoute('index'),
-                    active: request()->routeIs('*.dashboard.dispensing.*'),
-                    icon: 'pill',
-                );
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Stock Status',
-                    description: 'Consumption & suggested requests',
-                    href: getDashboardStockStatusRoute('index'),
-                    active: request()->routeIs('*.dashboard.reports.stock-status.*'),
-                    icon: 'chart',
-                );
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Stock Movements',
-                    description: 'Receipts, issues, and dispensing',
-                    href: getDashboardStockMovementRoute('index'),
-                    active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
-                    icon: 'truck',
-                );
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Hospital Report',
-                    description: 'Modilon pharmacy period summary',
-                    href: getDashboardHospitalReportRoute('index'),
-                    active: request()->routeIs('*.dashboard.reports.hospital.*'),
-                    icon: 'chart',
-                );
-
-                $items[] = self::item(
-                    section: 'inventory',
-                    label: 'Stock Takes',
-                    description: 'Physical count and adjustments',
-                    href: getDashboardStockAdjustmentRoute('index'),
-                    active: request()->routeIs('*.dashboard.stock-adjustments.*'),
-                    icon: 'clipboard',
-                );
-
-                $orderBadge = self::orderNavBadge($user);
-
-                $items[] = self::item(
-                    section: 'procurement',
-                    label: 'Procurement Orders',
-                    description: 'Track national supply status',
-                    href: getDashboardOrderRoute('index'),
-                    active: request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'),
-                    icon: 'clipboard',
-                    badge: $orderBadge,
-                );
-            } elseif ($user->hasRole('pharmacist')) {
-                $items[] = self::item(
-                    section: 'hospital',
-                    label: 'Patients',
-                    description: 'Register and look up patients',
-                    href: getDashboardPatientRoute('index'),
-                    active: request()->routeIs('*.dashboard.patients.*'),
-                    icon: 'users',
-                );
-
-                $items[] = self::item(
-                    section: 'hospital',
-                    label: 'Dispensing',
-                    description: 'Dispense Modilon pharmacy stock',
-                    href: getDashboardDispensingRoute('index'),
-                    active: request()->routeIs('*.dashboard.dispensing.*'),
-                    icon: 'pill',
-                );
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Stock Status',
-                    description: 'Modilon consumption & days of stock',
-                    href: getDashboardStockStatusRoute('index'),
-                    active: request()->routeIs('*.dashboard.reports.stock-status.*'),
-                    icon: 'chart',
-                );
-
-                $items[] = self::item(
-                    section: 'reports',
-                    label: 'Stock Movements',
-                    description: 'Dispensing and receipts history',
-                    href: getDashboardStockMovementRoute('index'),
-                    active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
-                    icon: 'truck',
-                );
-            } else {
-                $orderBadge = self::orderNavBadge($user);
-
-                $items[] = self::item(
-                    section: 'procurement',
-                    label: 'Procurement Orders',
-                    description: self::orderNavDescription($user),
-                    href: getDashboardOrderRoute('index'),
-                    active: request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'),
-                    icon: 'clipboard',
-                    badge: $orderBadge,
-                );
-
-                if ($user->hasAnyRole(['admin', 'procurement_officer'])) {
-                    $items[] = self::item(
-                        section: 'logistics',
-                        label: 'Shipments to Lae AMS',
-                        description: 'NDoH → Lae AMS logistics',
-                        href: getDashboardTransferRoute('index'),
-                        active: request()->routeIs('*.dashboard.transfers.*'),
-                        icon: 'truck',
-                        badge: self::shipmentNavBadge($user),
-                    );
-
-                    $items[] = self::item(
-                        section: 'reports',
-                        label: 'Stock Status',
-                        description: 'Corridor consumption & procurement suggestions',
-                        href: getDashboardStockStatusRoute('index'),
-                        active: request()->routeIs('*.dashboard.reports.stock-status.*'),
-                        icon: 'chart',
-                    );
-
-                    $items[] = self::item(
-                        section: 'reports',
-                        label: 'Stock Movements',
-                        description: 'NDoH receipts and shipments',
-                        href: getDashboardStockMovementRoute('index'),
-                        active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
-                        icon: 'truck',
-                    );
-
-                    $items[] = self::item(
-                        section: 'inventory',
-                        label: 'Stock Takes',
-                        description: 'Physical count and adjustments',
-                        href: getDashboardStockAdjustmentRoute('index'),
-                        active: request()->routeIs('*.dashboard.stock-adjustments.*'),
-                        icon: 'clipboard',
-                    );
-                }
-            }
-        }
-
-        if (canManageUsers()) {
-            $items[] = self::item(
-                section: 'administration',
-                label: 'User Management',
-                description: $user->hasRole('admin')
-                    ? 'Procurement, store & pharmacy managers'
-                    : 'Pharmacist accounts',
-                href: getDashboardUserRoute('index'),
-                active: request()->routeIs('*.dashboard.users.*'),
-                icon: 'users',
-            );
-        }
-
-        return collect($items)
-            ->groupBy('section')
-            ->map(fn ($group) => $group->values()->all())
-            ->all();
     }
 
     /**
      * @return array<string, mixed>
      */
     protected static function item(
-        string $section,
+        string $group,
         string $label,
         string $description,
         string $href,
@@ -377,20 +198,7 @@ class PortalNavigationService
         string $icon,
         ?int $badge = null,
     ): array {
-        return compact('section', 'label', 'description', 'href', 'active', 'icon', 'badge');
-    }
-
-    protected static function orderNavDescription($user): string
-    {
-        if ($user->hasRole('admin')) {
-            return 'Approve & receive orders';
-        }
-
-        if ($user->hasRole('procurement_officer')) {
-            return 'Create & track supplier orders';
-        }
-
-        return 'Track procurement status';
+        return compact('group', 'label', 'description', 'href', 'active', 'icon', 'badge');
     }
 
     protected static function orderNavBadge($user): ?int

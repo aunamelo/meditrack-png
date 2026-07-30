@@ -1,7 +1,6 @@
 @php
     $portalNav = $portalNav ?? \App\Services\PortalNavigationService::sections();
     $roleMeta = $roleMeta ?? \App\Services\PortalNavigationService::currentRoleMeta();
-    $navGroups = config('portal.nav_groups', ['menu' => [], 'other' => []]);
 @endphp
 
 <aside
@@ -53,19 +52,15 @@
         </div>
 
         <nav class="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 pb-4" aria-label="Primary">
-            @foreach($navGroups as $groupLabel => $sectionKeys)
+            @foreach($portalNav as $groupLabel => $groupItems)
                 @php
-                    $groupItems = collect($sectionKeys)
-                        ->filter(fn ($key) => isset($portalNav[$key]))
-                        ->flatMap(fn ($key) => $portalNav[$key])
-                        ->values();
-                    $groupHeadingId = 'nav-group-'.$groupLabel;
+                    $groupHeadingId = 'nav-group-'.\Illuminate\Support\Str::slug($groupLabel);
                 @endphp
 
-                @if($groupItems->isNotEmpty())
+                @if(count($groupItems))
                     <div role="group" aria-labelledby="{{ $groupHeadingId }}">
                         <p id="{{ $groupHeadingId }}" class="medcare-sidebar-label mb-2">
-                            {{ $groupLabel === 'menu' ? 'Menu' : 'Other Menu' }}
+                            {{ $groupLabel }}
                         </p>
                         <ul class="space-y-1" role="list">
                             @foreach($groupItems as $item)
