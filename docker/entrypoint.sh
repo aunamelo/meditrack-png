@@ -20,9 +20,24 @@ if [ ! -f .env ]; then
     fi
 fi
 
+# Docker env_file can inject APP_KEY= (empty). An empty env var overrides .env
+# and causes "No application encryption key has been specified."
+if [ -z "${APP_KEY:-}" ] || [ "$APP_KEY" = "base64:" ]; then
+    unset APP_KEY
+fi
+
 if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then
     echo "==> Generating APP_KEY"
     php artisan key:generate --force --no-interaction
+fi
+
+# Ensure the generated key is in this process env for config:cache / PHP-FPM
+APP_KEY="$(grep "^APP_KEY=" .env | head -n1 | cut -d= -f2-)"
+export APP_KEY
+
+if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then
+    echo "ERROR: APP_KEY is still empty after key:generate."
+    exit 1
 fi
 
 php artisan storage:link --force --no-interaction 2>/dev/null || true
