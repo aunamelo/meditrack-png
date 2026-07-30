@@ -77,7 +77,11 @@ if (! function_exists('getDashboardOrderRoute')) {
             abort(403, 'Store Managers cannot access national procurement orders.');
         }
 
-        if (auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'pharmacy_manager', 'pharmacist'])) {
+        if (auth()->user()->hasRole('pharmacist')) {
+            abort(403, 'Pharmacists cannot access national procurement orders.');
+        }
+
+        if (auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'pharmacy_manager'])) {
             $prefix = getDashboardRoutePrefix().'orders.';
         } else {
             $prefix = 'dashboard.orders.';

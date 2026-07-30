@@ -28,6 +28,11 @@ class OrderController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
+
+        if ($user->hasRole('pharmacist')) {
+            abort(403, 'Pharmacists cannot view national procurement orders.');
+        }
+
         $query = Order::with(['items.medicine', 'items.drug', 'medicine', 'drug', 'creator', 'registeredSupplier']);
 
         if ($user->hasRole('procurement_officer')) {
@@ -139,6 +144,10 @@ class OrderController extends Controller
      */
     public function show(Order $order): View
     {
+        if (auth()->user()->hasRole('pharmacist')) {
+            abort(403, 'Pharmacists cannot view national procurement orders.');
+        }
+
         $order->load(['items.medicine', 'items.drug', 'medicine', 'drug', 'creator', 'approver', 'receiver', 'registeredSupplier']);
 
         if (auth()->user()->hasRole('admin')) {

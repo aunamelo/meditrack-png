@@ -16,6 +16,13 @@ class DispensingRecord extends Model
         'drug_id',
         'quantity_dispensed',
         'prescription_ref',
+        'prescription_date',
+        'prescriber_name',
+        'prescribed_dose',
+        'audit_date_checked',
+        'audit_prescriber_checked',
+        'audit_drug_dose_checked',
+        'audit_contraindications_checked',
         'notes',
         'dispensed_by',
         'dispensed_at',
@@ -26,6 +33,11 @@ class DispensingRecord extends Model
      */
     protected $casts = [
         'dispensed_at' => 'datetime',
+        'prescription_date' => 'date',
+        'audit_date_checked' => 'boolean',
+        'audit_prescriber_checked' => 'boolean',
+        'audit_drug_dose_checked' => 'boolean',
+        'audit_contraindications_checked' => 'boolean',
     ];
 
     public static function generateRecordNumber(): string

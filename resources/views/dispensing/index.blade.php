@@ -11,7 +11,9 @@
 
         <x-module.hero
             icon="pill"
-            description="Track medicines dispensed from Modilon Hospital pharmacy stock to registered patients."
+            :description="auth()->user()->hasRole('pharmacist') && ! auth()->user()->hasRole('pharmacy_manager')
+                ? 'Your Modilon dispensing audit trail — patient, drug, quantity, batch, and prescription checks.'
+                : 'Track medicines dispensed from Modilon Hospital pharmacy stock to registered patients.'"
             :action-url="auth()->user()->hasRole('pharmacist') ? getDashboardDispensingRoute('create') : null"
             :action-label="auth()->user()->hasRole('pharmacist') ? 'Dispense medicine' : null"
         />
@@ -37,6 +39,7 @@
                             <th>Record #</th>
                             <th>Patient</th>
                             <th>Medicine</th>
+                            <th>Batch / Expiry</th>
                             <th>Qty</th>
                             <th>Dispensed by</th>
                             <th>Date</th>
@@ -49,6 +52,12 @@
                                 <td class="font-semibold text-ink">{{ $record->record_number }}</td>
                                 <td>{{ $record->patient->full_name ?? '—' }}</td>
                                 <td>{{ $record->drug->drug_name ?? '—' }}</td>
+                                <td>
+                                    {{ $record->drug->batch_number ?? '—' }}
+                                    @if($record->drug?->expiry_date)
+                                        <span class="block text-xs text-muted">Exp {{ $record->drug->expiry_date->format('d M Y') }}</span>
+                                    @endif
+                                </td>
                                 <td>{{ number_format($record->quantity_dispensed) }} {{ $record->drug->unit ?? '' }}</td>
                                 <td>{{ $record->dispenser->name ?? '—' }}</td>
                                 <td>{{ $record->dispensed_at->format('d M Y H:i') }}</td>
@@ -58,7 +67,7 @@
                             </tr>
                         @empty
                             <x-module.empty-row
-                                :colspan="7"
+                                :colspan="8"
                                 title="No dispensing records"
                                 description="Dispensed medicines will appear here."
                                 :action-url="auth()->user()->hasRole('pharmacist') ? getDashboardDispensingRoute('create') : null"

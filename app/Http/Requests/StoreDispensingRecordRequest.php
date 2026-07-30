@@ -27,7 +27,27 @@ class StoreDispensingRecordRequest extends FormRequest
             ],
             'quantity_dispensed' => ['required', 'integer', 'min:1', 'max:999999'],
             'prescription_ref' => ['nullable', 'string', 'max:100'],
+            'prescription_date' => ['required', 'date', 'before_or_equal:today'],
+            'prescriber_name' => ['required', 'string', 'max:255'],
+            'prescribed_dose' => ['required', 'string', 'max:255'],
+            'audit_date_checked' => ['accepted'],
+            'audit_prescriber_checked' => ['accepted'],
+            'audit_drug_dose_checked' => ['accepted'],
+            'audit_contraindications_checked' => ['accepted'],
             'notes' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'audit_date_checked.accepted' => 'Confirm you checked the prescription date.',
+            'audit_prescriber_checked.accepted' => 'Confirm you checked the prescriber details.',
+            'audit_drug_dose_checked.accepted' => 'Confirm the drug and dose match the prescription.',
+            'audit_contraindications_checked.accepted' => 'Confirm you checked for contraindications / allergies before dispensing.',
         ];
     }
 

@@ -134,9 +134,7 @@ Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharma
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')->name('pharmacist.dashboard.')->group(function () {
-    Route::resource('drugs', DrugController::class);
-    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::resource('drugs', DrugController::class)->only(['index', 'show']);
     Route::resource('patients', PatientController::class)->except(['destroy']);
     Route::resource('dispensing', DispensingRecordController::class)->only(['index', 'create', 'store', 'show'])->parameters(['dispensing' => 'dispensing']);
     Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
@@ -182,7 +180,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('/pharmacy-manager/dashboard/drugs', '/pharmacy-manager/drugs');
     Route::redirect('/pharmacy-manager/dashboard/orders', '/pharmacy-manager/orders');
     Route::redirect('/pharmacist/dashboard/drugs', '/pharmacist/drugs');
-    Route::redirect('/pharmacist/dashboard/orders', '/pharmacist/orders');
+    Route::redirect('/pharmacist/dashboard/orders', '/pharmacist/dispensing');
 });
 
 require __DIR__.'/auth.php';

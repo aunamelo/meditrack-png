@@ -20,11 +20,16 @@ class DispensingRecordController extends Controller
 
         $query = DispensingRecord::with(['patient', 'drug', 'dispenser']);
 
+        if (auth()->user()->hasRole('pharmacist') && ! auth()->user()->hasRole('pharmacy_manager')) {
+            $query->where('dispensed_by', auth()->id());
+        }
+
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('record_number', 'like', "%{$search}%")
                     ->orWhere('prescription_ref', 'like', "%{$search}%")
+                    ->orWhere('prescriber_name', 'like', "%{$search}%")
                     ->orWhereHas('patient', function ($pq) use ($search) {
                         $pq->where('patient_number', 'like', "%{$search}%")
                             ->orWhere('first_name', 'like', "%{$search}%")
@@ -66,21 +71,34 @@ class DispensingRecordController extends Controller
     public function store(StoreDispensingRecordRequest $request): RedirectResponse
     {
         $patient = Patient::findOrFail($request->validated('patient_id'));
+        $data = $request->validated();
+        $data['audit_date_checked'] = true;
+        $data['audit_prescriber_checked'] = true;
+        $data['audit_drug_dose_checked'] = true;
+        $data['audit_contraindications_checked'] = true;
 
         try {
-            $record = DispensingService::dispense($patient, auth()->user(), $request->validated());
+            $record = DispensingService::dispense($patient, auth()->user(), $data);
         } catch (InvalidArgumentException $e) {
             return back()->withInput()->withErrors(['drug_id' => $e->getMessage()]);
         }
 
         return redirect()
             ->to(getDashboardDispensingRoute('show', $record))
-            ->with('success', 'Medicine dispensed successfully. Stock updated.');
+            ->with('success', 'Prescription audited and medicine dispensed. Stock updated.');
     }
 
     public function show(DispensingRecord $dispensing): View
     {
         $this->authorizePortalAccess();
+
+        if (
+            auth()->user()->hasRole('pharmacist')
+            && ! auth()->user()->hasRole('pharmacy_manager')
+            && $dispensing->dispensed_by !== auth()->id()
+        ) {
+            abort(403, 'You can only view your own dispensing records.');
+        }
 
         $dispensing->load(['patient', 'drug', 'dispenser']);
 

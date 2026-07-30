@@ -346,6 +346,10 @@ class DashboardService
         $level = $meta['inventory_level'];
         $lowStock = Drug::atLevel($level)->lowStock()->count();
         $expiring = Drug::atLevel($level)->expiring()->count();
+        $myDispensesToday = \App\Models\DispensingRecord::query()
+            ->where('dispensed_by', $user->id)
+            ->whereDate('dispensed_at', today())
+            ->count();
 
         $alerts = [];
 
@@ -354,10 +358,22 @@ class DashboardService
                 'tone' => 'amber',
                 'title' => 'Check low stock before dispensing',
                 'message' => $lowStock === 1
-                    ? '1 batch is below reorder point.'
-                    : "{$lowStock} batches are below reorder point.",
-                'action_label' => 'View inventory',
-                'action_url' => getDashboardDrugRoute('index'),
+                    ? '1 batch is below reorder point — flag to the Pharmacy Manager.'
+                    : "{$lowStock} batches are below reorder point — flag to the Pharmacy Manager.",
+                'action_label' => 'View low stock',
+                'action_url' => getDashboardDrugRoute('index').'?status=low_stock',
+            ];
+        }
+
+        if ($expiring > 0) {
+            $alerts[] = [
+                'tone' => 'blue',
+                'title' => 'Expiry alert',
+                'message' => $expiring === 1
+                    ? '1 Modilon batch expires within 6 months. Prefer FEFO when dispensing.'
+                    : "{$expiring} Modilon batches expire within 6 months. Prefer FEFO when dispensing.",
+                'action_label' => 'View expiry alerts',
+                'action_url' => getDashboardDrugRoute('index').'?status=expiring_soon',
             ];
         }
 
@@ -365,22 +381,28 @@ class DashboardService
             'roleMeta' => $meta,
             'stats' => [
                 self::stat('Available stock', (string) Drug::atLevel($level)->inInventory()->count(), 'Ready to dispense', 'teal', getDashboardDrugRoute('index'), 'cube'),
-                self::stat('Low stock', (string) $lowStock, 'Review with manager', 'amber', getDashboardDrugRoute('index'), 'bell'),
-                self::stat('Expiring soon', (string) $expiring, 'Within 6 months', 'red', getDashboardDrugRoute('index'), 'shield'),
+                self::stat('Low stock', (string) $lowStock, 'Review with manager', 'amber', getDashboardDrugRoute('index').'?status=low_stock', 'bell'),
+                self::stat('Expiring soon', (string) $expiring, 'Within 6 months', 'red', getDashboardDrugRoute('index').'?status=expiring_soon', 'shield'),
+                self::stat('My dispenses today', (string) $myDispensesToday, 'Your audit trail', 'blue', getDashboardDispensingRoute('index'), 'pill'),
             ],
             'alerts' => $alerts,
             'quickActions' => self::quickActions([
-                ['label' => 'Dispense medicine', 'description' => 'Issue stock to a registered patient', 'url' => getDashboardDispensingRoute('create'), 'primary' => true, 'icon' => 'pill'],
+                ['label' => 'Dispense medicine', 'description' => 'Audit Rx then issue Modilon stock', 'url' => getDashboardDispensingRoute('create'), 'primary' => true, 'icon' => 'pill'],
+                ['label' => 'My dispensing records', 'description' => 'Your patient dispensing audit trail', 'url' => getDashboardDispensingRoute('index'), 'icon' => 'clipboard'],
                 ['label' => 'Patients', 'description' => 'Register or look up patients', 'url' => getDashboardPatientRoute('index'), 'icon' => 'users'],
-                ['label' => 'Stock status', 'description' => 'Modilon consumption & days of stock', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
-                ['label' => 'View inventory', 'description' => 'Check stock before dispensing', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
+                ['label' => 'View inventory', 'description' => 'Batch, stock and expiry before dispense', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
             ]),
-            'recentItems' => Drug::atLevel($level)->inInventory()->latest()->limit(4)->get()->map(fn (Drug $drug) => [
-                'title' => $drug->drug_name.' ('.$drug->dosage.')',
-                'subtitle' => number_format($drug->quantity_on_hand).' '.$drug->unit.' · '.$drug->storage_location,
-                'meta' => 'Batch '.$drug->batch_number,
-                'url' => getDashboardDrugRoute('show', $drug),
-            ])->all(),
+            'recentItems' => \App\Models\DispensingRecord::with(['patient', 'drug'])
+                ->where('dispensed_by', $user->id)
+                ->latest('dispensed_at')
+                ->limit(4)
+                ->get()
+                ->map(fn (\App\Models\DispensingRecord $record) => [
+                    'title' => $record->record_number,
+                    'subtitle' => ($record->patient->full_name ?? 'Patient').' · '.($record->drug->drug_name ?? 'Medicine'),
+                    'meta' => $record->dispensed_at->format('d M Y H:i'),
+                    'url' => getDashboardDispensingRoute('show', $record),
+                ])->all(),
             'charts' => DashboardChartService::forRole('pharmacist', null, $level),
         ];
     }

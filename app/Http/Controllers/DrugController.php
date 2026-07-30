@@ -271,9 +271,15 @@ class DrugController extends Controller
      */
     public function searchByBatch(string $batch_number): JsonResponse
     {
-        $drug = Drug::byBatch($batch_number)->first();
+        $levels = $this->accessibleInventoryLevels();
 
-        if (!$drug) {
+        if ($levels === []) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $drug = Drug::byBatch($batch_number)->whereIn('level', $levels)->first();
+
+        if (! $drug) {
             return response()->json(['message' => 'Drug not found'], 404);
         }
 
@@ -292,9 +298,15 @@ class DrugController extends Controller
      */
     public function getBatchDetails(string $batch_number, string $level): JsonResponse
     {
+        $levels = $this->accessibleInventoryLevels();
+
+        if ($levels === [] || ! in_array($level, $levels, true)) {
+            return response()->json(['message' => 'Unauthorized for this inventory level'], 403);
+        }
+
         $drug = Drug::byBatch($batch_number)->atLevel($level)->first();
 
-        if (!$drug) {
+        if (! $drug) {
             return response()->json(['message' => 'Drug not found at this level'], 404);
         }
 
@@ -307,5 +319,31 @@ class DrugController extends Controller
             'can_dispense' => $drug->canBeDispensed(),
             'status' => $drug->status,
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function accessibleInventoryLevels(): array
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            return ['ndoh', 'lae_ams', 'modilon_hospital'];
+        }
+
+        if ($user->hasRole('procurement_officer')) {
+            return ['ndoh'];
+        }
+
+        if ($user->hasRole('store_manager')) {
+            return ['lae_ams'];
+        }
+
+        if ($user->hasAnyRole(['pharmacy_manager', 'pharmacist'])) {
+            return ['modilon_hospital'];
+        }
+
+        return [];
     }
 }

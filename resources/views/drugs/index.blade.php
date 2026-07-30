@@ -11,7 +11,11 @@
 
         <x-module.hero
             icon="cube"
-            description="NDoH stock batches — created when procurement orders are received"
+            :description="auth()->user()->hasAnyRole(['pharmacy_manager', 'pharmacist'])
+                ? 'Modilon Hospital pharmacy stock — view batch, quantity, and expiry before dispensing.'
+                : (auth()->user()->hasRole('store_manager')
+                    ? 'Lae AMS warehouse stock batches.'
+                    : 'NDoH stock batches — created when procurement orders are received')"
             :action-url="auth()->user()->hasRole('admin') ? getDashboardDrugRoute('create') : null"
             :action-label="auth()->user()->hasRole('admin') ? 'Manual entry' : null"
         />

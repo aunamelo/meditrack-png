@@ -292,18 +292,6 @@ class PortalNavigationService
                     active: request()->routeIs('*.dashboard.reports.stock-movements.*'),
                     icon: 'truck',
                 );
-
-                $orderBadge = self::orderNavBadge($user);
-
-                $items[] = self::item(
-                    section: 'procurement',
-                    label: 'Procurement Orders',
-                    description: 'Track national supply status',
-                    href: getDashboardOrderRoute('index'),
-                    active: request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'),
-                    icon: 'clipboard',
-                    badge: $orderBadge,
-                );
             } else {
                 $orderBadge = self::orderNavBadge($user);
 
