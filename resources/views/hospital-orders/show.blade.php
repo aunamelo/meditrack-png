@@ -104,14 +104,57 @@
                 @endif
 
                 @if(auth()->user()->hasRole('pharmacy_manager') && $hospitalOrder->canReceive())
-                    <x-module.detail-card title="Confirm receipt">
-                        <p class="mb-3 text-sm text-muted">Confirming receipt will add {{ number_format($hospitalOrder->quantity_approved ?? $hospitalOrder->quantity_requested) }} units to Modilon Hospital inventory.</p>
+                    @php
+                        $expectedQty = (int) ($hospitalOrder->quantity_approved ?? $hospitalOrder->quantity_requested);
+                        $sourceBatch = $hospitalOrder->stockTransfer?->batch_number;
+                        $sourceExpiry = $hospitalOrder->stockTransfer?->drug?->expiry_date;
+                    @endphp
+                    <x-module.detail-card title="Verify &amp; receive delivery">
+                        <p class="mb-3 text-sm text-muted">
+                            Physically check quantity, batch, and expiry against the Lae AMS dispatch before adding stock to Modilon inventory.
+                        </p>
+                        <dl class="mb-4 space-y-1 rounded-lg border border-line bg-canvas p-3 text-sm">
+                            <div class="flex justify-between gap-3"><dt class="text-muted">Expected qty</dt><dd class="font-semibold tabular-nums">{{ number_format($expectedQty) }}</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-muted">Batch on dispatch</dt><dd class="font-semibold">{{ $sourceBatch ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-muted">Expiry on dispatch</dt><dd class="font-semibold">{{ $sourceExpiry?->format('d M Y') ?: '—' }}</dd></div>
+                        </dl>
                         <form action="{{ getDashboardHospitalOrderRoute('receive', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
-                            <textarea name="notes" rows="2" placeholder="Receipt notes (optional)" class="input-field"></textarea>
-                            <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-emerald-700">Confirm received</button>
+                            <div>
+                                <label for="quantity_received" class="form-label">Quantity received *</label>
+                                <input type="number" name="quantity_received" id="quantity_received" min="0" max="{{ $expectedQty }}" value="{{ old('quantity_received', $expectedQty) }}" required class="input-field">
+                                @error('quantity_received')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label for="condition" class="form-label">Delivery condition *</label>
+                                <select name="condition" id="condition" required class="input-field">
+                                    @foreach([
+                                        'good' => 'Good — matches dispatch',
+                                        'short_shipment' => 'Short shipment',
+                                        'damaged' => 'Damaged goods',
+                                        'wrong_item' => 'Wrong item',
+                                        'expired' => 'Expired product',
+                                        'other' => 'Other issue',
+                                    ] as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('condition', 'good') === $value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('condition')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+                            </div>
+                            <label class="flex items-start gap-2 text-sm text-ink">
+                                <input type="checkbox" name="batch_verified" value="1" @checked(old('batch_verified')) required class="mt-1 rounded border-gray-300 text-brand-600 focus:ring-brand-600">
+                                <span>I verified the batch number matches the dispatch paperwork.</span>
+                            </label>
+                            @error('batch_verified')<p class="text-sm text-rose-600">{{ $message }}</p>@enderror
+                            <label class="flex items-start gap-2 text-sm text-ink">
+                                <input type="checkbox" name="expiry_verified" value="1" @checked(old('expiry_verified')) required class="mt-1 rounded border-gray-300 text-brand-600 focus:ring-brand-600">
+                                <span>I verified the expiry date matches the dispatch paperwork.</span>
+                            </label>
+                            @error('expiry_verified')<p class="text-sm text-rose-600">{{ $message }}</p>@enderror
+                            <textarea name="notes" rows="2" placeholder="Receipt / verification notes (optional)" class="input-field">{{ old('notes') }}</textarea>
+                            <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-emerald-700">Verify &amp; confirm received</button>
                         </form>
-                        <a href="{{ getDashboardDiscrepancyRoute('create') }}?hospital_order={{ $hospitalOrder->id }}" class="mt-3 block text-center text-sm font-semibold text-rose-600 hover:text-rose-700">Report a discrepancy</a>
+                        <a href="{{ getDashboardDiscrepancyRoute('create') }}?hospital_order={{ $hospitalOrder->id }}" class="mt-3 block text-center text-sm font-semibold text-rose-600 hover:text-rose-700">Report a discrepancy separately</a>
                     </x-module.detail-card>
                 @endif
             </div>

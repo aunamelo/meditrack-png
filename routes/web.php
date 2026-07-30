@@ -5,6 +5,7 @@ use App\Http\Controllers\DiscrepancyReportController;
 use App\Http\Controllers\DispensingRecordController;
 use App\Http\Controllers\DrugController;
 use App\Http\Controllers\HospitalOrderController;
+use App\Http\Controllers\HospitalReportController;
 use App\Http\Controllers\HospitalShipmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\MedicineController;
@@ -129,6 +130,7 @@ Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharma
     Route::resource('stock-adjustments', StockAdjustmentController::class)->only(['index', 'create', 'store', 'show']);
     Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
     Route::get('reports/stock-movements', [StockMovementController::class, 'index'])->name('reports.stock-movements.index');
+    Route::get('reports/hospital', [HospitalReportController::class, 'index'])->name('reports.hospital.index');
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')->name('pharmacist.dashboard.')->group(function () {

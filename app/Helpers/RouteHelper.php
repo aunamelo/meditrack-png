@@ -290,6 +290,19 @@ if (! function_exists('getDashboardStockAdjustmentRoute')) {
     }
 }
 
+if (! function_exists('getDashboardHospitalReportRoute')) {
+    function getDashboardHospitalReportRoute(string $routeName = 'index', mixed $params = null): string
+    {
+        if (! auth()->user()->hasRole('pharmacy_manager')) {
+            abort(403, 'You do not have access to hospital reports.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'reports.hospital.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
 if (! function_exists('canManageHospitalOrders')) {
     function canManageHospitalOrders(): bool
     {

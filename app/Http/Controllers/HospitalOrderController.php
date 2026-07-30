@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ApproveHospitalOrderRequest;
+use App\Http\Requests\ReceiveHospitalOrderRequest;
 use App\Http\Requests\RejectHospitalOrderRequest;
 use App\Http\Requests\ShipHospitalOrderRequest;
 use App\Http\Requests\StoreHospitalOrderRequest;
@@ -147,12 +148,8 @@ class HospitalOrderController extends Controller
             ->with('success', 'Drugs dispatched by road to Modilon Hospital.');
     }
 
-    public function receive(Request $request, HospitalOrder $hospitalOrder): RedirectResponse
+    public function receive(ReceiveHospitalOrderRequest $request, HospitalOrder $hospitalOrder): RedirectResponse
     {
-        if (! auth()->user()->hasRole('pharmacy_manager')) {
-            abort(403, 'Only Pharmacy Managers can confirm hospital receipt.');
-        }
-
         if ($hospitalOrder->requested_by !== auth()->id()) {
             abort(403, 'You can only receive your own hospital orders.');
         }
@@ -162,9 +159,19 @@ class HospitalOrderController extends Controller
                 ->with('error', 'This order is not awaiting receipt.');
         }
 
-        HospitalShipmentService::confirmHospitalReceipt($hospitalOrder, auth()->id(), $request->input('notes'));
+        $data = $request->validated();
+        $data['batch_verified'] = true;
+        $data['expiry_verified'] = true;
+
+        HospitalShipmentService::confirmHospitalReceipt($hospitalOrder, auth()->id(), $data);
+
+        $expected = (int) ($hospitalOrder->quantity_approved ?? $hospitalOrder->quantity_requested);
+        $received = (int) $data['quantity_received'];
+        $message = $received < $expected || $data['condition'] !== 'good'
+            ? 'Delivery recorded. A discrepancy report was filed for Lae AMS review.'
+            : 'Road delivery verified and received at Modilon Hospital.';
 
         return redirect(getDashboardHospitalOrderRoute('show', $hospitalOrder))
-            ->with('success', 'Road delivery received at Modilon Hospital.');
+            ->with('success', $message);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Drug;
 use App\Models\HospitalOrder;
 use App\Models\StockTransfer;
+use App\Models\DiscrepancyReport;
 use Illuminate\Support\Facades\DB;
 
 class HospitalShipmentService
@@ -58,34 +59,74 @@ class HospitalShipmentService
 
     /**
      * Confirm hospital receipt at Modilon (Pharmacy Manager) and create hospital inventory.
+     *
+     * @param  array{
+     *     quantity_received: int,
+     *     batch_verified: bool,
+     *     expiry_verified: bool,
+     *     condition: string,
+     *     notes?: string|null
+     * }  $verification
      */
-    public static function confirmHospitalReceipt(HospitalOrder $order, int $userId, ?string $notes = null): void
+    public static function confirmHospitalReceipt(HospitalOrder $order, int $userId, array $verification): void
     {
         if (! $order->canReceive() || ! $order->stockTransfer) {
             throw new \InvalidArgumentException('This hospital order cannot be received.');
         }
 
-        DB::transaction(function () use ($order, $userId, $notes) {
+        DB::transaction(function () use ($order, $userId, $verification) {
             $transfer = $order->stockTransfer()->lockForUpdate()->first();
 
             if (! $transfer || ! $transfer->canReceive()) {
                 throw new \InvalidArgumentException('This road delivery cannot be received.');
             }
 
-            if (! $transfer->destination_drug_id) {
-                $destinationDrug = self::createModilonInventoryFromTransfer($transfer, $userId);
+            $quantitySent = (int) $transfer->quantity_sent;
+            $quantityReceived = (int) $verification['quantity_received'];
+            $condition = $verification['condition'];
+            $notes = $verification['notes'] ?? null;
+
+            $receiptNote = trim(implode(' ', array_filter([
+                $notes,
+                "Verified count: {$quantityReceived}/{$quantitySent}.",
+                'Batch checked: yes.',
+                'Expiry checked: yes.',
+                'Condition: '.$condition.'.',
+            ])));
+
+            if ($quantityReceived > 0 && ! $transfer->destination_drug_id) {
+                $destinationDrug = self::createModilonInventoryFromTransfer($transfer, $userId, $quantityReceived);
                 $transfer->update(['destination_drug_id' => $destinationDrug->id]);
             }
 
-            $transfer->receive($userId, $notes);
+            $transfer->receive($userId, $receiptNote);
             $order->update(['status' => 'received']);
+
+            $needsDiscrepancy = $quantityReceived < $quantitySent || $condition !== 'good';
+            if ($needsDiscrepancy) {
+                $issueType = $condition === 'good' ? 'short_shipment' : $condition;
+
+                DiscrepancyReport::create([
+                    'report_number' => DiscrepancyReport::generateReportNumber(),
+                    'hospital_order_id' => $order->id,
+                    'stock_transfer_id' => $transfer->id,
+                    'issue_type' => $issueType,
+                    'quantity_expected' => $quantitySent,
+                    'quantity_received' => $quantityReceived,
+                    'description' => $receiptNote !== ''
+                        ? $receiptNote
+                        : "Receipt verification reported {$issueType} for order {$order->order_number}.",
+                    'reported_by' => $userId,
+                    'status' => 'open',
+                ]);
+            }
         });
     }
 
     /**
      * Create Modilon Hospital inventory batch when pharmacy confirms receipt.
      */
-    public static function createModilonInventoryFromTransfer(StockTransfer $transfer, int $userId): Drug
+    public static function createModilonInventoryFromTransfer(StockTransfer $transfer, int $userId, ?int $quantityReceived = null): Drug
     {
         $sourceDrug = $transfer->drug;
 
@@ -93,7 +134,7 @@ class HospitalShipmentService
             throw new \InvalidArgumentException('Source drug not found for this transfer.');
         }
 
-        $quantitySent = (int) $transfer->quantity_sent;
+        $quantity = $quantityReceived ?? (int) $transfer->quantity_sent;
         $destinationBatch = $sourceDrug->batch_number.'-MOD-'.now()->format('ymdHis');
 
         return Drug::create([
@@ -104,8 +145,8 @@ class HospitalShipmentService
             'dosage_form' => $sourceDrug->dosage_form,
             'batch_number' => $destinationBatch,
             'expiry_date' => $sourceDrug->expiry_date,
-            'quantity_received' => $quantitySent,
-            'quantity_on_hand' => $quantitySent,
+            'quantity_received' => $quantity,
+            'quantity_on_hand' => $quantity,
             'reorder_point' => $sourceDrug->reorder_point,
             'unit' => $sourceDrug->unit,
             'supplier' => $sourceDrug->supplier,

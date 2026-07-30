@@ -228,6 +228,15 @@ class PortalNavigationService
                 );
 
                 $items[] = self::item(
+                    section: 'reports',
+                    label: 'Hospital Report',
+                    description: 'Modilon pharmacy period summary',
+                    href: getDashboardHospitalReportRoute('index'),
+                    active: request()->routeIs('*.dashboard.reports.hospital.*'),
+                    icon: 'chart',
+                );
+
+                $items[] = self::item(
                     section: 'inventory',
                     label: 'Stock Takes',
                     description: 'Physical count and adjustments',

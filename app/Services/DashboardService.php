@@ -255,6 +255,28 @@ class DashboardService
 
         $alerts = [];
 
+        $lastRequestAt = \App\Models\HospitalOrder::where('requested_by', $user->id)->latest('created_at')->value('created_at');
+        if (! $lastRequestAt || \Carbon\Carbon::parse($lastRequestAt)->lt(now()->subDays(30))) {
+            $alerts[] = [
+                'tone' => 'blue',
+                'title' => 'Monthly Lae AMS request due',
+                'message' => 'No hospital stock request has been submitted in the last 30 days. Review Stock Status and file your monthly requisition.',
+                'action_label' => 'New request',
+                'action_url' => getDashboardHospitalOrderRoute('create'),
+            ];
+        }
+
+        $lastStockTakeAt = \App\Models\StockAdjustment::atLevel($level)->latest('adjusted_at')->value('adjusted_at');
+        if (! $lastStockTakeAt || \Carbon\Carbon::parse($lastStockTakeAt)->lt(now()->subDays(30))) {
+            $alerts[] = [
+                'tone' => 'amber',
+                'title' => 'Monthly stock take due',
+                'message' => 'No Modilon stock take has been posted in the last 30 days. Complete a physical count to keep inventory accurate.',
+                'action_label' => 'Stock takes',
+                'action_url' => getDashboardStockAdjustmentRoute('index'),
+            ];
+        }
+
         if ($atRisk > 0) {
             $alerts[] = [
                 'tone' => 'red',
@@ -285,7 +307,7 @@ class DashboardService
                     ? '1 batch expires within 6 months.'
                     : "{$expiring} batches expire within 6 months.",
                 'action_label' => 'Review stock',
-                'action_url' => getDashboardDrugRoute('index'),
+                'action_url' => getDashboardDrugRoute('index').'?status=expiring_soon',
             ];
         }
 
@@ -299,9 +321,10 @@ class DashboardService
             'alerts' => $alerts,
             'quickActions' => self::quickActions(array_values(array_filter([
                 ['label' => 'Request from Lae AMS', 'description' => 'Submit hospital order', 'url' => getDashboardHospitalOrderRoute('create'), 'primary' => true, 'icon' => 'plus'],
+                ['label' => 'Hospital report', 'description' => 'Modilon period summary', 'url' => getDashboardHospitalReportRoute('index'), 'icon' => 'chart'],
                 ['label' => 'Stock status', 'description' => 'Consumption & suggested qty', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                 ['label' => 'Hospital inventory', 'description' => 'Manage Modilon stock', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
-                ['label' => 'Incoming deliveries', 'description' => 'Track Lae AMS road deliveries', 'url' => getDashboardHospitalShipmentRoute('index'), 'icon' => 'truck'],
+                ['label' => 'Incoming deliveries', 'description' => 'Verify Lae AMS road deliveries', 'url' => getDashboardHospitalShipmentRoute('index'), 'icon' => 'truck'],
                 canManageUsers() ? ['label' => 'Manage pharmacists', 'description' => 'Pharmacy team accounts', 'url' => getDashboardUserRoute('index'), 'icon' => 'shield'] : null,
             ]))),
             'recentItems' => \App\Models\HospitalOrder::where('requested_by', $user->id)->latest()->limit(4)->get()->map(fn ($order) => [
