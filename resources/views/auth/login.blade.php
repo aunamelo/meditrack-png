@@ -10,7 +10,7 @@
 
 @section('content-top')
     <a href="{{ route('home') }}" class="guest-portal-back" aria-label="Back to role selection">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true" focusable="false">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
         </svg>
     </a>
@@ -23,11 +23,11 @@
             <span class="guest-portal-role-name">{{ $roleMeta['label'] }}</span>
         </div>
     @else
-        <h2 class="guest-portal-title">Sign in</h2>
+        <h1 class="guest-portal-title">Sign in</h1>
     @endif
 
     @if (session('status'))
-        <div class="guest-portal-notice">{{ session('status') }}</div>
+        <div class="guest-portal-notice" role="status" aria-live="polite">{{ session('status') }}</div>
     @endif
 
     <form action="{{ route('login') }}" method="POST" class="guest-portal-form-wrap">

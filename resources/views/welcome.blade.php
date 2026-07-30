@@ -17,6 +17,8 @@
                     name="role"
                     required
                     class="guest-portal-input guest-portal-select"
+                    aria-describedby="roleError"
+                    aria-invalid="false"
                 >
                         <option value="" disabled selected>Select role</option>
                         @foreach($roleOrder as $roleKey)
@@ -27,7 +29,7 @@
                             @endif
                         @endforeach
                     </select>
-                <p id="roleError" class="guest-portal-error hidden" role="alert">Select a role to continue.</p>
+                <p id="roleError" class="guest-portal-error hidden" role="alert" aria-live="assertive">Select a role to continue.</p>
             </div>
 
             <button type="submit" class="guest-portal-btn">
@@ -46,9 +48,11 @@
             if (! select.value) {
                 event.preventDefault();
                 error.classList.remove('hidden');
+                select.setAttribute('aria-invalid', 'true');
                 select.focus();
             } else {
                 error.classList.add('hidden');
+                select.setAttribute('aria-invalid', 'false');
             }
         });
     </script>

@@ -5,18 +5,20 @@
 @endphp
 
 <aside
+    id="app-sidebar"
     class="medcare-sidebar fixed inset-y-0 left-0 z-40 h-full min-h-screen transform transition-transform duration-200 ease-in-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0"
     :class="{
         '-translate-x-full': ! sidebarOpen,
         'translate-x-0': sidebarOpen,
         'medcare-sidebar-collapsed': sidebarCollapsed,
     }"
+    aria-label="Application sidebar"
     x-cloak
 >
     <div class="flex h-full min-h-screen flex-col overflow-hidden">
         {{-- Brand + collapse toggle --}}
         <div class="sidebar-header flex items-center gap-2 px-4 py-5 lg:px-3">
-            <a href="{{ getRoleDashboardRoute() }}" class="sidebar-header-brand flex min-w-0 flex-1 items-center gap-3 overflow-hidden" title="MediTrack PNG">
+            <a href="{{ getRoleDashboardRoute() }}" class="sidebar-header-brand flex min-w-0 flex-1 items-center gap-3 overflow-hidden" title="MediTrack PNG home">
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white p-1">
                     <x-app-icon size="sm" class="h-9 w-9 object-contain" />
                 </div>
@@ -31,6 +33,7 @@
                 class="sidebar-collapse-btn sidebar-header-collapse"
                 :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
                 :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                aria-controls="app-sidebar"
                 aria-expanded="true"
                 x-bind:aria-expanded="(! sidebarCollapsed).toString()"
             >
@@ -41,37 +44,42 @@
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                     stroke-width="2"
+                    aria-hidden="true"
+                    focusable="false"
                 >
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                 </svg>
             </button>
         </div>
 
-        <nav class="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 pb-4">
+        <nav class="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 pb-4" aria-label="Primary">
             @foreach($navGroups as $groupLabel => $sectionKeys)
                 @php
                     $groupItems = collect($sectionKeys)
                         ->filter(fn ($key) => isset($portalNav[$key]))
                         ->flatMap(fn ($key) => $portalNav[$key])
                         ->values();
+                    $groupHeadingId = 'nav-group-'.$groupLabel;
                 @endphp
 
                 @if($groupItems->isNotEmpty())
-                    <div>
-                        <p class="medcare-sidebar-label mb-2">
+                    <div role="group" aria-labelledby="{{ $groupHeadingId }}">
+                        <p id="{{ $groupHeadingId }}" class="medcare-sidebar-label mb-2">
                             {{ $groupLabel === 'menu' ? 'Menu' : 'Other Menu' }}
                         </p>
-                        <div class="space-y-1">
+                        <ul class="space-y-1" role="list">
                             @foreach($groupItems as $item)
-                                <x-sidebar-link
-                                    :href="$item['href']"
-                                    :active="$item['active']"
-                                    :icon="$item['icon']"
-                                    :label="$item['label']"
-                                    :badge="$item['badge'] ?? null"
-                                />
+                                <li>
+                                    <x-sidebar-link
+                                        :href="$item['href']"
+                                        :active="$item['active']"
+                                        :icon="$item['icon']"
+                                        :label="$item['label']"
+                                        :badge="$item['badge'] ?? null"
+                                    />
+                                </li>
                             @endforeach
-                        </div>
+                        </ul>
                     </div>
                 @endif
             @endforeach
@@ -93,6 +101,7 @@
                 class="sidebar-collapse-btn"
                 title="Expand sidebar"
                 aria-label="Expand sidebar"
+                aria-controls="app-sidebar"
             >
                 <svg
                     class="h-4 w-4 rotate-180"
@@ -100,6 +109,8 @@
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                     stroke-width="2"
+                    aria-hidden="true"
+                    focusable="false"
                 >
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -112,6 +123,8 @@
     x-show="sidebarOpen"
     x-transition.opacity
     @click="sidebarOpen = false"
+    @keydown.escape.window="sidebarOpen = false"
     class="fixed inset-0 z-30 bg-ink/50 backdrop-blur-sm lg:hidden"
+    aria-hidden="true"
     x-cloak
 ></div>

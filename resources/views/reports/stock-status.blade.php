@@ -64,20 +64,21 @@
 
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <caption class="sr-only">Stock status by medicine for {{ $levelLabels[$level] ?? $level }}</caption>
                     <thead class="bg-gray-50 dark:bg-slate-800">
                         <tr>
-                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Medicine</th>
-                            <th class="px-3 py-2 text-right font-semibold text-gray-600">On hand</th>
-                            <th class="px-3 py-2 text-right font-semibold text-gray-600">Consumed</th>
-                            <th class="px-3 py-2 text-right font-semibold text-gray-600">AMC</th>
-                            <th class="px-3 py-2 text-right font-semibold text-gray-600">Days of stock</th>
-                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Status</th>
+                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Medicine</th>
+                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">On hand</th>
+                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Consumed</th>
+                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">AMC</th>
+                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Days of stock</th>
+                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Status</th>
                             @if($level === 'corridor')
-                                <th class="px-3 py-2 text-right font-semibold text-gray-600">On order</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">On order</th>
                             @endif
-                            <th class="px-3 py-2 text-right font-semibold text-gray-600">Suggested qty</th>
+                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Suggested qty</th>
                             @if($canRequestFromLae)
-                                <th class="px-3 py-2 text-right font-semibold text-gray-600">Action</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Action</th>
                             @endif
                         </tr>
                     </thead>

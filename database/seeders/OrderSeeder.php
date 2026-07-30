@@ -214,8 +214,12 @@ class OrderSeeder extends Seeder
      * @param  array<string, mixed>  $orderData
      * @param  array<int, array<string, mixed>>  $lineItems
      */
-    private function createOrderWithItems(array $orderData, array $lineItems): Order
+    private function createOrderWithItems(array $orderData, array $lineItems): ?Order
     {
+        if (Order::query()->where('order_number', $orderData['order_number'])->exists()) {
+            return null;
+        }
+
         $orderData['medicine_id'] = $lineItems[0]['medicine_id'];
         $orderData['quantity_ordered'] = collect($lineItems)->sum('quantity_ordered');
         $orderData['quantity_received'] = collect($lineItems)->sum(fn ($line) => $line['quantity_received'] ?? 0);

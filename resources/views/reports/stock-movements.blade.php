@@ -30,14 +30,15 @@
 
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <caption class="sr-only">Stock movements for {{ $levelLabel }} from {{ $from->toDateString() }} to {{ $to->toDateString() }}</caption>
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-3 py-2 text-left font-semibold text-gray-600">When</th>
-                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Type</th>
-                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Medicine</th>
-                            <th class="px-3 py-2 text-right font-semibold text-gray-600">Qty</th>
-                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Reference</th>
-                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Notes</th>
+                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">When</th>
+                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Type</th>
+                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Medicine</th>
+                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Qty</th>
+                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Reference</th>
+                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Notes</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">

@@ -11,12 +11,34 @@
         @apply scroll-smooth antialiased;
     }
 
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
     body {
         @apply font-sans text-ink bg-canvas dark:bg-zinc-950 dark:text-zinc-100;
     }
 
     h1, h2, h3, h4 {
         @apply font-display tracking-display text-ink dark:text-zinc-50;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-brand-600;
+    }
+
+    .skip-link {
+        @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg;
     }
 
     ::selection {
