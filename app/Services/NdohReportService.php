@@ -57,6 +57,26 @@ class NdohReportService
             'cancelled' => $orders->where('status', 'cancelled')->count(),
         ];
 
+        $activeOrders = $orders->where('status', '!=', 'cancelled');
+        $spentOrders = $orders->whereIn('status', ['received', 'partial']);
+        $pipelineOrders = $orders->whereIn('status', ['manufacturing', 'shipped', 'customs', 'fx_cleared']);
+        $pendingOrders = $orders->where('status', 'pending');
+
+        $spendBySupplier = $activeOrders
+            ->groupBy(fn (Order $order) => $order->supplier ?: 'Unspecified supplier')
+            ->map(fn ($group, $supplier) => [
+                'supplier' => $supplier,
+                'orders' => $group->count(),
+                'amount' => round((float) $group->sum(fn (Order $order) => (float) ($order->invoice_amount ?? 0)), 2),
+            ])
+            ->sortByDesc('amount')
+            ->take(8)
+            ->values();
+
+        $inventoryValue = round((float) $inventory->sum(
+            fn (Drug $drug) => ((float) ($drug->cost_per_unit ?? 0)) * (int) $drug->quantity_on_hand
+        ), 2);
+
         return [
             'title' => 'NDoH National Report',
             'facility' => 'National Department of Health — Central Store',
@@ -85,6 +105,16 @@ class NdohReportService
                 'units_ordered' => (int) $orders->sum(fn (Order $order) => $order->quantity_ordered ?? $order->items->sum('quantity_ordered')),
                 'units_received' => (int) $orders->sum(fn (Order $order) => $order->quantity_received ?? $order->items->sum('quantity_received')),
             ], $orderStatusCounts),
+            'spending' => [
+                'currency' => 'PGK',
+                'amount_spent' => round((float) $spentOrders->sum(fn (Order $order) => (float) ($order->invoice_amount ?? 0)), 2),
+                'amount_in_pipeline' => round((float) $pipelineOrders->sum(fn (Order $order) => (float) ($order->invoice_amount ?? 0)), 2),
+                'amount_pending_approval' => round((float) $pendingOrders->sum(fn (Order $order) => (float) ($order->invoice_amount ?? 0)), 2),
+                'amount_committed' => round((float) $activeOrders->sum(fn (Order $order) => (float) ($order->invoice_amount ?? 0)), 2),
+                'orders_with_invoice' => $activeOrders->filter(fn (Order $order) => (float) ($order->invoice_amount ?? 0) > 0)->count(),
+                'inventory_value' => $inventoryValue,
+                'by_supplier' => $spendBySupplier,
+            ],
             'shipments' => [
                 'total' => $shipments->count(),
                 'pending' => $shipments->where('status', 'pending')->count(),
@@ -138,6 +168,12 @@ class NdohReportService
             ['Orders cancelled', $report['orders']['cancelled']],
             ['Units ordered', $report['orders']['units_ordered']],
             ['Units received from suppliers', $report['orders']['units_received']],
+            ['Amount spent (received/partial) PGK', $report['spending']['amount_spent']],
+            ['Amount in pipeline PGK', $report['spending']['amount_in_pipeline']],
+            ['Amount pending approval PGK', $report['spending']['amount_pending_approval']],
+            ['Amount committed (excl. cancelled) PGK', $report['spending']['amount_committed']],
+            ['Orders with invoice amount', $report['spending']['orders_with_invoice']],
+            ['NDoH inventory value PGK', $report['spending']['inventory_value']],
             ['Shipments to Lae AMS total', $report['shipments']['total']],
             ['Shipments pending approval', $report['shipments']['pending']],
             ['Shipments in transit', $report['shipments']['sent']],
@@ -147,6 +183,11 @@ class NdohReportService
             ['Units received at Lae', $report['shipments']['units_received_at_lae']],
             ['Stock takes', $report['stock_takes']['total']],
             ['Stock take net delta', $report['stock_takes']['net_delta']],
+            ['', ''],
+            ['Spend by supplier', 'Amount PGK'],
+            ...collect($report['spending']['by_supplier'])->map(
+                fn (array $row) => [$row['supplier'].' ('.$row['orders'].' orders)', $row['amount']]
+            )->all(),
         ];
     }
 }

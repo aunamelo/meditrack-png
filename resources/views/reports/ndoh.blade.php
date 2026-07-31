@@ -8,7 +8,7 @@
 
     <x-page-container>
         <div class="mb-6 rounded-xl border border-brand-100 bg-brand-50/60 p-4 text-sm text-slate-700 dark:border-brand-900/40 dark:bg-brand-950/30 dark:text-slate-200">
-            Generate a national period summary — NDoH inventory, procurement pipeline, shipments to Lae AMS, and corridor stock. Print or download CSV after generating.
+            Generate national spend and logistics for the selected period. Print or download CSV when ready.
         </div>
 
         <div class="surface-panel p-6">

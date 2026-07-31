@@ -130,13 +130,11 @@ class DashboardService
                 ]),
                 self::actionGroup('Inventory & logistics', [
                     ['label' => 'Drug inventory', 'description' => 'NDoH central stock', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
-                    ['label' => 'Stock takes', 'description' => 'Physical count and adjustments', 'url' => getDashboardStockAdjustmentRoute('index'), 'icon' => 'clipboard'],
+                    ['label' => 'Stock status', 'description' => 'Corridor consumption & suggestions', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                     ['label' => 'Shipments to Lae AMS', 'description' => 'NDoH → Lae AMS logistics', 'url' => getDashboardTransferRoute('index'), 'icon' => 'truck'],
                 ]),
                 self::actionGroup('Reports & admin', array_values(array_filter([
-                    ['label' => 'NDoH report', 'description' => 'National period summary', 'url' => getDashboardNdohReportRoute('index'), 'icon' => 'chart'],
-                    ['label' => 'Stock status', 'description' => 'Corridor consumption & suggestions', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
-                    ['label' => 'Stock movements', 'description' => 'NDoH receipts and shipments', 'url' => getDashboardStockMovementRoute('index'), 'icon' => 'truck'],
+                    ['label' => 'NDoH report', 'description' => 'Spend & national summary', 'url' => getDashboardNdohReportRoute('index'), 'icon' => 'chart'],
                     canManageUsers() ? ['label' => 'User management', 'description' => 'Manage portal accounts', 'url' => getDashboardUserRoute('index'), 'icon' => 'shield'] : null,
                 ]))),
             ],
@@ -193,11 +191,7 @@ class DashboardService
                 self::actionGroup('Inventory & logistics', [
                     ['label' => 'Drug inventory', 'description' => 'NDoH central stock', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
                     ['label' => 'Ship to Lae AMS', 'description' => 'Record shipment (admin approves)', 'url' => getDashboardTransferRoute('create'), 'icon' => 'truck'],
-                    ['label' => 'Stock takes', 'description' => 'Physical count and adjustments', 'url' => getDashboardStockAdjustmentRoute('index'), 'icon' => 'clipboard'],
-                ]),
-                self::actionGroup('Reports', [
                     ['label' => 'Stock status', 'description' => 'Corridor consumption & suggestions', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
-                    ['label' => 'Stock movements', 'description' => 'NDoH receipts and shipments', 'url' => getDashboardStockMovementRoute('index'), 'icon' => 'truck'],
                 ]),
             ],
             'quickActions' => [],
@@ -306,11 +300,10 @@ class DashboardService
                 ]),
                 self::actionGroup('Inventory', [
                     ['label' => 'Drug inventory', 'description' => 'Lae AMS warehouse stock', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
-                    ['label' => 'Stock takes', 'description' => 'Physical count and adjustments', 'url' => getDashboardStockAdjustmentRoute('index'), 'icon' => 'clipboard'],
+                    ['label' => 'Stock status', 'description' => 'Consumption & days of stock', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                 ]),
                 self::actionGroup('Reports', [
-                    ['label' => 'Stock status', 'description' => 'Consumption & days of stock', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
-                    ['label' => 'Regional report', 'description' => 'Lae AMS summary', 'url' => getDashboardRegionalReportRoute('index'), 'icon' => 'chart'],
+                    ['label' => 'Regional report', 'description' => 'Generate Lae AMS summary', 'url' => getDashboardRegionalReportRoute('index'), 'icon' => 'chart'],
                     ['label' => 'Discrepancies', 'description' => 'Hospital receipt issues', 'url' => getDashboardDiscrepancyRoute('index'), 'icon' => 'clipboard'],
                 ]),
             ],
@@ -433,8 +426,7 @@ class DashboardService
                 ]),
                 self::actionGroup('Pharmacy & reports', array_values(array_filter([
                     ['label' => 'Patients', 'description' => 'Modilon patient register', 'url' => getDashboardPatientRoute('index'), 'icon' => 'users'],
-                    ['label' => 'Dispensing', 'description' => 'Review dispensed medicines', 'url' => getDashboardDispensingRoute('index'), 'icon' => 'pill'],
-                    ['label' => 'Hospital report', 'description' => 'Modilon period summary', 'url' => getDashboardHospitalReportRoute('index'), 'icon' => 'chart'],
+                    ['label' => 'Hospital report', 'description' => 'Generate Modilon summary', 'url' => getDashboardHospitalReportRoute('index'), 'icon' => 'chart'],
                     canManageUsers() ? ['label' => 'Manage pharmacists', 'description' => 'Pharmacy team accounts', 'url' => getDashboardUserRoute('index'), 'icon' => 'shield'] : null,
                 ]))),
             ],
@@ -509,7 +501,6 @@ class DashboardService
                 self::actionGroup('Stock', [
                     ['label' => 'Drug inventory', 'description' => 'Batch, stock and expiry', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
                     ['label' => 'Stock status', 'description' => 'Modilon consumption & days of stock', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
-                    ['label' => 'Stock movements', 'description' => 'Dispensing and receipts history', 'url' => getDashboardStockMovementRoute('index'), 'icon' => 'truck'],
                 ]),
             ],
             'quickActions' => [],

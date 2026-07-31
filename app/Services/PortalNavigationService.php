@@ -73,10 +73,9 @@ class PortalNavigationService
             self::item('Procurement', 'Medicine Catalog', 'Approved medicines for procurement', getDashboardMedicineRoute('index'), request()->routeIs('*.dashboard.medicines.*'), 'clipboard'),
             self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'NDoH stock batches', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
             self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
+            self::item('Inventory', 'Stock Status', 'Corridor consumption & procurement suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
             self::item('Logistics', 'Shipments to Lae AMS', 'NDoH → Lae AMS logistics', getDashboardTransferRoute('index'), request()->routeIs('*.dashboard.transfers.*'), 'truck', self::shipmentNavBadge($user)),
-            self::item('Reports', 'NDoH Report', 'National procurement & logistics summary', getDashboardNdohReportRoute('index'), request()->routeIs('*.dashboard.reports.ndoh.*'), 'chart'),
-            self::item('Reports', 'Stock Status', 'Corridor consumption & procurement suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
-            self::item('Reports', 'Stock Movements', 'NDoH receipts and shipments', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
+            self::item('Reports', 'NDoH Report', 'Spend, procurement & national logistics', getDashboardNdohReportRoute('index'), request()->routeIs('*.dashboard.reports.ndoh.*'), 'chart'),
             canManageUsers()
                 ? self::item('Administration', 'User Management', 'Procurement, store & pharmacy managers', getDashboardUserRoute('index'), request()->routeIs('*.dashboard.users.*'), 'users')
                 : null,
@@ -95,9 +94,8 @@ class PortalNavigationService
             self::item('Procurement', 'Medicine Catalog', 'Approved medicines for procurement', getDashboardMedicineRoute('index'), request()->routeIs('*.dashboard.medicines.*'), 'clipboard'),
             self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'NDoH stock batches', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
             self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
+            self::item('Inventory', 'Stock Status', 'Corridor consumption & procurement suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
             self::item('Logistics', 'Shipments to Lae AMS', 'NDoH → Lae AMS logistics', getDashboardTransferRoute('index'), request()->routeIs('*.dashboard.transfers.*'), 'truck', self::shipmentNavBadge($user)),
-            self::item('Reports', 'Stock Status', 'Corridor consumption & procurement suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
-            self::item('Reports', 'Stock Movements', 'NDoH receipts and shipments', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
         ];
     }
 
@@ -117,10 +115,9 @@ class PortalNavigationService
             self::item('Warehouse ops', 'Hospital Road Deliveries', 'Lae AMS → Modilon by car', getDashboardHospitalShipmentRoute('index'), request()->routeIs('*.dashboard.hospital-shipments.*'), 'truck'),
             self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'Lae AMS stock', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
             self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
+            self::item('Inventory', 'Stock Status', 'Consumption, days of stock, suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
+            self::item('Reports', 'Regional Report', 'Generate Lae AMS period summary', getDashboardRegionalReportRoute('index'), request()->routeIs('*.dashboard.reports.regional.*'), 'chart'),
             self::item('Reports', 'Discrepancy Reports', 'Hospital receipt issues', getDashboardDiscrepancyRoute('index'), request()->routeIs('*.dashboard.discrepancies.*'), 'clipboard', $openDiscrepancies > 0 ? $openDiscrepancies : null),
-            self::item('Reports', 'Stock Status', 'Consumption, days of stock, suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
-            self::item('Reports', 'Stock Movements', 'What entered and left the warehouse', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
-            self::item('Reports', 'Regional Reports', 'Lae AMS warehouse summary', getDashboardRegionalReportRoute('index'), request()->routeIs('*.dashboard.reports.regional.*'), 'chart'),
         ];
     }
 
@@ -137,11 +134,10 @@ class PortalNavigationService
             self::item('Supply', 'Discrepancy Reports', 'Report receipt issues', getDashboardDiscrepancyRoute('index'), request()->routeIs('*.dashboard.discrepancies.*'), 'clipboard'),
             self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'Modilon stock', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
             self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
+            self::item('Inventory', 'Stock Status', 'Consumption & suggested requests', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
             self::item('Pharmacy', 'Patients', 'Modilon patient register', getDashboardPatientRoute('index'), request()->routeIs('*.dashboard.patients.*'), 'users'),
             self::item('Pharmacy', 'Dispensing', 'Review dispensed medicines', getDashboardDispensingRoute('index'), request()->routeIs('*.dashboard.dispensing.*'), 'pill'),
-            self::item('Reports', 'Stock Status', 'Consumption & suggested requests', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
-            self::item('Reports', 'Stock Movements', 'Receipts, issues, and dispensing', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
-            self::item('Reports', 'Hospital Report', 'Modilon pharmacy period summary', getDashboardHospitalReportRoute('index'), request()->routeIs('*.dashboard.reports.hospital.*'), 'chart'),
+            self::item('Reports', 'Hospital Report', 'Generate Modilon period summary', getDashboardHospitalReportRoute('index'), request()->routeIs('*.dashboard.reports.hospital.*'), 'chart'),
             self::item('National', 'Procurement Orders', 'Track national supply status', getDashboardOrderRoute('index'), request()->routeIs('*.dashboard.orders.*', 'dashboard.orders.*'), 'clipboard'),
             canManageUsers()
                 ? self::item('Administration', 'User Management', 'Pharmacist accounts', getDashboardUserRoute('index'), request()->routeIs('*.dashboard.users.*'), 'users')
@@ -161,7 +157,6 @@ class PortalNavigationService
             self::item('Dispensing', 'Patients', 'Register and look up patients', getDashboardPatientRoute('index'), request()->routeIs('*.dashboard.patients.*'), 'users'),
             self::item('Stock', 'Drug Inventory', 'Batch, quantity, and expiry', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
             self::item('Stock', 'Stock Status', 'Modilon consumption & days of stock', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
-            self::item('Stock', 'Stock Movements', 'Dispensing and receipts history', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
         ];
     }
 
