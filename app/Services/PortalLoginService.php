@@ -97,7 +97,20 @@ class PortalLoginService
             }
         }
 
-        $request->session()->flash('login_success', 'Login successful!');
+        $roleMeta = null;
+        foreach (array_keys(self::ROLE_ROUTE_MAP) as $spatieRole) {
+            if ($user->hasRole($spatieRole)) {
+                $roleMeta = config("portal.roles.{$spatieRole}");
+                break;
+            }
+        }
+
+        $request->session()->flash(
+            'login_success',
+            $roleMeta
+                ? 'Welcome to your '.$roleMeta['label'].' workspace'
+                : 'Welcome to your MediTrack workspace'
+        );
 
         if ($user->hasRole('admin')) {
             $pendingOrderCount = Order::pending()->count();
