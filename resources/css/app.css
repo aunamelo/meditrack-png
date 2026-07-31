@@ -280,7 +280,7 @@
     }
 
     .app-portal-footer {
-        @apply shrink-0 border-t-0 bg-[#2d2f3b] text-[#8e9196] dark:bg-night;
+        @apply shrink-0 border-t-0 bg-[#2d2f3b] text-[#8e9196] dark:bg-night-elevated;
     }
 
     .app-portal-footer-inner {
@@ -501,8 +501,9 @@
         @apply flex min-h-dvh flex-col bg-white dark:bg-night;
     }
 
+    /* Keep guest header white in both themes — logos stay crisp on light chrome */
     .guest-portal-topbar {
-        @apply shrink-0 border-b border-slate-200 bg-white dark:border-white/10 dark:bg-night-elevated;
+        @apply shrink-0 border-b border-slate-200 bg-white text-ink;
     }
 
     .guest-portal-topbar-inner {
@@ -522,11 +523,14 @@
     }
 
     .guest-portal-topbar-kicker {
-        @apply m-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400;
+        @apply m-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500;
+        color: #64748b !important;
     }
 
+    /* Beat global h1 dark:text-zinc-50 so title stays readable on white header */
     .guest-portal-topbar-title {
-        @apply m-0 font-display text-sm font-bold leading-snug text-[#132f4f] dark:text-zinc-50 sm:text-base;
+        @apply m-0 font-display text-sm font-bold leading-snug sm:text-base;
+        color: #132f4f !important;
     }
 
     .guest-portal-topnav {
@@ -534,15 +538,32 @@
     }
 
     .guest-portal-topnav-link {
-        @apply rounded px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1e3a5f] no-underline transition hover:bg-health-50 hover:text-health-800 dark:text-zinc-200 dark:hover:bg-health-900/40 dark:hover:text-health-300;
+        @apply rounded px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1e3a5f] no-underline transition hover:bg-health-50 hover:text-health-800;
+        color: #1e3a5f !important;
     }
 
     .guest-portal-topnav-link.is-active {
-        @apply bg-health-50 text-health-800 dark:bg-health-900/50 dark:text-health-200;
+        @apply bg-health-50 text-health-800;
+        color: #115e59 !important;
+    }
+
+    .guest-portal-topnav-link.is-cta {
+        @apply bg-health-700 text-white hover:bg-health-800 hover:text-white;
+        color: #ffffff !important;
+    }
+
+    .guest-portal-topnav-link.is-cta.is-active {
+        @apply bg-health-800 text-white;
+        color: #ffffff !important;
     }
 
     .guest-portal-topnav-theme {
-        @apply ms-1 flex items-center border-s border-slate-200 ps-2 dark:border-zinc-700;
+        @apply ms-1 flex items-center border-s border-slate-200 ps-2;
+    }
+
+    /* Theme toggle sits on white header even when page is dark */
+    .guest-portal-topnav-theme button {
+        @apply border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-health-700 dark:border-slate-300 dark:bg-white dark:text-slate-600 dark:hover:bg-slate-50 dark:hover:text-health-700;
     }
 
     .guest-portal-main {
@@ -731,7 +752,7 @@
     }
 
     .guest-portal-footer-bar {
-        @apply mt-auto shrink-0 bg-[#2d2f3b] text-[#8e9196] dark:bg-night;
+        @apply mt-auto shrink-0 bg-[#2d2f3b] text-[#8e9196] dark:bg-night-elevated;
     }
 
     .guest-portal-footer-inner {

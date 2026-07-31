@@ -67,7 +67,7 @@ export default {
                 /* Dark-mode charcoal surfaces */
                 night: {
                     DEFAULT: '#242731',
-                    elevated: '#2d2f3b',
+                    elevated: '#2e3341',
                     muted: '#1c1e26',
                 },
                 line: {

@@ -52,7 +52,7 @@
 
                 <nav class="guest-portal-topnav" aria-label="Portal">
                     <a href="{{ route('home') }}" @class(['guest-portal-topnav-link', 'is-active' => request()->routeIs('home')])>Home</a>
-                    <a href="{{ route('login') }}" @class(['guest-portal-topnav-link', 'is-active' => request()->routeIs('login')])>Sign in</a>
+                    <a href="{{ route('login') }}" @class(['guest-portal-topnav-link', 'is-cta', 'is-active' => request()->routeIs('login')])>Sign in</a>
                     <div class="guest-portal-topnav-theme">
                         <x-theme-toggle compact />
                     </div>
