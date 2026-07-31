@@ -62,7 +62,13 @@ export default {
                 },
                 canvas: {
                     DEFAULT: '#ffffff',
-                    dark: '#f1f5f9',
+                    dark: '#242731',
+                },
+                /* Dark-mode charcoal surfaces */
+                night: {
+                    DEFAULT: '#242731',
+                    elevated: '#2d2f3b',
+                    muted: '#1c1e26',
                 },
                 line: {
                     DEFAULT: '#e2e8f0',

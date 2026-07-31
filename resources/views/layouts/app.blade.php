@@ -16,7 +16,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-white font-sans antialiased text-ink dark:bg-zinc-950 dark:text-zinc-100">
+    <body class="min-h-screen bg-white font-sans antialiased text-ink dark:bg-night dark:text-zinc-100">
         <a href="#main-content" class="skip-link">Skip to main content</a>
 
         <div
@@ -31,13 +31,13 @@
                     localStorage.setItem('meditrack-sidebar-collapsed', this.sidebarCollapsed ? '1' : '0');
                 },
             }"
-            class="flex h-screen min-h-screen overflow-hidden bg-white dark:bg-zinc-950"
+            class="flex h-screen min-h-screen overflow-hidden bg-white dark:bg-night"
         >
             @auth
                 @include('layouts.sidebar')
             @endauth
 
-            <div class="flex h-screen min-h-screen min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-zinc-950">
+            <div class="flex h-screen min-h-screen min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-night">
                 @auth
                     @include('layouts.topbar')
                 @else

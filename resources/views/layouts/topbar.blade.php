@@ -50,7 +50,7 @@
 
         <button
             type="button"
-            class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-500 transition hover:text-health-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-health-600 dark:border-zinc-700 dark:bg-zinc-900"
+            class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-500 transition hover:text-health-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-health-600 dark:border-white/10 dark:bg-night-elevated"
             aria-label="{{ $pendingBadge > 0 ? 'Notifications, '.$pendingBadge.' pending' : 'Notifications' }}"
         >
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75" aria-hidden="true" focusable="false">
@@ -68,7 +68,7 @@
             <x-slot name="trigger">
                 <button
                     type="button"
-                    class="inline-flex items-center gap-2.5 rounded-lg border border-slate-300 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-[#132f4f] transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                    class="inline-flex items-center gap-2.5 rounded-lg border border-slate-300 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-[#132f4f] transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-100"
                     aria-haspopup="menu"
                     aria-label="Account menu for {{ Auth::user()->name }}"
                 >

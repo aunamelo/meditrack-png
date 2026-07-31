@@ -26,7 +26,7 @@
     }
 
     body {
-        @apply font-sans text-ink bg-white dark:bg-zinc-950 dark:text-zinc-100;
+        @apply bg-white font-sans text-ink dark:bg-night dark:text-zinc-100;
     }
 
     h1, h2, h3, h4 {
@@ -156,7 +156,7 @@
     }
 
     .medcare-topbar {
-        @apply flex shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900 sm:px-6;
+        @apply flex shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-night-elevated sm:px-6;
     }
 
     .medcare-search {
@@ -164,11 +164,11 @@
     }
 
     .medcare-panel {
-        @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900;
+        @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-night-elevated;
     }
 
     .medcare-stat-card {
-        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-health-200 hover:shadow dark:border-zinc-800 dark:bg-zinc-900;
+        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-health-200 hover:shadow dark:border-white/10 dark:bg-night-elevated;
     }
 
     .medcare-stat-featured {
@@ -184,11 +184,11 @@
     }
 
     .surface-panel {
-        @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none;
+        @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-night-elevated dark:shadow-none;
     }
 
     .surface-card {
-        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none;
+        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition dark:border-white/10 dark:bg-night-elevated dark:shadow-none;
     }
 
     .surface-card-hover {
@@ -196,7 +196,7 @@
     }
 
     .hero-banner {
-        @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8;
+        @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-night-elevated sm:p-8;
     }
 
     .btn-brand {
@@ -212,7 +212,7 @@
     }
 
     .input-field {
-        @apply w-full rounded border border-slate-300 bg-white text-sm text-ink shadow-none placeholder:text-ink-faint focus:border-health-600 focus:ring focus:ring-health-600/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-health-500;
+        @apply w-full rounded border border-slate-300 bg-white text-sm text-ink shadow-none placeholder:text-ink-faint focus:border-health-600 focus:ring focus:ring-health-600/15 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-health-500;
     }
 
     .sidebar-shell {
@@ -244,7 +244,7 @@
     }
 
     .dashboard-module-card {
-        @apply flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-health-200 hover:shadow dark:border-zinc-800 dark:bg-zinc-900;
+        @apply flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-health-200 hover:shadow dark:border-white/10 dark:bg-night-elevated;
         border-left-width: 4px;
         border-left-color: #0f766e;
     }
@@ -280,7 +280,7 @@
     }
 
     .app-portal-footer {
-        @apply shrink-0 border-t-0 bg-[#ce1126] text-white;
+        @apply shrink-0 border-t-0 bg-[#2d2f3b] text-[#8e9196] dark:bg-night;
     }
 
     .app-portal-footer-inner {
@@ -288,11 +288,11 @@
     }
 
     .app-portal-footer-copy {
-        @apply m-0 text-[11px] leading-snug text-white/95 sm:text-xs;
+        @apply m-0 text-[11px] leading-snug text-[#8e9196] sm:text-xs;
     }
 
     .app-portal-footer-note {
-        @apply m-0 text-[10px] font-semibold uppercase tracking-wide text-white/80;
+        @apply m-0 text-[10px] font-semibold uppercase tracking-wide text-[#8e9196]/80;
     }
 
     .dashboard-status-pill {
@@ -494,15 +494,15 @@
 
     /* Guest portals — DLPP-style full-page wireframe (MediTrack navy/teal) */
     .guest-portal-body {
-        @apply m-0 min-h-dvh bg-white font-sans antialiased text-ink dark:bg-zinc-950 dark:text-zinc-100;
+        @apply m-0 min-h-dvh bg-white font-sans antialiased text-ink dark:bg-night dark:text-zinc-100;
     }
 
     .guest-portal-page {
-        @apply flex min-h-dvh flex-col bg-white dark:bg-zinc-950;
+        @apply flex min-h-dvh flex-col bg-white dark:bg-night;
     }
 
     .guest-portal-topbar {
-        @apply shrink-0 border-b border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900;
+        @apply shrink-0 border-b border-slate-200 bg-white dark:border-white/10 dark:bg-night-elevated;
     }
 
     .guest-portal-topbar-inner {
@@ -590,7 +590,7 @@
     }
 
     .guest-auth-input {
-        @apply h-11 w-full rounded border border-slate-300 bg-white px-3.5 text-[15px] text-slate-900 shadow-none transition placeholder:text-slate-400 focus:border-health-600 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500;
+        @apply h-11 w-full rounded border border-slate-300 bg-white px-3.5 text-[15px] text-slate-900 shadow-none transition placeholder:text-slate-400 focus:border-health-600 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-100 dark:placeholder:text-zinc-500;
     }
 
     .guest-auth-select {
@@ -622,7 +622,7 @@
     }
 
     .guest-auth-m365 {
-        @apply mt-6 flex h-11 w-full max-w-md items-center justify-center gap-3 rounded border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 no-underline transition hover:border-health-300 hover:bg-health-50 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-health-700 dark:hover:bg-health-900/30;
+        @apply mt-6 flex h-11 w-full max-w-md items-center justify-center gap-3 rounded border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 no-underline transition hover:border-health-300 hover:bg-health-50 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-200 dark:hover:border-health-700 dark:hover:bg-health-900/30;
     }
 
     .guest-auth-m365-icon {
@@ -639,15 +639,15 @@
     }
 
     .guest-auth-or span {
-        @apply relative z-10 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:bg-zinc-950 dark:text-zinc-400;
+        @apply relative z-10 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:bg-night dark:text-zinc-400;
     }
 
     .guest-auth-submit {
-        @apply mt-2 inline-flex h-11 min-w-[9rem] items-center justify-center rounded border border-transparent bg-health-700 px-6 text-sm font-bold text-white transition hover:bg-health-800 focus:outline-none focus:ring-2 focus:ring-health-600/30 focus:ring-offset-2 dark:focus:ring-offset-zinc-950;
+        @apply mt-2 inline-flex h-11 min-w-[9rem] items-center justify-center rounded border border-transparent bg-health-700 px-6 text-sm font-bold text-white transition hover:bg-health-800 focus:outline-none focus:ring-2 focus:ring-health-600/30 focus:ring-offset-2 dark:focus:ring-offset-night;
     }
 
     .guest-auth-submit-outline {
-        @apply border-health-700 bg-white text-health-800 hover:bg-health-50 dark:border-health-500 dark:bg-zinc-900 dark:text-health-200 dark:hover:bg-health-900/40;
+        @apply border-health-700 bg-white text-health-800 hover:bg-health-50 dark:border-health-500 dark:bg-night-elevated dark:text-health-200 dark:hover:bg-health-900/40;
     }
 
     .guest-role-groups {
@@ -663,7 +663,7 @@
     }
 
     .guest-role-card {
-        @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left no-underline shadow-sm transition dark:border-zinc-700 dark:bg-zinc-900;
+        @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left no-underline shadow-sm transition dark:border-white/10 dark:bg-night-elevated;
         border-left-width: 4px;
         border-left-color: #0f766e;
     }
@@ -675,7 +675,7 @@
     }
 
     .guest-role-card-icon {
-        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white p-1.5 dark:border-zinc-700 dark:bg-zinc-950;
+        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-night;
     }
 
     .guest-role-card-logo {
@@ -731,7 +731,7 @@
     }
 
     .guest-portal-footer-bar {
-        @apply mt-auto shrink-0 bg-[#ce1126] text-white;
+        @apply mt-auto shrink-0 bg-[#2d2f3b] text-[#8e9196] dark:bg-night;
     }
 
     .guest-portal-footer-inner {
@@ -739,11 +739,11 @@
     }
 
     .guest-portal-footer-copy {
-        @apply m-0 text-xs leading-snug text-white/95 sm:text-sm;
+        @apply m-0 text-xs leading-snug text-[#8e9196] sm:text-sm;
     }
 
     .guest-portal-footer-note {
-        @apply m-0 text-[11px] font-semibold uppercase tracking-wide text-white/80;
+        @apply m-0 text-[11px] font-semibold uppercase tracking-wide text-[#8e9196]/80;
     }
 }
 
