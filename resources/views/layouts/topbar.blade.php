@@ -11,7 +11,7 @@
         <button
             type="button"
             @click="sidebarOpen = ! sidebarOpen"
-            class="inline-flex items-center justify-center rounded-lg p-2.5 text-slate-500 transition hover:bg-health-50 hover:text-health-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-health-600 lg:hidden"
+            class="inline-flex items-center justify-center rounded-lg p-2.5 text-slate-500 transition hover:bg-health-50 hover:text-health-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-health-600 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-health-300 lg:hidden"
             aria-label="Open navigation menu"
             aria-controls="app-sidebar"
             :aria-expanded="sidebarOpen.toString()"
@@ -25,13 +25,13 @@
             <div class="min-w-0 flex-1">{{ $header }}</div>
         @else
             <div class="min-w-0 flex-1">
-                <p class="m-0 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                <p class="m-0 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400">
                     {{ $roleMeta['facility_group'] ?? 'MediTrack PNG' }}
                 </p>
                 <p class="m-0 truncate font-display text-sm font-bold text-[#132f4f] dark:text-zinc-50">
                     {{ $roleMeta['label'] ?? 'Workspace' }}
                     @if(! empty($roleMeta['inventory_label']))
-                        <span class="font-medium text-slate-500">· {{ $roleMeta['inventory_label'] }}</span>
+                        <span class="font-medium text-slate-500 dark:text-zinc-400">· {{ $roleMeta['inventory_label'] }}</span>
                     @endif
                 </p>
             </div>

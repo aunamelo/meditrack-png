@@ -494,16 +494,15 @@
 
     /* Guest portals — DLPP-style full-page wireframe (MediTrack navy/teal) */
     .guest-portal-body {
-        @apply m-0 min-h-dvh font-sans antialiased text-ink;
-        background: #ffffff;
+        @apply m-0 min-h-dvh bg-white font-sans antialiased text-ink dark:bg-zinc-950 dark:text-zinc-100;
     }
 
     .guest-portal-page {
-        @apply flex min-h-dvh flex-col bg-white;
+        @apply flex min-h-dvh flex-col bg-white dark:bg-zinc-950;
     }
 
     .guest-portal-topbar {
-        @apply shrink-0 border-b border-slate-200 bg-white;
+        @apply shrink-0 border-b border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900;
     }
 
     .guest-portal-topbar-inner {
@@ -523,11 +522,11 @@
     }
 
     .guest-portal-topbar-kicker {
-        @apply m-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500;
+        @apply m-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400;
     }
 
     .guest-portal-topbar-title {
-        @apply m-0 font-display text-sm font-bold leading-snug text-[#132f4f] sm:text-base;
+        @apply m-0 font-display text-sm font-bold leading-snug text-[#132f4f] dark:text-zinc-50 sm:text-base;
     }
 
     .guest-portal-topnav {
@@ -535,15 +534,15 @@
     }
 
     .guest-portal-topnav-link {
-        @apply rounded px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1e3a5f] no-underline transition hover:bg-health-50 hover:text-health-800;
+        @apply rounded px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1e3a5f] no-underline transition hover:bg-health-50 hover:text-health-800 dark:text-zinc-200 dark:hover:bg-health-900/40 dark:hover:text-health-300;
     }
 
     .guest-portal-topnav-link.is-active {
-        @apply bg-health-50 text-health-800;
+        @apply bg-health-50 text-health-800 dark:bg-health-900/50 dark:text-health-200;
     }
 
     .guest-portal-topnav-theme {
-        @apply ms-1 flex items-center border-s border-slate-200 ps-2;
+        @apply ms-1 flex items-center border-s border-slate-200 ps-2 dark:border-zinc-700;
     }
 
     .guest-portal-main {
@@ -559,23 +558,23 @@
     }
 
     .guest-auth-back {
-        @apply mb-5 inline-flex items-center gap-1.5 text-sm font-semibold text-health-700 no-underline transition hover:text-health-800 hover:underline;
+        @apply mb-5 inline-flex items-center gap-1.5 text-sm font-semibold text-health-700 no-underline transition hover:text-health-800 hover:underline dark:text-health-300 dark:hover:text-health-200;
     }
 
     .guest-auth-heading {
-        @apply m-0 font-display text-2xl font-bold tracking-tight text-[#132f4f] sm:text-3xl;
+        @apply m-0 font-display text-2xl font-bold tracking-tight text-[#132f4f] dark:text-zinc-50 sm:text-3xl;
     }
 
     .guest-auth-lead {
-        @apply mt-2 max-w-2xl text-sm leading-relaxed text-slate-600;
+        @apply mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-zinc-400;
     }
 
     .guest-auth-lead strong {
-        @apply font-semibold text-[#132f4f];
+        @apply font-semibold text-[#132f4f] dark:text-zinc-100;
     }
 
     .guest-auth-notice {
-        @apply mt-4 rounded-md border border-health-200 bg-health-50 px-3 py-2 text-sm font-medium text-health-800;
+        @apply mt-4 rounded-md border border-health-200 bg-health-50 px-3 py-2 text-sm font-medium text-health-800 dark:border-health-800 dark:bg-health-900/30 dark:text-health-200;
     }
 
     .guest-auth-form {
@@ -587,11 +586,11 @@
     }
 
     .guest-auth-label {
-        @apply mb-1.5 block text-sm font-semibold text-slate-800;
+        @apply mb-1.5 block text-sm font-semibold text-slate-800 dark:text-zinc-200;
     }
 
     .guest-auth-input {
-        @apply h-11 w-full rounded border border-slate-300 bg-white px-3.5 text-[15px] text-slate-900 shadow-none transition placeholder:text-slate-400 focus:border-health-600 focus:outline-none focus:ring-2 focus:ring-health-600/15;
+        @apply h-11 w-full rounded border border-slate-300 bg-white px-3.5 text-[15px] text-slate-900 shadow-none transition placeholder:text-slate-400 focus:border-health-600 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500;
     }
 
     .guest-auth-select {
@@ -602,24 +601,28 @@
         background-size: 1.25em 1.25em !important;
     }
 
+    .dark .guest-auth-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+    }
+
     .guest-auth-eye {
-        @apply absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-500 transition hover:text-health-700;
+        @apply absolute inset-y-0 right-0 flex w-11 items-center justify-center text-slate-500 transition hover:text-health-700 dark:text-zinc-400 dark:hover:text-health-300;
     }
 
     .guest-auth-error {
-        @apply mt-1.5 text-xs font-medium text-[#ce1126];
+        @apply mt-1.5 text-xs font-medium text-[#ce1126] dark:text-rose-400;
     }
 
     .guest-auth-link {
-        @apply inline-block text-sm font-semibold text-health-600 no-underline underline-offset-2 transition hover:text-health-800 hover:underline;
+        @apply inline-block text-sm font-semibold text-health-600 no-underline underline-offset-2 transition hover:text-health-800 hover:underline dark:text-health-300 dark:hover:text-health-200;
     }
 
     .guest-auth-check {
-        @apply mt-1 flex cursor-pointer items-center gap-2 text-sm text-slate-700;
+        @apply mt-1 flex cursor-pointer items-center gap-2 text-sm text-slate-700 dark:text-zinc-300;
     }
 
     .guest-auth-m365 {
-        @apply mt-6 flex h-11 w-full max-w-md items-center justify-center gap-3 rounded border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 no-underline transition hover:border-health-300 hover:bg-health-50 focus:outline-none focus:ring-2 focus:ring-health-600/15;
+        @apply mt-6 flex h-11 w-full max-w-md items-center justify-center gap-3 rounded border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 no-underline transition hover:border-health-300 hover:bg-health-50 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-health-700 dark:hover:bg-health-900/30;
     }
 
     .guest-auth-m365-icon {
@@ -632,28 +635,27 @@
 
     .guest-auth-or::before {
         content: '';
-        @apply absolute left-0 right-0 top-1/2 border-t border-slate-200;
+        @apply absolute left-0 right-0 top-1/2 border-t border-slate-200 dark:border-zinc-700;
     }
 
     .guest-auth-or span {
-        @apply relative z-10 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500;
+        @apply relative z-10 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:bg-zinc-950 dark:text-zinc-400;
     }
 
     .guest-auth-submit {
-        @apply mt-2 inline-flex h-11 min-w-[9rem] items-center justify-center rounded border border-transparent bg-health-700 px-6 text-sm font-bold text-white transition hover:bg-health-800 focus:outline-none focus:ring-2 focus:ring-health-600/30 focus:ring-offset-2;
+        @apply mt-2 inline-flex h-11 min-w-[9rem] items-center justify-center rounded border border-transparent bg-health-700 px-6 text-sm font-bold text-white transition hover:bg-health-800 focus:outline-none focus:ring-2 focus:ring-health-600/30 focus:ring-offset-2 dark:focus:ring-offset-zinc-950;
     }
 
     .guest-auth-submit-outline {
-        @apply border-health-700 bg-white text-health-800 hover:bg-health-50;
+        @apply border-health-700 bg-white text-health-800 hover:bg-health-50 dark:border-health-500 dark:bg-zinc-900 dark:text-health-200 dark:hover:bg-health-900/40;
     }
 
-    /* Role cards — foreshadow each workspace (facility + role) */
     .guest-role-groups {
         @apply mt-8 space-y-8;
     }
 
     .guest-role-group-title {
-        @apply mb-3 font-display text-xs font-bold uppercase tracking-[0.14em] text-slate-500;
+        @apply mb-3 font-display text-xs font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400;
     }
 
     .guest-role-grid {
@@ -661,19 +663,19 @@
     }
 
     .guest-role-card {
-        @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left no-underline shadow-sm transition;
+        @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left no-underline shadow-sm transition dark:border-zinc-700 dark:bg-zinc-900;
         border-left-width: 4px;
         border-left-color: #0f766e;
     }
 
     .guest-role-card:hover {
-        @apply border-health-200 bg-health-50/40;
+        @apply border-health-200 bg-health-50/40 dark:border-health-700 dark:bg-health-900/20;
         border-left-color: #0d9488;
         box-shadow: 0 4px 14px rgba(15, 118, 110, 0.1);
     }
 
     .guest-role-card-icon {
-        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white p-1.5;
+        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white p-1.5 dark:border-zinc-700 dark:bg-zinc-950;
     }
 
     .guest-role-card-logo {
@@ -685,26 +687,25 @@
     }
 
     .guest-role-card-label {
-        @apply block font-display text-sm font-bold text-[#132f4f];
+        @apply block font-display text-sm font-bold text-[#132f4f] dark:text-zinc-50;
     }
 
     .guest-role-card-subtitle {
-        @apply mt-0.5 block text-xs leading-snug text-slate-600;
+        @apply mt-0.5 block text-xs leading-snug text-slate-600 dark:text-zinc-400;
     }
 
     .guest-role-card-facility {
-        @apply mt-1.5 inline-block rounded-md bg-health-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-health-800;
+        @apply mt-1.5 inline-block rounded-md bg-health-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-health-800 dark:bg-health-900/50 dark:text-health-200;
     }
 
     .guest-role-card-chevron {
-        @apply shrink-0 text-slate-400 transition;
+        @apply shrink-0 text-slate-400 transition dark:text-zinc-500;
     }
 
     .guest-role-card:hover .guest-role-card-chevron {
-        @apply text-health-600;
+        @apply text-health-600 dark:text-health-300;
     }
 
-    /* Login strip — mirrors sidebar role card identity */
     .guest-role-strip {
         @apply mt-5 flex max-w-xl items-center gap-3 rounded-xl border border-health-800/15 bg-gradient-to-r from-health-700 via-health-700 to-brand-700 px-4 py-3 text-white shadow-sm;
     }
@@ -743,63 +744,6 @@
 
     .guest-portal-footer-note {
         @apply m-0 text-[11px] font-semibold uppercase tracking-wide text-white/80;
-    }
-
-    /* Keep guest portals light when app dark mode is on */
-    .dark .guest-portal-page,
-    .dark .guest-portal-body,
-    .dark .guest-portal-topbar,
-    .dark .guest-portal-main {
-        background: #ffffff !important;
-        color: #0f172a;
-    }
-
-    .dark .guest-portal-topbar-title,
-    .dark .guest-auth-heading {
-        color: #132f4f !important;
-    }
-
-    .dark .guest-portal-topnav-link,
-    .dark .guest-auth-label {
-        color: #1e3a5f !important;
-    }
-
-    .dark .guest-auth-back {
-        @apply text-health-700;
-    }
-
-    .dark .guest-auth-lead,
-    .dark .guest-auth-check {
-        @apply text-slate-600;
-    }
-
-    .dark .guest-auth-input {
-        @apply border-slate-300 bg-white text-slate-900;
-    }
-
-    .dark .guest-auth-m365 {
-        @apply border-slate-300 bg-white text-slate-700;
-    }
-
-    .dark .guest-auth-or span {
-        @apply bg-white text-slate-500;
-    }
-
-    .dark .guest-auth-submit-outline {
-        @apply border-health-700 bg-white text-health-800;
-    }
-
-    .dark .guest-role-card {
-        @apply border-slate-200 bg-white;
-        border-left-color: #0f766e;
-    }
-
-    .dark .guest-role-card-label {
-        color: #132f4f !important;
-    }
-
-    .dark .guest-role-strip {
-        @apply from-health-700 via-health-700 to-brand-700 text-white;
     }
 }
 

@@ -12,7 +12,16 @@
     x-data="{
         dark: document.documentElement.classList.contains('dark'),
         toggle() {
-            this.dark = window.MediTrackTheme.toggleTheme() === 'dark';
+            if (window.MediTrackTheme?.toggleTheme) {
+                this.dark = window.MediTrackTheme.toggleTheme() === 'dark';
+                return;
+            }
+
+            const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            document.documentElement.classList.toggle('dark', next === 'dark');
+            document.documentElement.dataset.theme = next;
+            localStorage.setItem('meditrack-theme', next);
+            this.dark = next === 'dark';
         },
     }"
     @click="toggle()"

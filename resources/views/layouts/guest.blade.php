@@ -17,16 +17,27 @@
     @stack('head')
 </head>
 
+@php
+    $guestRoleKey = request('role') ? str_replace('-', '_', (string) request('role')) : null;
+    $guestRoleMeta = $guestRoleKey ? config("portal.roles.{$guestRoleKey}") : null;
+    $guestBrandIcon = $guestRoleMeta['brand_icon'] ?? 'images/ndoh-portal.png';
+    $guestBrandAlt = $guestRoleMeta['brand_alt'] ?? 'National Department of Health — Papua New Guinea';
+    $guestKicker = $guestRoleMeta['facility_group'] ?? 'National Department of Health';
+    $guestTitle = $guestRoleMeta
+        ? ($guestRoleMeta['brand_tagline'] ?? 'MediTrack PNG eLog Portal')
+        : 'MediTrack PNG eLog Portal';
+@endphp
+
 <body class="guest-portal-body">
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <div class="guest-portal-page">
+    <div class="guest-portal-page" @if($guestRoleKey) data-role="{{ $guestRoleKey }}" @endif>
         <header class="guest-portal-topbar">
             <div class="guest-portal-topbar-inner">
                 <a href="{{ route('home') }}" class="guest-portal-brand-link">
                     <img
-                        src="{{ asset('images/ndoh-portal.png') }}"
-                        alt="National Department of Health — Papua New Guinea"
+                        src="{{ asset($guestBrandIcon) }}"
+                        alt="{{ $guestBrandAlt }}"
                         class="guest-portal-topbar-logo"
                         width="56"
                         height="52"
@@ -34,8 +45,8 @@
                         fetchpriority="high"
                     >
                     <div class="guest-portal-topbar-titles">
-                        <p class="guest-portal-topbar-kicker">National Department of Health</p>
-                        <h1 class="guest-portal-topbar-title">MediTrack PNG eLog Portal</h1>
+                        <p class="guest-portal-topbar-kicker">{{ $guestKicker }}</p>
+                        <h1 class="guest-portal-topbar-title">{{ $guestTitle }}</h1>
                     </div>
                 </a>
 
