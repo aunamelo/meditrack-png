@@ -50,9 +50,34 @@
                     </div>
                 </a>
 
-                <nav class="guest-portal-topnav" aria-label="Portal">
+                <nav class="guest-portal-topnav" aria-label="Portal" x-data="{ signupOpen: false }">
                     <a href="{{ route('home') }}" @class(['guest-portal-topnav-link', 'is-active' => request()->routeIs('home')])>Home</a>
-                    <a href="{{ route('login') }}" @class(['guest-portal-topnav-link', 'is-cta', 'is-active' => request()->routeIs('login')])>Sign in</a>
+                    <div class="guest-portal-signup">
+                        <button
+                            type="button"
+                            class="guest-portal-topnav-link is-cta"
+                            @click="signupOpen = ! signupOpen"
+                            :aria-expanded="signupOpen.toString()"
+                            aria-controls="guest-signup-notice"
+                        >
+                            Sign up
+                        </button>
+                        <div
+                            id="guest-signup-notice"
+                            x-show="signupOpen"
+                            x-cloak
+                            @click.outside="signupOpen = false"
+                            @keydown.escape.window="signupOpen = false"
+                            class="guest-portal-signup-panel"
+                            role="dialog"
+                            aria-label="Request an account"
+                        >
+                            <p class="guest-portal-signup-title">Need an account?</p>
+                            <p class="guest-portal-signup-text">
+                                Self-registration is not available. Contact your NDoH or facility administrator to request MediTrack access.
+                            </p>
+                        </div>
+                    </div>
                     <div class="guest-portal-topnav-theme">
                         <x-theme-toggle compact />
                     </div>
