@@ -538,23 +538,31 @@
     }
 
     .guest-portal-topnav-link {
-        @apply rounded px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1e3a5f] no-underline transition hover:bg-health-50 hover:text-health-800;
+        @apply rounded-md px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1e3a5f] no-underline transition hover:text-health-700;
         color: #1e3a5f !important;
+        background: transparent !important;
     }
 
     .guest-portal-topnav-link.is-active {
-        @apply bg-health-50 text-health-800;
-        color: #115e59 !important;
+        color: #0f766e !important;
+        box-shadow: inset 0 -2px 0 #0f766e;
     }
 
     .guest-portal-topnav-link.is-cta {
         @apply bg-health-700 text-white hover:bg-health-800 hover:text-white;
         color: #ffffff !important;
+        background: #0f766e !important;
+        box-shadow: none !important;
+    }
+
+    .guest-portal-topnav-link.is-cta:hover {
+        background: #115e59 !important;
     }
 
     .guest-portal-topnav-link.is-cta.is-active {
-        @apply bg-health-800 text-white;
+        background: #115e59 !important;
         color: #ffffff !important;
+        box-shadow: none !important;
     }
 
     .guest-portal-topnav-theme {
