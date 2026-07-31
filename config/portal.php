@@ -18,6 +18,10 @@ return [
             'inventory_level' => 'ndoh',
             'inventory_label' => 'NDoH Central Store',
             'dashboard_route' => 'dashboard.admin',
+            'brand_icon' => 'images/ndoh-portal.png',
+            'brand_alt' => 'National Department of Health — Papua New Guinea',
+            'brand_tagline' => 'NDoH eLog Portal',
+            'facility_group' => 'National Department of Health',
         ],
         'procurement_officer' => [
             'label' => 'Procurement Officer',
@@ -25,6 +29,10 @@ return [
             'inventory_level' => 'ndoh',
             'inventory_label' => 'NDoH Central Store',
             'dashboard_route' => 'dashboard.procurement_officer',
+            'brand_icon' => 'images/ndoh-portal.png',
+            'brand_alt' => 'National Department of Health — Papua New Guinea',
+            'brand_tagline' => 'NDoH eLog Portal',
+            'facility_group' => 'National Department of Health',
         ],
         'store_manager' => [
             'label' => 'Store Manager',
@@ -32,6 +40,10 @@ return [
             'inventory_level' => 'lae_ams',
             'inventory_label' => 'Lae AMS Warehouse',
             'dashboard_route' => 'dashboard.store_manager',
+            'brand_icon' => 'images/ndoh-portal.png',
+            'brand_alt' => 'Lae Area Medical Store — Papua New Guinea',
+            'brand_tagline' => 'Lae AMS Warehouse',
+            'facility_group' => 'Lae Area Medical Store',
         ],
         'pharmacy_manager' => [
             'label' => 'Pharmacy Manager',
@@ -42,6 +54,7 @@ return [
             'brand_icon' => 'images/modilon-hospital.webp',
             'brand_alt' => 'Modilon General Hospital — Madang',
             'brand_tagline' => 'Modilon General Hospital',
+            'facility_group' => 'Modilon General Hospital',
         ],
         'pharmacist' => [
             'label' => 'Pharmacist',
@@ -52,6 +65,7 @@ return [
             'brand_icon' => 'images/modilon-hospital.webp',
             'brand_alt' => 'Modilon General Hospital — Madang',
             'brand_tagline' => 'Modilon General Hospital',
+            'facility_group' => 'Modilon General Hospital',
         ],
     ],
 

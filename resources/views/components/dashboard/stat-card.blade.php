@@ -12,7 +12,7 @@ $iconWrap = match($tone) {
     'blue' => 'bg-sky-50 text-sky-600',
     'red' => 'bg-rose-50 text-rose-600',
     'slate' => 'bg-canvas text-ink-muted',
-    default => 'bg-brand-50 text-brand-600',
+    default => 'bg-health-50 text-health-700',
 };
 @endphp
 

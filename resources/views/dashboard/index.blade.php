@@ -9,21 +9,21 @@
                 $topStats = collect($stats ?? [])->take(4);
             @endphp
 
-            {{-- Page header --}}
-            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            {{-- Page header — same typography as guest portal --}}
+            <div class="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
                 <div @class(['flex gap-4', 'items-center' => in_array($roleMeta['key'] ?? '', ['pharmacy_manager', 'pharmacist'], true)])>
                     @if(in_array($roleMeta['key'] ?? '', ['pharmacy_manager', 'pharmacist'], true))
-                        <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white p-1.5 shadow-soft ring-1 ring-line dark:bg-zinc-900 dark:ring-zinc-800">
+                        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white p-1.5 dark:border-zinc-700 dark:bg-zinc-900">
                             <x-app-icon size="lg" class="h-full w-full object-contain" />
                         </div>
                     @endif
                     <div>
-                        <h1 class="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{{ $roleMeta['label'] }} Dashboard</h1>
-                        <p class="mt-1 text-sm text-muted">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                            {{ $roleMeta['facility_group'] ?? 'MediTrack PNG' }} · {{ $roleMeta['inventory_label'] }}
+                        </p>
+                        <h1 class="mt-1 font-display text-2xl font-bold tracking-tight text-[#132f4f] dark:text-zinc-50 sm:text-3xl">{{ $roleMeta['label'] }} Dashboard</h1>
+                        <p class="mt-1.5 text-sm text-slate-600 dark:text-zinc-400">
                             {{ $greeting }}, {{ $firstName }} · {{ now()->format('l, j F Y') }}
-                            @if(in_array($roleMeta['key'] ?? '', ['pharmacy_manager', 'pharmacist'], true))
-                                · {{ $roleMeta['brand_tagline'] ?? 'Modilon General Hospital' }}
-                            @endif
                         </p>
                     </div>
                 </div>

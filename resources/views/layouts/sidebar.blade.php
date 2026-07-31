@@ -15,15 +15,15 @@
     x-cloak
 >
     <div class="flex h-full min-h-screen flex-col overflow-hidden">
-        {{-- Brand + collapse toggle --}}
-        <div class="sidebar-header flex items-center gap-2 px-4 py-5 lg:px-3">
+        {{-- Brand + collapse toggle — mirrors guest portal header --}}
+        <div class="sidebar-header flex items-center gap-2 border-b border-white/10 px-4 py-4 lg:px-3">
             <a href="{{ getRoleDashboardRoute() }}" class="sidebar-header-brand flex min-w-0 flex-1 items-center gap-3 overflow-hidden" title="MediTrack PNG home">
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white p-1">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white p-1">
                     <x-app-icon size="sm" class="h-9 w-9 object-contain" />
                 </div>
                 <div class="sidebar-brand-text min-w-0">
-                    <p class="truncate font-display text-lg font-bold text-white">MediTrack</p>
-                    <p class="truncate text-xs font-medium text-brand-100">{{ $roleMeta['brand_tagline'] ?? 'NDoH eLog Portal' }}</p>
+                    <p class="sidebar-brand-tagline">{{ $roleMeta['facility_group'] ?? 'National Department of Health' }}</p>
+                    <p class="sidebar-brand-title">{{ $roleMeta['brand_tagline'] ?? 'MediTrack PNG eLog Portal' }}</p>
                 </div>
             </a>
             <button
@@ -51,7 +51,7 @@
             </button>
         </div>
 
-        <nav class="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 pb-4" aria-label="Primary">
+        <nav class="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 py-4" aria-label="Primary">
             @foreach($portalNav as $groupLabel => $groupItems)
                 @php
                     $groupHeadingId = 'nav-group-'.\Illuminate\Support\Str::slug($groupLabel);
@@ -81,10 +81,10 @@
         </nav>
 
         @if($roleMeta)
-            <div class="sidebar-role-card mx-3 mb-3 overflow-hidden rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm" title="{{ $roleMeta['label'] }} · {{ $roleMeta['inventory_label'] }}">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-white/50">Your role</p>
-                <p class="mt-1 truncate text-sm font-semibold text-white">{{ $roleMeta['label'] }}</p>
-                <p class="mt-0.5 truncate text-xs text-white/60">{{ $roleMeta['inventory_label'] }}</p>
+            <div class="sidebar-role-card" title="{{ $roleMeta['label'] }} · {{ $roleMeta['inventory_label'] }}">
+                <p class="sidebar-role-card-kicker">Your workspace</p>
+                <p class="sidebar-role-card-label">{{ $roleMeta['label'] }}</p>
+                <p class="sidebar-role-card-meta">{{ $roleMeta['inventory_label'] }}</p>
             </div>
         @endif
 

@@ -20,30 +20,42 @@
 <body class="guest-portal-body">
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <div class="guest-portal-shell">
-        <div class="guest-portal-card">
-            @hasSection('content-top')
-                @yield('content-top')
-            @endif
+    <div class="guest-portal-page">
+        <header class="guest-portal-topbar">
+            <div class="guest-portal-topbar-inner">
+                <a href="{{ route('home') }}" class="guest-portal-brand-link">
+                    <img
+                        src="{{ asset('images/ndoh-portal.png') }}"
+                        alt="National Department of Health — Papua New Guinea"
+                        class="guest-portal-topbar-logo"
+                        width="56"
+                        height="52"
+                        decoding="async"
+                        fetchpriority="high"
+                    >
+                    <div class="guest-portal-topbar-titles">
+                        <p class="guest-portal-topbar-kicker">National Department of Health</p>
+                        <h1 class="guest-portal-topbar-title">MediTrack PNG eLog Portal</h1>
+                    </div>
+                </a>
 
-            <header>
-                @include('partials.guest-portal-header')
-            </header>
+                <nav class="guest-portal-topnav" aria-label="Portal">
+                    <a href="{{ route('home') }}" @class(['guest-portal-topnav-link', 'is-active' => request()->routeIs('home')])>Home</a>
+                    <a href="{{ route('login') }}" @class(['guest-portal-topnav-link', 'is-active' => request()->routeIs('login')])>Sign in</a>
+                    <div class="guest-portal-topnav-theme">
+                        <x-theme-toggle compact />
+                    </div>
+                </nav>
+            </div>
+        </header>
 
-            <div class="guest-portal-divider" aria-hidden="true"></div>
-
-            <main id="main-content" tabindex="-1" class="outline-none">
+        <main id="main-content" tabindex="-1" class="guest-portal-main outline-none">
+            <div class="guest-portal-main-inner">
                 @yield('content')
-            </main>
-
-            @include('partials.guest-portal-trust')
-        </div>
+            </div>
+        </main>
 
         @include('partials.guest-footer')
-    </div>
-
-    <div class="guest-portal-theme">
-        <x-theme-toggle compact />
     </div>
 
     @stack('scripts')

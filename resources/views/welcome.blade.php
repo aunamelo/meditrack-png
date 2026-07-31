@@ -8,35 +8,40 @@
 @endphp
 
 @section('content')
-    <form action="{{ route('login') }}" method="GET" id="roleSelectionForm" class="guest-portal-form-wrap">
-        <div class="guest-portal-form">
-            <div class="guest-portal-field">
-                <label for="userRole" class="guest-portal-label">Your role</label>
+    <div class="guest-auth">
+        <h2 class="guest-auth-heading">Choose your portal role</h2>
+        <p class="guest-auth-lead">
+            Select your MediTrack role to continue. If you do not have an account, contact your NDoH or facility administrator.
+        </p>
+
+        <form action="{{ route('login') }}" method="GET" id="roleSelectionForm" class="guest-auth-form">
+            <div class="guest-auth-field">
+                <label for="userRole" class="guest-auth-label">Your role</label>
                 <select
                     id="userRole"
                     name="role"
                     required
-                    class="guest-portal-input guest-portal-select"
+                    class="guest-auth-input guest-auth-select"
                     aria-describedby="roleError"
                     aria-invalid="false"
                 >
-                        <option value="" disabled selected>Select role</option>
-                        @foreach($roleOrder as $roleKey)
-                            @if(isset($portalRoles[$roleKey]))
-                                <option value="{{ str_replace('_', '-', $roleKey) }}">
-                                    {{ $portalRoles[$roleKey]['label'] }}
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
-                <p id="roleError" class="guest-portal-error hidden" role="alert" aria-live="assertive">Select a role to continue.</p>
+                    <option value="" disabled selected>Select role</option>
+                    @foreach($roleOrder as $roleKey)
+                        @if(isset($portalRoles[$roleKey]))
+                            <option value="{{ str_replace('_', '-', $roleKey) }}">
+                                {{ $portalRoles[$roleKey]['label'] }}
+                            </option>
+                        @endif
+                    @endforeach
+                </select>
+                <p id="roleError" class="guest-auth-error hidden" role="alert" aria-live="assertive">Select a role to continue.</p>
             </div>
 
-            <button type="submit" class="guest-portal-btn">
+            <button type="submit" class="guest-auth-submit">
                 Continue to sign in
             </button>
-        </div>
-    </form>
+        </form>
+    </div>
 @endsection
 
 @push('scripts')

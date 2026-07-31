@@ -16,7 +16,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen">
+    <body class="min-h-screen bg-white font-sans antialiased text-ink dark:bg-zinc-950 dark:text-zinc-100">
         <a href="#main-content" class="skip-link">Skip to main content</a>
 
         <div
@@ -31,22 +31,33 @@
                     localStorage.setItem('meditrack-sidebar-collapsed', this.sidebarCollapsed ? '1' : '0');
                 },
             }"
-            class="flex h-screen min-h-screen overflow-hidden bg-surface dark:bg-zinc-950"
+            class="flex h-screen min-h-screen overflow-hidden bg-white dark:bg-zinc-950"
         >
             @auth
                 @include('layouts.sidebar')
             @endauth
 
-            <div class="flex h-screen min-h-screen min-w-0 flex-1 flex-col overflow-hidden bg-canvas dark:bg-zinc-950">
+            <div class="flex h-screen min-h-screen min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-zinc-950">
                 @auth
                     @include('layouts.topbar')
                 @else
                     @include('layouts.navigation')
                 @endauth
 
-                <main id="main-content" tabindex="-1" class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 lg:px-6 outline-none">
+                <main id="main-content" tabindex="-1" class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 outline-none lg:px-8 lg:py-8">
                     {{ $slot }}
                 </main>
+
+                @auth
+                    <footer class="app-portal-footer">
+                        <div class="app-portal-footer-inner">
+                            <p class="app-portal-footer-copy">
+                                Copyright &copy; {{ date('Y') }} National Department of Health of Papua New Guinea · MediTrack eLog
+                            </p>
+                            <p class="app-portal-footer-note">Authorized NDoH personnel only</p>
+                        </div>
+                    </footer>
+                @endauth
             </div>
         </div>
         @stack('scripts')

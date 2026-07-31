@@ -6,40 +6,61 @@
     $roleKey = request('role');
     $roleDbKey = $roleKey ? str_replace('-', '_', $roleKey) : null;
     $roleMeta = $roleDbKey ? config("portal.roles.{$roleDbKey}") : null;
+    $microsoftEnabled = $microsoftEnabled ?? \App\Services\PortalLoginService::microsoftConfigured();
 @endphp
 
-@section('content-top')
-    <a href="{{ route('home') }}" class="guest-portal-back" aria-label="Back to role selection">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true" focusable="false">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-        </svg>
-    </a>
-@endsection
-
 @section('content')
-    @if ($roleMeta)
-        <div class="guest-portal-role-badge">
-            <span class="guest-portal-role-label">Signing in as</span>
-            <span class="guest-portal-role-name">{{ $roleMeta['label'] }}</span>
-        </div>
-    @else
-        <h1 class="guest-portal-title">Sign in</h1>
-    @endif
+    <div class="guest-auth">
+        <a href="{{ route('home') }}" class="guest-auth-back">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to role selection
+        </a>
 
-    @if (session('status'))
-        <div class="guest-portal-notice" role="status" aria-live="polite">{{ session('status') }}</div>
-    @endif
+        <h2 class="guest-auth-heading">Log in to an existing account</h2>
+        <p class="guest-auth-lead">
+            @if ($roleMeta)
+                Signing in as <strong>{{ $roleMeta['label'] }}</strong>.
+                If you do not have an account, please contact your NDoH or facility administrator.
+            @else
+                If you do not have an account, please contact your NDoH or facility administrator.
+            @endif
+        </p>
 
-    <form action="{{ route('login') }}" method="POST" class="guest-portal-form-wrap">
-        @csrf
-
-        @if ($roleKey)
-            <input type="hidden" name="role" value="{{ $roleKey }}">
+        @if (session('status'))
+            <div class="guest-auth-notice" role="status" aria-live="polite">{{ session('status') }}</div>
         @endif
 
-        <div class="guest-portal-form">
-            <div class="guest-portal-field">
-                <label for="email" class="guest-portal-label">Email address</label>
+        <a
+            href="{{ route('auth.microsoft.redirect', array_filter(['role' => $roleKey])) }}"
+            class="guest-auth-m365"
+            @if(! $microsoftEnabled) title="Configure MICROSOFT_CLIENT_ID / SECRET in .env to enable" @endif
+        >
+            <span class="guest-auth-m365-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23" class="h-5 w-5" focusable="false">
+                    <path fill="#f25022" d="M1 1h10v10H1z"/>
+                    <path fill="#00a4ef" d="M12 1h10v10H12z"/>
+                    <path fill="#7fba00" d="M1 12h10v10H1z"/>
+                    <path fill="#ffb900" d="M12 12h10v10H12z"/>
+                </svg>
+            </span>
+            Sign in with Microsoft 365
+        </a>
+
+        <div class="guest-auth-or" role="separator" aria-label="or">
+            <span>or continue with email</span>
+        </div>
+
+        <form action="{{ route('login') }}" method="POST" class="guest-auth-form">
+            @csrf
+
+            @if ($roleKey)
+                <input type="hidden" name="role" value="{{ $roleKey }}">
+            @endif
+
+            <div class="guest-auth-field">
+                <label for="email" class="guest-auth-label">Login</label>
                 <input
                     type="email"
                     id="email"
@@ -48,16 +69,16 @@
                     required
                     autofocus
                     autocomplete="username"
-                    placeholder="name@health.gov.pg"
-                    class="guest-portal-input"
+                    placeholder="Username or email"
+                    class="guest-auth-input"
                 />
                 @error('email')
-                    <p class="guest-portal-error">{{ $message }}</p>
+                    <p class="guest-auth-error">{{ $message }}</p>
                 @enderror
             </div>
 
-            <div class="guest-portal-field">
-                <label for="password" class="guest-portal-label">Password</label>
+            <div class="guest-auth-field">
+                <label for="password" class="guest-auth-label">Password</label>
                 <div x-data="{ showPassword: false }" class="relative">
                     <input
                         :type="showPassword ? 'text' : 'password'"
@@ -65,12 +86,13 @@
                         name="password"
                         required
                         autocomplete="current-password"
-                        class="guest-portal-input pe-10"
+                        placeholder="Password"
+                        class="guest-auth-input pe-11"
                     />
                     <button
                         type="button"
                         @click="showPassword = ! showPassword"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-muted transition hover:text-ink"
+                        class="guest-auth-eye"
                         :aria-label="showPassword ? 'Hide password' : 'Show password'"
                     >
                         <svg x-show="! showPassword" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
@@ -83,26 +105,22 @@
                     </button>
                 </div>
                 @error('password')
-                    <p class="guest-portal-error">{{ $message }}</p>
+                    <p class="guest-auth-error">{{ $message }}</p>
                 @enderror
             </div>
 
-            <div class="flex items-center justify-between gap-2 pt-0.5">
-                <label class="guest-portal-check">
-                    <input type="checkbox" name="remember" class="rounded border-line text-brand-600 focus:ring-brand-500 dark:border-zinc-600">
-                    Remember me
-                </label>
+            @if (Route::has('password.request'))
+                <a href="{{ route('password.request') }}" class="guest-auth-link">Forgot your password?</a>
+            @endif
 
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="guest-portal-link">
-                        Forgot password?
-                    </a>
-                @endif
-            </div>
+            <label class="guest-auth-check">
+                <input type="checkbox" name="remember" class="rounded border-slate-400 text-health-700 focus:ring-health-600">
+                Remember Me
+            </label>
 
-            <button type="submit" class="guest-portal-btn">
-                Sign in
+            <button type="submit" class="guest-auth-submit guest-auth-submit-outline">
+                Sign In
             </button>
-        </div>
-    </form>
+        </form>
+    </div>
 @endsection
