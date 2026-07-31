@@ -1,49 +1,39 @@
 <x-app-layout>
-    <x-slot name="header"><div><p class="text-section-label">Reports</p><h2 class="heading-page">Regional Report</h2></div></x-slot>
+    <x-slot name="header">
+        <div>
+            <p class="text-section-label">Reports</p>
+            <h2 class="heading-page">Regional Report</h2>
+        </div>
+    </x-slot>
+
     <x-page-container>
+        <div class="mb-6 rounded-xl border border-brand-100 bg-brand-50/60 p-4 text-sm text-slate-700 dark:border-brand-900/40 dark:bg-brand-950/30 dark:text-slate-200">
+            Generate a Lae AMS period summary — inventory, Modilon hospital orders, NDoH receipts, road deliveries, and discrepancies. Print or download CSV after generating.
+        </div>
+
         <div class="surface-panel p-6">
-            <form method="GET" class="mb-8 flex flex-wrap items-end gap-4">
-                <div><label class="mb-1 block text-sm font-medium">From</label><input type="date" name="date_from" value="{{ $from->toDateString() }}" class="rounded-md border-gray-300"></div>
-                <div><label class="mb-1 block text-sm font-medium">To</label><input type="date" name="date_to" value="{{ $to->toDateString() }}" class="rounded-md border-gray-300"></div>
-                <button type="submit" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Generate</button>
+            <form method="GET" action="{{ getDashboardRegionalReportRoute('index') }}" class="mb-6 flex flex-wrap items-end gap-4">
+                <div>
+                    <label for="date_from" class="mb-1 block text-sm font-medium">From</label>
+                    <input id="date_from" type="date" name="date_from" value="{{ $from->toDateString() }}" class="rounded-md border-gray-300 text-sm dark:border-slate-600 dark:bg-slate-800">
+                </div>
+                <div>
+                    <label for="date_to" class="mb-1 block text-sm font-medium">To</label>
+                    <input id="date_to" type="date" name="date_to" value="{{ $to->toDateString() }}" class="rounded-md border-gray-300 text-sm dark:border-slate-600 dark:bg-slate-800">
+                </div>
+                <button type="submit" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Generate report</button>
+                <a href="{{ getDashboardRegionalReportRoute('print', ['date_from' => $from->toDateString(), 'date_to' => $to->toDateString()]) }}"
+                   class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                   target="_blank" rel="noopener">
+                    Print / PDF
+                </a>
+                <a href="{{ getDashboardRegionalReportRoute('export', ['date_from' => $from->toDateString(), 'date_to' => $to->toDateString()]) }}"
+                   class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                    Download CSV
+                </a>
             </form>
-            <p class="mb-6 text-sm text-gray-500">Period: {{ $report['period']['from'] }} — {{ $report['period']['to'] }}</p>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                @foreach([
-                    ['Lae AMS batches', $report['inventory']['total_batches'], 'teal'],
-                    ['Units on hand', number_format($report['inventory']['total_units']), 'teal'],
-                    ['Hospital orders', $report['hospital_orders']['total'], 'amber'],
-                    ['Pending hospital orders', $report['hospital_orders']['pending'], 'amber'],
-                    ['Rejected orders', $report['hospital_orders']['rejected'], 'red'],
-                    ['NDoH shipments received', $report['ndoh_receipts']['received'].' / '.$report['ndoh_receipts']['total'], 'blue'],
-                    ['Hospital road deliveries', $report['hospital_shipments']['total'], 'purple'],
-                    ['Open discrepancies', $report['discrepancies']['open'], 'red'],
-                ] as [$label, $value, $tone])
-                    <div class="rounded-xl border border-gray-200 p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500">{{ $label }}</p>
-                        <p class="mt-2 text-2xl font-bold text-gray-900">{{ $value }}</p>
-                    </div>
-                @endforeach
-            </div>
-            <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div>
-                    <h4 class="mb-3 font-semibold">Hospital order breakdown</h4>
-                    <ul class="space-y-2 text-sm">
-                        @foreach($report['hospital_orders'] as $key => $count)
-                            @if($key !== 'total')<li class="flex justify-between"><span>{{ ucfirst(str_replace('_',' ', $key)) }}</span><span class="font-semibold">{{ $count }}</span></li>@endif
-                        @endforeach
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="mb-3 font-semibold">Logistics summary</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li class="flex justify-between"><span>Hospital units dispatched by road</span><span class="font-semibold">{{ number_format($report['hospital_shipments']['units_sent']) }}</span></li>
-                        <li class="flex justify-between"><span>Hospital deliveries in transit</span><span class="font-semibold">{{ $report['hospital_shipments']['in_transit'] }}</span></li>
-                        <li class="flex justify-between"><span>Hospital deliveries completed</span><span class="font-semibold">{{ $report['hospital_shipments']['delivered'] }}</span></li>
-                        <li class="flex justify-between"><span>NDoH units received at Lae AMS</span><span class="font-semibold">{{ number_format($report['ndoh_receipts']['units_received']) }}</span></li>
-                    </ul>
-                </div>
-            </div>
+
+            @include('reports.partials.regional-summary', ['report' => $report])
         </div>
     </x-page-container>
 </x-app-layout>

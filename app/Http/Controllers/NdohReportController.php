@@ -2,44 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\RegionalReportService;
+use App\Services\NdohReportService;
 use App\Services\ReportCsvService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class RegionalReportController extends Controller
+class NdohReportController extends Controller
 {
     public function index(Request $request): View
     {
-        $this->authorizeStoreManager();
+        $this->authorizeAdmin();
 
         [$from, $to] = $this->period($request);
-        $report = RegionalReportService::generate($from, $to);
+        $report = NdohReportService::generate($from, $to);
 
-        return view('reports.regional', compact('report', 'from', 'to'));
+        return view('reports.ndoh', compact('report', 'from', 'to'));
     }
 
     public function print(Request $request): View
     {
-        $this->authorizeStoreManager();
+        $this->authorizeAdmin();
 
         [$from, $to] = $this->period($request);
-        $report = RegionalReportService::generate($from, $to);
+        $report = NdohReportService::generate($from, $to);
 
-        return view('reports.print.regional', compact('report', 'from', 'to'));
+        return view('reports.print.ndoh', compact('report', 'from', 'to'));
     }
 
     public function export(Request $request): StreamedResponse
     {
-        $this->authorizeStoreManager();
+        $this->authorizeAdmin();
 
         [$from, $to] = $this->period($request);
-        $report = RegionalReportService::generate($from, $to);
-        $filename = 'lae-ams-regional-report-'.$from->toDateString().'-to-'.$to->toDateString().'.csv';
+        $report = NdohReportService::generate($from, $to);
+        $filename = 'ndoh-national-report-'.$from->toDateString().'-to-'.$to->toDateString().'.csv';
 
-        return ReportCsvService::download($filename, RegionalReportService::toCsvRows($report));
+        return ReportCsvService::download($filename, NdohReportService::toCsvRows($report));
     }
 
     /**
@@ -58,10 +58,10 @@ class RegionalReportController extends Controller
         return [$from, $to];
     }
 
-    private function authorizeStoreManager(): void
+    private function authorizeAdmin(): void
     {
-        if (! auth()->user()->hasRole('store_manager')) {
-            abort(403, 'Only Store Managers can generate regional reports.');
+        if (! auth()->user()->hasRole('admin')) {
+            abort(403, 'Only NDoH Admin can generate national reports.');
         }
     }
 }

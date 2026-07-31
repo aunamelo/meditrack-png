@@ -13,7 +13,7 @@
             icon="truck"
             description="Track stock shipped from Department of Health national storage to Lae AMS warehouse"
             :action-url="auth()->user()->hasRole('procurement_officer') ? getDashboardTransferRoute('create') : null"
-            :action-label="auth()->user()->hasRole('procurement_officer') ? 'Record Shipment' : null"
+            :action-label="auth()->user()->hasRole('procurement_officer') ? 'Request Shipment' : null"
         />
 
         <div class="module-panel p-6">
@@ -27,7 +27,7 @@
                         <label for="status" class="form-label">Status</label>
                         <select name="status" id="status" class="input-field">
                             <option value="">All Statuses</option>
-                            @foreach(['sent', 'received', 'cancelled'] as $status)
+                            @foreach((auth()->user()->hasRole('store_manager') ? ['sent', 'received', 'cancelled'] : ['pending', 'sent', 'received', 'cancelled']) as $status)
                                 <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>{{ ndohToLaeAmsTransferStatusLabel($status) }}</option>
                             @endforeach
                         </select>

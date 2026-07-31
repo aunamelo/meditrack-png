@@ -48,7 +48,7 @@
                                 @if($drugs->isEmpty())
                                     <p class="mt-1 text-sm text-amber-700">No active NDoH batches with stock. Receive a procurement order first, then return here to ship stock to Lae AMS. <a href="{{ getDashboardOrderRoute('index') }}" class="font-medium text-brand-600 underline">View orders →</a></p>
                                 @else
-                                    <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. Stock is deducted from NDoH and a new batch is created at Lae AMS when the shipment is recorded.</p>
+                                    <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. After NDoH Admin approves, stock is deducted from NDoH and a Lae AMS batch is created.</p>
                                 @endif
                                 @error('drug_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
@@ -78,11 +78,11 @@
                         </div>
 
                         <div class="mt-6 p-4 bg-brand-50 border border-brand-200 rounded-md text-sm text-brand-800">
-                            Recording this shipment will deduct stock from NDoH national storage and create a new inventory entry at Lae AMS. The Store Manager will be notified to confirm receipt when the shipment arrives.
+                            This creates a shipment request for NDoH Admin approval. Stock is not moved until an admin approves. After approval, the Store Manager is notified to confirm receipt at Lae AMS.
                         </div>
 
                         <div class="mt-6 flex gap-3">
-                            <button type="submit" @if($drugs->isEmpty()) disabled @endif class="btn-brand text-xs uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50">Ship to Lae AMS</button>
+                            <button type="submit" @if($drugs->isEmpty()) disabled @endif class="btn-brand text-xs uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50">Submit for approval</button>
                             <a href="{{ getDashboardTransferRoute('index') }}" class="btn-module-secondary">Cancel</a>
                         </div>
                     </form>

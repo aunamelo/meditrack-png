@@ -72,18 +72,12 @@ class DashboardService
     {
         $level = $meta['inventory_level'];
         $pendingCount = Order::pending()->count();
+        $pendingShipments = StockTransfer::pending()->fromLevel('ndoh')->toLevel('lae_ams')->whereNull('hospital_order_id')->count();
         $pipelineCounts = Order::pipelineCounts();
+        $alerts = [];
 
-        return [
-            'roleMeta' => $meta,
-            'pipelineCounts' => $pipelineCounts,
-            'stats' => [
-                self::stat('Pending approvals', (string) $pendingCount, 'Awaiting sign-off', 'amber', getDashboardOrderRoute('index').'?status=pending', 'bell'),
-                self::stat('In import pipeline', (string) $pipelineCounts['total'], 'Manufacturing to FX cleared', 'blue', getDashboardOrderRoute('index'), 'clipboard'),
-                self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'NDoH inventory', 'teal', getDashboardDrugRoute('index'), 'cube'),
-                self::stat('In transit', (string) StockTransfer::sent()->toLevel('lae_ams')->count(), 'Shipments to Lae AMS', 'blue', getDashboardTransferRoute('index').'?status=sent', 'truck'),
-            ],
-            'alerts' => $pendingCount > 0 ? [[
+        if ($pendingCount > 0) {
+            $alerts[] = [
                 'tone' => 'amber',
                 'title' => 'Pending procurement orders',
                 'message' => $pendingCount === 1
@@ -98,7 +92,37 @@ class DashboardService
                     'url' => getDashboardOrderRoute('show', $order),
                     'action' => 'Approve',
                 ])->all(),
-            ]] : [],
+            ];
+        }
+
+        if ($pendingShipments > 0) {
+            $alerts[] = [
+                'tone' => 'amber',
+                'title' => 'Pending shipment approvals',
+                'message' => $pendingShipments === 1
+                    ? '1 shipment to Lae AMS needs your approval before stock is sent.'
+                    : "{$pendingShipments} shipments to Lae AMS need your approval before stock is sent.",
+                'action_label' => 'Review shipments',
+                'action_url' => getDashboardTransferRoute('index').'?status=pending',
+                'items' => TransferNotificationService::pendingShipmentsForAdmin()->map(fn (StockTransfer $transfer) => [
+                    'title' => $transfer->transfer_number,
+                    'subtitle' => ($transfer->drug->drug_name ?? 'Drug').' · '.number_format($transfer->quantity_sent).' units · '.($transfer->sender->name ?? 'Procurement'),
+                    'url' => getDashboardTransferRoute('show', $transfer),
+                    'action' => 'Approve',
+                ])->all(),
+            ];
+        }
+
+        return [
+            'roleMeta' => $meta,
+            'pipelineCounts' => $pipelineCounts,
+            'stats' => [
+                self::stat('Pending approvals', (string) ($pendingCount + $pendingShipments), 'Orders & shipments', 'amber', getDashboardOrderRoute('index').'?status=pending', 'bell'),
+                self::stat('In import pipeline', (string) $pipelineCounts['total'], 'Manufacturing to FX cleared', 'blue', getDashboardOrderRoute('index'), 'clipboard'),
+                self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'NDoH inventory', 'teal', getDashboardDrugRoute('index'), 'cube'),
+                self::stat('In transit', (string) StockTransfer::sent()->toLevel('lae_ams')->whereNull('hospital_order_id')->count(), 'Shipments to Lae AMS', 'blue', getDashboardTransferRoute('index').'?status=sent', 'truck'),
+            ],
+            'alerts' => $alerts,
             'quickActionGroups' => [
                 self::actionGroup('Procurement', [
                     ['label' => 'Review orders', 'description' => 'Approve pending procurement', 'url' => getDashboardOrderRoute('index'), 'primary' => true, 'icon' => 'clipboard'],
@@ -110,6 +134,7 @@ class DashboardService
                     ['label' => 'Shipments to Lae AMS', 'description' => 'NDoH → Lae AMS logistics', 'url' => getDashboardTransferRoute('index'), 'icon' => 'truck'],
                 ]),
                 self::actionGroup('Reports & admin', array_values(array_filter([
+                    ['label' => 'NDoH report', 'description' => 'National period summary', 'url' => getDashboardNdohReportRoute('index'), 'icon' => 'chart'],
                     ['label' => 'Stock status', 'description' => 'Corridor consumption & suggestions', 'url' => getDashboardStockStatusRoute('index'), 'icon' => 'chart'],
                     ['label' => 'Stock movements', 'description' => 'NDoH receipts and shipments', 'url' => getDashboardStockMovementRoute('index'), 'icon' => 'truck'],
                     canManageUsers() ? ['label' => 'User management', 'description' => 'Manage portal accounts', 'url' => getDashboardUserRoute('index'), 'icon' => 'shield'] : null,
@@ -156,7 +181,7 @@ class DashboardService
                 self::stat('Pending', (string) $myPending, 'Awaiting approval', 'amber', getDashboardOrderRoute('index').'?status=pending', 'bell'),
                 self::stat('In pipeline', (string) $pipelineCounts['total'], 'Awaiting delivery stages', 'blue', getDashboardOrderRoute('index'), 'truck'),
                 self::stat('My orders', (string) $myOrders, 'Total submitted', 'teal', getDashboardOrderRoute('index'), 'clipboard'),
-                self::stat('In transit', (string) StockTransfer::sent()->fromLevel('ndoh')->count(), 'Sent to Lae AMS', 'blue', getDashboardTransferRoute('index'), 'truck'),
+                self::stat('In transit', (string) StockTransfer::sent()->fromLevel('ndoh')->whereNull('hospital_order_id')->count(), 'Sent to Lae AMS', 'blue', getDashboardTransferRoute('index'), 'truck'),
             ],
             'alerts' => $alerts,
             'quickActionGroups' => [
@@ -167,7 +192,7 @@ class DashboardService
                 ]),
                 self::actionGroup('Inventory & logistics', [
                     ['label' => 'Drug inventory', 'description' => 'NDoH central stock', 'url' => getDashboardDrugRoute('index'), 'icon' => 'cube'],
-                    ['label' => 'Ship to Lae AMS', 'description' => 'Dispatch NDoH stock', 'url' => getDashboardTransferRoute('create'), 'icon' => 'truck'],
+                    ['label' => 'Ship to Lae AMS', 'description' => 'Record shipment (admin approves)', 'url' => getDashboardTransferRoute('create'), 'icon' => 'truck'],
                     ['label' => 'Stock takes', 'description' => 'Physical count and adjustments', 'url' => getDashboardStockAdjustmentRoute('index'), 'icon' => 'clipboard'],
                 ]),
                 self::actionGroup('Reports', [
@@ -190,7 +215,7 @@ class DashboardService
     protected static function storeManagerPayload(User $user, array $meta): array
     {
         $level = $meta['inventory_level'];
-        $pendingShipments = StockTransfer::sent()->toLevel('lae_ams')->count();
+        $pendingShipments = StockTransfer::sent()->toLevel('lae_ams')->whereNull('hospital_order_id')->count();
         $pendingHospitalOrders = HospitalOrder::pending()->count();
         $lowStock = Drug::atLevel($level)->lowStock()->count();
         $openDiscrepancies = DiscrepancyReport::open()->count();

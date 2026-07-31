@@ -255,6 +255,19 @@ if (! function_exists('getDashboardRegionalReportRoute')) {
     }
 }
 
+if (! function_exists('getDashboardNdohReportRoute')) {
+    function getDashboardNdohReportRoute(string $routeName = 'index', mixed $params = null): string
+    {
+        if (! auth()->user()->hasRole('admin')) {
+            abort(403, 'You do not have access to NDoH national reports.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'reports.ndoh.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
 if (! function_exists('getDashboardStockStatusRoute')) {
     function getDashboardStockStatusRoute(string $routeName = 'index', mixed $params = null): string
     {
@@ -328,11 +341,22 @@ if (! function_exists('ndohToLaeAmsTransferStatusLabel')) {
     function ndohToLaeAmsTransferStatusLabel(string $status): string
     {
         return match ($status) {
+            'pending' => 'Awaiting admin approval',
             'sent' => 'Shipped to Lae AMS',
             'received' => 'Received at Lae AMS',
             'cancelled' => 'Cancelled',
             default => ucfirst(str_replace('_', ' ', $status)),
         };
+    }
+}
+
+if (! function_exists('canApproveTransfers')) {
+    /**
+     * Whether the current user can approve NDoH → Lae AMS shipments.
+     */
+    function canApproveTransfers(): bool
+    {
+        return auth()->user()->hasRole('admin');
     }
 }
 

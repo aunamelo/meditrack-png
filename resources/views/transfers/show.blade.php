@@ -11,6 +11,12 @@
 
         <div class="module-actions-bar">
             <x-module.back-link :href="getDashboardTransferRoute('index')" label="Back to Shipments" />
+            @if(canApproveTransfers() && $transfer->canApprove())
+                <form action="{{ getDashboardTransferRoute('approve', $transfer) }}" method="POST" class="inline" onsubmit="return confirm('Approve this shipment? NDoH stock will be deducted and Lae AMS inventory will be created.');">
+                    @csrf
+                    <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Approve &amp; send</button>
+                </form>
+            @endif
             @if(canReceiveTransfers() && $transfer->canReceive())
                 <form action="{{ getDashboardTransferRoute('receive', $transfer) }}" method="POST" class="inline-flex flex-wrap items-center gap-3">
                     @csrf
@@ -27,8 +33,14 @@
                     <x-module.status-badge :variant="$transfer->status" :label="ndohToLaeAmsTransferStatusLabel($transfer->status)" />
                 </div>
                 <dl class="mt-4 space-y-4">
-                    <x-module.detail-field label="Date Shipped" :value="$transfer->formatSentDate()" />
-                    <x-module.detail-field label="Shipped By" :value="$transfer->sender->name ?? 'N/A'" />
+                    <x-module.detail-field :label="$transfer->status === 'pending' ? 'Requested ship date' : 'Date Shipped'" :value="$transfer->formatSentDate()" />
+                    <x-module.detail-field label="Requested By" :value="$transfer->sender->name ?? 'N/A'" />
+                    @if($transfer->approver)
+                        <x-module.detail-field label="Approved By" :value="$transfer->approver->name" />
+                        <x-module.detail-field label="Approved At" :value="$transfer->approved_at?->format('M d, Y g:i A') ?? 'N/A'" />
+                    @elseif($transfer->status === 'pending')
+                        <x-module.detail-field label="Approval" value="Awaiting NDoH Admin" />
+                    @endif
                     @if($transfer->receiver)
                         <x-module.detail-field label="Received By" :value="$transfer->receiver->name" />
                         <x-module.detail-field label="Received At" :value="$transfer->received_at?->format('M d, Y g:i A') ?? 'N/A'" />
@@ -58,7 +70,9 @@
                 <dl class="space-y-4">
                     <x-module.detail-field label="From" value="NDoH National Storage" />
                     <x-module.detail-field label="To" value="Lae AMS Warehouse" />
-                    @if($transfer->destinationDrug)
+                    @if($transfer->status === 'pending')
+                        <x-module.detail-field label="Stock movement" value="Held until NDoH Admin approves" />
+                    @elseif($transfer->destinationDrug)
                         <x-module.detail-field label="Lae AMS Inventory">
                             @if(auth()->user()->hasRole('store_manager'))
                                 <a href="{{ getDashboardDrugRoute('show', $transfer->destinationDrug) }}" class="module-table-link">

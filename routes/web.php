@@ -9,6 +9,7 @@ use App\Http\Controllers\HospitalReportController;
 use App\Http\Controllers\HospitalShipmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\NdohReportController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegionalReportController;
@@ -78,9 +79,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::post('orders/{order}/receive', [OrderController::class, 'receive'])->name('orders.receive');
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::resource('orders', OrderController::class);
+    Route::post('transfers/{transfer}/approve', [StockTransferController::class, 'approve'])->name('transfers.approve');
     Route::resource('transfers', StockTransferController::class)->only(['index', 'show']);
     Route::resource('users', UserController::class)->except(['show']);
     Route::resource('stock-adjustments', StockAdjustmentController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('reports/ndoh', [NdohReportController::class, 'index'])->name('reports.ndoh.index');
+    Route::get('reports/ndoh/print', [NdohReportController::class, 'print'])->name('reports.ndoh.print');
+    Route::get('reports/ndoh/export', [NdohReportController::class, 'export'])->name('reports.ndoh.export');
     Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
     Route::get('reports/stock-movements', [StockMovementController::class, 'index'])->name('reports.stock-movements.index');
 });
@@ -112,6 +117,8 @@ Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-man
     Route::post('discrepancies/{discrepancy}/resolve', [DiscrepancyReportController::class, 'resolve'])->name('discrepancies.resolve');
     Route::resource('stock-adjustments', StockAdjustmentController::class)->only(['index', 'create', 'store', 'show']);
     Route::get('reports/regional', [RegionalReportController::class, 'index'])->name('reports.regional.index');
+    Route::get('reports/regional/print', [RegionalReportController::class, 'print'])->name('reports.regional.print');
+    Route::get('reports/regional/export', [RegionalReportController::class, 'export'])->name('reports.regional.export');
     Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
     Route::get('reports/stock-movements', [StockMovementController::class, 'index'])->name('reports.stock-movements.index');
 });
@@ -131,6 +138,8 @@ Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharma
     Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
     Route::get('reports/stock-movements', [StockMovementController::class, 'index'])->name('reports.stock-movements.index');
     Route::get('reports/hospital', [HospitalReportController::class, 'index'])->name('reports.hospital.index');
+    Route::get('reports/hospital/print', [HospitalReportController::class, 'print'])->name('reports.hospital.print');
+    Route::get('reports/hospital/export', [HospitalReportController::class, 'export'])->name('reports.hospital.export');
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')->name('pharmacist.dashboard.')->group(function () {

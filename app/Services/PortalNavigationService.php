@@ -74,6 +74,7 @@ class PortalNavigationService
             self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'NDoH stock batches', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),
             self::item('Inventory', 'Stock Takes', 'Physical count and adjustments', getDashboardStockAdjustmentRoute('index'), request()->routeIs('*.dashboard.stock-adjustments.*'), 'clipboard'),
             self::item('Logistics', 'Shipments to Lae AMS', 'NDoH → Lae AMS logistics', getDashboardTransferRoute('index'), request()->routeIs('*.dashboard.transfers.*'), 'truck', self::shipmentNavBadge($user)),
+            self::item('Reports', 'NDoH Report', 'National procurement & logistics summary', getDashboardNdohReportRoute('index'), request()->routeIs('*.dashboard.reports.ndoh.*'), 'chart'),
             self::item('Reports', 'Stock Status', 'Corridor consumption & procurement suggestions', getDashboardStockStatusRoute('index'), request()->routeIs('*.dashboard.reports.stock-status.*'), 'chart'),
             self::item('Reports', 'Stock Movements', 'NDoH receipts and shipments', getDashboardStockMovementRoute('index'), request()->routeIs('*.dashboard.reports.stock-movements.*'), 'truck'),
             canManageUsers()
@@ -220,8 +221,20 @@ class PortalNavigationService
 
     protected static function shipmentNavBadge($user): ?int
     {
-        if ($user->hasAnyRole(['admin', 'store_manager'])) {
-            $count = StockTransfer::sent()->toLevel('lae_ams')->count();
+        if ($user->hasRole('admin')) {
+            $count = StockTransfer::pending()->fromLevel('ndoh')->toLevel('lae_ams')->whereNull('hospital_order_id')->count();
+
+            return $count > 0 ? $count : null;
+        }
+
+        if ($user->hasRole('procurement_officer')) {
+            $count = StockTransfer::pending()->sentBy($user->id)->whereNull('hospital_order_id')->count();
+
+            return $count > 0 ? $count : null;
+        }
+
+        if ($user->hasRole('store_manager')) {
+            $count = StockTransfer::sent()->toLevel('lae_ams')->whereNull('hospital_order_id')->count();
 
             return $count > 0 ? $count : null;
         }

@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class StockTransfer extends Model
 {
@@ -25,6 +26,8 @@ class StockTransfer extends Model
         'status',
         'notes',
         'sent_by',
+        'approved_by',
+        'approved_at',
         'received_by',
         'received_at',
     ];
@@ -34,6 +37,7 @@ class StockTransfer extends Model
      */
     protected $casts = [
         'sent_date' => 'date',
+        'approved_at' => 'datetime',
         'received_at' => 'datetime',
     ];
 
@@ -79,6 +83,11 @@ class StockTransfer extends Model
         return $this->belongsTo(User::class, 'sent_by');
     }
 
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     public function receiver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'received_by');
@@ -99,6 +108,11 @@ class StockTransfer extends Model
         return $query->where('sent_by', $userId);
     }
 
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
     public function scopeSent($query)
     {
         return $query->where('status', 'sent');
@@ -112,11 +126,20 @@ class StockTransfer extends Model
     public function getStatusBadge(): string
     {
         return match ($this->status) {
+            'pending' => 'amber',
             'sent' => 'blue',
             'received' => 'green',
             'cancelled' => 'red',
             default => 'gray',
         };
+    }
+
+    public function canApprove(): bool
+    {
+        return $this->status === 'pending'
+            && $this->from_level === 'ndoh'
+            && $this->to_level === 'lae_ams'
+            && $this->hospital_order_id === null;
     }
 
     public function canReceive(): bool
@@ -127,6 +150,66 @@ class StockTransfer extends Model
     public function isReceived(): bool
     {
         return $this->status === 'received';
+    }
+
+    /**
+     * Admin approval: deduct NDoH stock, create Lae AMS batch, mark as sent.
+     */
+    public function approve(int $userId): void
+    {
+        if (! $this->canApprove()) {
+            throw ValidationException::withMessages([
+                'status' => 'This shipment cannot be approved.',
+            ]);
+        }
+
+        DB::transaction(function () use ($userId) {
+            $sourceDrug = Drug::query()->lockForUpdate()->findOrFail($this->drug_id);
+            $quantitySent = (int) $this->quantity_sent;
+
+            if ($sourceDrug->quantity_on_hand < $quantitySent) {
+                throw ValidationException::withMessages([
+                    'quantity_sent' => 'NDoH stock is no longer sufficient for this shipment. Available: '.$sourceDrug->quantity_on_hand.'.',
+                ]);
+            }
+
+            $destinationBatch = $sourceDrug->batch_number.'-LAE-'.now()->format('ymdHis');
+
+            $destinationDrug = Drug::create([
+                'drug_name' => $sourceDrug->drug_name,
+                'description' => $sourceDrug->description,
+                'dosage' => $sourceDrug->dosage,
+                'dosage_form' => $sourceDrug->dosage_form,
+                'batch_number' => $destinationBatch,
+                'expiry_date' => $sourceDrug->expiry_date,
+                'quantity_received' => $quantitySent,
+                'quantity_on_hand' => $quantitySent,
+                'reorder_point' => $sourceDrug->reorder_point,
+                'unit' => $sourceDrug->unit,
+                'supplier' => $sourceDrug->supplier,
+                'cost_per_unit' => $sourceDrug->cost_per_unit,
+                'storage_location' => 'Lae AMS Warehouse',
+                'level' => 'lae_ams',
+                'status' => 'active',
+                'received_date' => $this->sent_date,
+                'notes' => "Received via shipment {$this->transfer_number} from NDoH",
+                'created_by' => $userId,
+                'updated_by' => $userId,
+            ]);
+
+            $sourceDrug->update([
+                'quantity_on_hand' => $sourceDrug->quantity_on_hand - $quantitySent,
+                'last_issued_date' => now(),
+                'updated_by' => $userId,
+            ]);
+
+            $this->update([
+                'destination_drug_id' => $destinationDrug->id,
+                'status' => 'sent',
+                'approved_by' => $userId,
+                'approved_at' => now(),
+            ]);
+        });
     }
 
     /**

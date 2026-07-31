@@ -117,10 +117,22 @@ class PortalLoginService
             if ($pendingOrderCount > 0) {
                 $request->session()->flash('admin_pending_orders', $pendingOrderCount);
             }
+
+            $pendingShipmentApprovals = StockTransfer::pending()
+                ->fromLevel('ndoh')
+                ->toLevel('lae_ams')
+                ->whereNull('hospital_order_id')
+                ->count();
+            if ($pendingShipmentApprovals > 0) {
+                $request->session()->flash('admin_pending_shipments', $pendingShipmentApprovals);
+            }
         }
 
         if ($user->hasRole('store_manager')) {
-            $pendingShipmentCount = StockTransfer::sent()->toLevel('lae_ams')->count();
+            $pendingShipmentCount = StockTransfer::sent()
+                ->toLevel('lae_ams')
+                ->whereNull('hospital_order_id')
+                ->count();
             if ($pendingShipmentCount > 0) {
                 $request->session()->flash('store_pending_shipments', $pendingShipmentCount);
             }

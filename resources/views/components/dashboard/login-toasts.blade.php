@@ -41,6 +41,27 @@
     </div>
 @endif
 
+@if (session('admin_pending_shipments'))
+    <div x-data="{ show: true }"
+         x-show="show"
+         x-init="setTimeout(() => show = false, 8000)"
+         class="fixed top-20 right-4 z-50 flex max-w-md items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 shadow-lg dark:border-amber-900/50 dark:bg-amber-950/40 sm:right-6 {{ session('login_success') || session('admin_pending_orders') ? 'mt-20' : '' }}"
+         role="status"
+         aria-live="polite">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/50">
+            <svg class="h-5 w-5 text-amber-700 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+        </div>
+        <div>
+            <p class="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                {{ session('admin_pending_shipments') === 1 ? '1 shipment awaiting approval' : session('admin_pending_shipments').' shipments awaiting approval' }}
+            </p>
+            <p class="mt-1 text-sm text-amber-800 dark:text-amber-200/90">Approve NDoH → Lae AMS shipments before stock is sent.</p>
+        </div>
+    </div>
+@endif
+
 @if (session('store_pending_shipments'))
     <div x-data="{ show: true }"
          x-show="show"
