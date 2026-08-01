@@ -16,7 +16,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-white font-sans antialiased text-ink dark:bg-night dark:text-zinc-100">
+    <body class="min-h-screen bg-canvas font-sans antialiased text-ink dark:bg-night dark:text-zinc-100">
         <a href="#main-content" class="skip-link">Skip to main content</a>
 
         <div
@@ -31,20 +31,20 @@
                     localStorage.setItem('meditrack-sidebar-collapsed', this.sidebarCollapsed ? '1' : '0');
                 },
             }"
-            class="flex h-screen min-h-screen overflow-hidden bg-white dark:bg-night"
+            class="flex h-screen min-h-screen overflow-hidden bg-canvas dark:bg-night"
         >
             @auth
                 @include('layouts.sidebar')
             @endauth
 
-            <div class="flex h-screen min-h-screen min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-night">
+            <div class="flex h-screen min-h-screen min-w-0 flex-1 flex-col overflow-hidden bg-canvas dark:bg-night">
                 @auth
                     @include('layouts.topbar')
                 @else
                     @include('layouts.navigation')
                 @endauth
 
-                <main id="main-content" tabindex="-1" class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 outline-none lg:px-8 lg:py-8">
+                <main id="main-content" tabindex="-1" class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-4 outline-none lg:px-6 lg:py-5">
                     {{ $slot }}
                 </main>
 

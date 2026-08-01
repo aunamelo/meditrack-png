@@ -12,13 +12,13 @@
         <div class="module-actions-bar">
             <x-module.back-link :href="getDashboardTransferRoute('index')" label="Back to Shipments" />
             @if(canApproveTransfers() && $transfer->canApprove())
-                <form action="{{ getDashboardTransferRoute('approve', $transfer) }}" method="POST" class="inline" onsubmit="return confirm('Approve this shipment? NDoH stock will be deducted and Lae AMS inventory will be created.');">
+                <form action="{{ getDashboardTransferRoute('approve', $transfer) }}" method="POST" class="inline" onsubmit="return confirm('Approve this shipment? NDoH stock will be deducted and the shipment will be marked in transit to Lae AMS.');">
                     @csrf
                     <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Approve &amp; send</button>
                 </form>
             @endif
             @if(canReceiveTransfers() && $transfer->canReceive())
-                <form action="{{ getDashboardTransferRoute('receive', $transfer) }}" method="POST" class="inline-flex flex-wrap items-center gap-3">
+                <form action="{{ getDashboardTransferRoute('receive', $transfer) }}" method="POST" class="inline-flex flex-wrap items-center gap-3" onsubmit="return confirm('Confirm receipt? This will add the stock to Lae AMS inventory.');">
                     @csrf
                     <input type="text" name="notes" placeholder="Optional receipt note..." class="input-field w-64 text-sm">
                     <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Confirm Receipt</button>
@@ -72,6 +72,8 @@
                     <x-module.detail-field label="To" value="Lae AMS Warehouse" />
                     @if($transfer->status === 'pending')
                         <x-module.detail-field label="Stock movement" value="Held until NDoH Admin approves" />
+                    @elseif($transfer->status === 'sent')
+                        <x-module.detail-field label="Stock movement" value="Deducted from NDoH — awaiting Store Manager receipt at Lae AMS" />
                     @elseif($transfer->destinationDrug)
                         <x-module.detail-field label="Lae AMS Inventory">
                             @if(auth()->user()->hasRole('store_manager'))

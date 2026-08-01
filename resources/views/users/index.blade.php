@@ -13,9 +13,9 @@
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 dark:text-zinc-100">
                             @if(auth()->user()->hasRole('admin'))
-                                Manage portal staff accounts
+                                Portal staff accounts
                             @else
-                                Manage pharmacist accounts
+                                Pharmacist accounts
                             @endif
                         </h3>
                         <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">

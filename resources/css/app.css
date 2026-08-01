@@ -26,7 +26,7 @@
     }
 
     body {
-        @apply bg-white font-sans text-ink dark:bg-night dark:text-zinc-100;
+        @apply bg-canvas font-sans text-ink dark:bg-night dark:text-zinc-100;
     }
 
     h1, h2, h3, h4 {
@@ -48,24 +48,24 @@
 
 @layer components {
     .heading-display {
-        @apply font-display text-3xl font-bold tracking-tight text-[#132f4f] dark:text-zinc-50 sm:text-4xl;
+        @apply font-display text-[1.75rem] font-semibold leading-tight tracking-display text-ink dark:text-zinc-50 sm:text-[2rem];
     }
 
     .heading-page {
-        @apply font-display text-xl font-semibold tracking-tight text-[#132f4f] dark:text-zinc-50;
+        @apply font-display text-lg font-semibold leading-snug tracking-display text-ink dark:text-zinc-50;
     }
 
     .heading-section {
-        @apply font-display text-base font-semibold text-[#132f4f] dark:text-zinc-100;
+        @apply font-sans text-sm font-semibold tracking-tight text-ink dark:text-zinc-100;
     }
 
     .text-section-label {
-        @apply text-[11px] font-bold uppercase tracking-[0.14em] text-health-700 dark:text-health-300;
+        @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-muted dark:text-zinc-400;
     }
 
     .medcare-sidebar {
-        @apply w-[260px] shrink-0 border-r border-transparent text-white shadow-sidebar transition-[width] duration-300 ease-in-out;
-        background: linear-gradient(180deg, #0d6b6b 0%, #0a5c5c 42%, #163052 100%);
+        @apply w-[248px] shrink-0 border-r border-transparent text-white shadow-sidebar transition-[width] duration-300 ease-in-out;
+        background: #0a4b47;
     }
 
     .medcare-sidebar-collapsed {
@@ -81,11 +81,11 @@
     }
 
     .sidebar-brand-title {
-        @apply truncate font-display text-sm font-bold leading-snug text-white;
+        @apply truncate font-sans text-[13px] font-semibold leading-snug text-white;
     }
 
     .sidebar-brand-tagline {
-        @apply truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55;
+        @apply truncate text-[10px] font-medium uppercase tracking-[0.12em] text-white/50;
     }
 
     .medcare-sidebar-collapsed .sidebar-brand-text,
@@ -156,23 +156,25 @@
     }
 
     .medcare-topbar {
-        @apply flex shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-night-elevated sm:px-6;
+        @apply flex shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-4 py-2.5 dark:border-white/10 dark:bg-night-elevated sm:px-6;
     }
 
     .medcare-search {
-        @apply flex max-w-md flex-1 items-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 dark:border-zinc-700 dark:bg-zinc-800/80;
+        @apply flex max-w-md flex-1 items-center rounded border border-line bg-surface px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800/80;
     }
 
     .medcare-panel {
-        @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-night-elevated;
+        @apply overflow-hidden rounded border border-line bg-surface dark:border-white/10 dark:bg-night-elevated;
     }
 
     .medcare-stat-card {
-        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-health-200 hover:shadow dark:border-white/10 dark:bg-night-elevated;
+        @apply rounded border border-line bg-surface px-3.5 py-3 transition hover:border-health-600/40 dark:border-white/10 dark:bg-night-elevated;
     }
 
     .medcare-stat-featured {
-        @apply rounded-xl border border-health-700 bg-health-700 p-5 text-white shadow-sm;
+        @apply rounded border border-health-700 bg-surface px-3.5 py-3 dark:bg-night-elevated;
+        border-left-width: 3px;
+        border-left-color: #0f766e;
     }
 
     .surface-panel {
@@ -183,32 +185,28 @@
         @apply text-ink-muted dark:text-zinc-400;
     }
 
-    .surface-panel {
-        @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-night-elevated dark:shadow-none;
-    }
-
     .surface-card {
-        @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition dark:border-white/10 dark:bg-night-elevated dark:shadow-none;
+        @apply rounded border border-line bg-surface p-4 dark:border-white/10 dark:bg-night-elevated;
     }
 
     .surface-card-hover {
-        @apply surface-card hover:border-health-300 hover:shadow dark:hover:border-health-800;
+        @apply surface-card hover:border-health-600/50;
     }
 
     .hero-banner {
-        @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-night-elevated sm:p-8;
+        @apply rounded border border-line bg-surface p-4 dark:border-white/10 dark:bg-night-elevated sm:p-5;
     }
 
     .btn-brand {
-        @apply inline-flex items-center justify-center rounded-lg border border-transparent bg-health-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-health-800 focus:outline-none focus:ring-2 focus:ring-health-600/30 focus:ring-offset-2;
+        @apply inline-flex items-center justify-center rounded border border-transparent bg-health-700 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-health-800 focus:outline-none focus:ring-2 focus:ring-health-600/25 focus:ring-offset-1;
     }
 
     .btn-brand-outline {
-        @apply inline-flex items-center justify-center rounded-lg border border-health-700 bg-white px-4 py-2.5 text-sm font-bold text-health-800 transition hover:bg-health-50 dark:border-health-500 dark:bg-transparent dark:text-health-300 dark:hover:bg-health-900/40;
+        @apply inline-flex items-center justify-center rounded border border-health-700 bg-surface px-3.5 py-2 text-sm font-semibold text-health-800 transition hover:bg-health-50 dark:border-health-500 dark:bg-transparent dark:text-health-300 dark:hover:bg-health-900/40;
     }
 
     .badge-brand {
-        @apply inline-flex items-center rounded-md bg-health-50 px-3 py-1 text-xs font-semibold text-health-800 dark:bg-health-900/60 dark:text-health-300;
+        @apply inline-flex items-center rounded bg-health-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-health-800 dark:bg-health-900/60 dark:text-health-300;
     }
 
     .input-field {
@@ -224,11 +222,13 @@
     }
 
     .dashboard-shell {
-        @apply mx-auto w-full max-w-6xl;
+        @apply mx-auto w-full max-w-[1120px];
     }
 
     .dashboard-hero {
-        @apply relative mb-8 overflow-hidden rounded-xl border border-health-800/20 bg-gradient-to-br from-health-700 to-brand-700 p-6 shadow-sm sm:p-8;
+        @apply relative mb-5 overflow-hidden rounded border border-line bg-surface p-4 dark:border-white/10 dark:bg-night-elevated sm:p-5;
+        border-left-width: 3px;
+        border-left-color: #0f766e;
     }
 
     .dashboard-hero-pattern {
@@ -236,7 +236,7 @@
     }
 
     .dashboard-hero-cta {
-        @apply inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20;
+        @apply inline-flex shrink-0 items-center gap-2 rounded border border-health-700 bg-health-700 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-health-800;
     }
 
     .dashboard-stat-card {
@@ -244,39 +244,32 @@
     }
 
     .dashboard-module-card {
-        @apply flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-health-200 hover:shadow dark:border-white/10 dark:bg-night-elevated;
-        border-left-width: 4px;
-        border-left-color: #0f766e;
-    }
-
-    .dashboard-module-card:hover {
-        border-left-color: #0d9488;
+        @apply flex h-full flex-col rounded border border-line bg-surface px-3.5 py-3 transition hover:border-health-600/50 dark:border-white/10 dark:bg-night-elevated;
     }
 
     .dashboard-module-card-primary {
-        @apply border border-health-700 bg-health-700 text-white shadow-sm hover:bg-health-800;
-        border-left-width: 1px;
-        border-left-color: #0f766e;
+        @apply border-health-700 bg-health-700 text-white hover:bg-health-800 hover:border-health-800;
     }
 
     .dashboard-module-icon {
-        @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-lg;
+        @apply flex h-8 w-8 shrink-0 items-center justify-center rounded;
     }
 
     .dashboard-alert {
-        @apply overflow-hidden rounded-xl border shadow-sm dark:shadow-none;
+        @apply overflow-hidden rounded border bg-surface dark:bg-night-elevated;
+        border-left-width: 3px;
     }
 
     .dashboard-alert-icon {
-        @apply flex h-11 w-11 items-center justify-center rounded-lg;
+        @apply flex h-8 w-8 items-center justify-center rounded;
     }
 
     .dashboard-alert-item {
-        @apply flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition hover:border-health-200 hover:bg-health-50/50 dark:border-zinc-800 dark:bg-zinc-950/40 dark:hover:border-health-800 dark:hover:bg-zinc-800/40;
+        @apply flex items-center justify-between gap-3 border border-line bg-canvas/60 px-3 py-2 transition hover:border-health-600/40 hover:bg-surface dark:border-zinc-800 dark:bg-zinc-950/40 dark:hover:border-health-800;
     }
 
     .dashboard-recent-item {
-        @apply flex items-center justify-between gap-3 px-5 py-4 text-sm transition hover:bg-slate-50 dark:hover:bg-zinc-800/40;
+        @apply flex items-center justify-between gap-3 px-3.5 py-2.5 text-sm transition hover:bg-canvas dark:hover:bg-zinc-800/40;
     }
 
     .app-portal-footer {
@@ -296,27 +289,29 @@
     }
 
     .dashboard-status-pill {
-        @apply rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 dark:bg-zinc-800 dark:text-zinc-400;
+        @apply rounded bg-surface-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted dark:bg-zinc-800 dark:text-zinc-400;
     }
 
     .dashboard-empty-state {
-        @apply surface-panel flex flex-col items-center px-6 py-16 text-center;
+        @apply surface-panel flex flex-col items-center px-5 py-12 text-center;
     }
 
     .dashboard-welcome {
-        @apply mb-8 border-b border-slate-200 pb-6 dark:border-zinc-800;
+        @apply mb-5 border-b border-line pb-4 dark:border-zinc-800;
     }
 
     .stat-health {
-        @apply rounded-lg border border-slate-200 bg-white px-4 py-3.5 dark:border-zinc-800 dark:bg-zinc-900;
+        @apply rounded border border-line bg-surface px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900;
     }
 
     .module-hero {
-        @apply relative mb-6 overflow-hidden rounded-xl border border-health-800/20 bg-gradient-to-br from-health-700 to-brand-700 p-5 shadow-sm sm:p-6;
+        @apply relative mb-4 overflow-hidden rounded border border-line bg-surface px-4 py-3 dark:border-white/10 dark:bg-night-elevated;
+        border-left-width: 3px;
+        border-left-color: #0f766e;
     }
 
     .module-hero-compact {
-        @apply mb-4 p-4 sm:p-5;
+        @apply mb-3 px-3.5 py-2.5;
     }
 
     .module-hero-pattern {
@@ -324,15 +319,15 @@
     }
 
     .module-hero-icon {
-        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white;
+        @apply flex h-8 w-8 shrink-0 items-center justify-center rounded bg-health-50 text-health-700 dark:bg-health-900/40 dark:text-health-300;
     }
 
     .module-hero-action {
-        @apply inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20;
+        @apply inline-flex shrink-0 items-center gap-1.5 rounded border border-health-700 bg-health-700 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-health-800;
     }
 
     .module-flash {
-        @apply mb-4 rounded-xl border px-4 py-3 text-sm font-medium;
+        @apply mb-3 rounded border px-3 py-2.5 text-sm font-medium;
     }
 
     .module-flash-success {
@@ -348,11 +343,11 @@
     }
 
     .module-filter {
-        @apply rounded-[16px] border border-line/80 bg-canvas p-4 dark:border-zinc-800 dark:bg-zinc-900/50;
+        @apply rounded border border-line bg-canvas/80 p-3 dark:border-zinc-800 dark:bg-zinc-900/50;
     }
 
     .module-table-wrap {
-        @apply overflow-hidden rounded-xl border border-line dark:border-zinc-800;
+        @apply overflow-hidden rounded border border-line dark:border-zinc-800;
     }
 
     .module-table {
@@ -360,11 +355,11 @@
     }
 
     .module-table thead {
-        @apply bg-surface-muted/80 dark:bg-zinc-900/80;
+        @apply bg-surface-muted dark:bg-zinc-900/80;
     }
 
     .module-table th {
-        @apply px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-muted dark:text-zinc-400;
+        @apply px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-muted dark:text-zinc-400;
     }
 
     .module-table tbody {
@@ -372,19 +367,19 @@
     }
 
     .module-table td {
-        @apply px-4 py-3.5 text-sm text-ink-secondary dark:text-zinc-300;
+        @apply px-3 py-2.5 text-sm text-ink-secondary dark:text-zinc-300;
     }
 
     .module-table tr {
-        @apply transition hover:bg-brand-50/40 dark:hover:bg-zinc-800/40;
+        @apply transition hover:bg-canvas dark:hover:bg-zinc-800/40;
     }
 
     .module-table-link {
-        @apply font-semibold text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300;
+        @apply font-semibold text-health-700 transition hover:text-health-800 dark:text-health-300 dark:hover:text-health-200;
     }
 
     .module-table-action {
-        @apply inline-flex items-center rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 shadow-sm transition hover:border-brand-300 hover:bg-brand-100 hover:text-brand-800 dark:border-brand-700/60 dark:bg-brand-900/40 dark:text-brand-300 dark:hover:border-brand-600 dark:hover:bg-brand-900/60 dark:hover:text-brand-200;
+        @apply inline-flex items-center rounded border border-line bg-surface px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary transition hover:border-health-600/50 hover:text-health-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300;
     }
 
     .module-table-action-edit {
@@ -396,7 +391,7 @@
     }
 
     .module-badge {
-        @apply inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide;
+        @apply inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em];
     }
 
     .module-empty-cell {
@@ -756,7 +751,7 @@
     }
 
     .guest-role-strip {
-        @apply mt-5 flex max-w-xl items-center gap-3 rounded-xl border border-health-800/15 bg-gradient-to-r from-health-700 via-health-700 to-brand-700 px-4 py-3 text-white shadow-sm;
+        @apply mt-5 flex max-w-xl items-center gap-3 rounded border border-health-700 bg-health-700 px-3.5 py-2.5 text-white;
     }
 
     .guest-role-strip-icon {

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <p class="text-section-label">Procurement</p>
+            <p class="text-section-label">Supply chain</p>
             <h2 class="heading-page">Procurement Orders</h2>
         </div>
     </x-slot>

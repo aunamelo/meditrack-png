@@ -1,54 +1,29 @@
 @props(['label', 'value', 'hint' => null, 'tone' => 'teal', 'url' => '#', 'icon' => null, 'featured' => false, 'trend' => null])
 
 @php
-$iconName = $icon ?? match($tone) {
-    'amber' => 'bell',
-    'blue' => 'truck',
-    'red' => 'shield',
-    default => 'cube',
-};
-$iconWrap = match($tone) {
-    'amber' => 'bg-amber-50 text-amber-600',
-    'blue' => 'bg-sky-50 text-sky-600',
-    'red' => 'bg-rose-50 text-rose-600',
-    'slate' => 'bg-canvas text-ink-muted',
-    default => 'bg-health-50 text-health-700',
+$toneBar = match($tone) {
+    'amber' => 'border-l-amber-600',
+    'blue' => 'border-l-brand-600',
+    'red' => 'border-l-rose-600',
+    'slate' => 'border-l-slate-400',
+    default => 'border-l-health-700',
 };
 @endphp
 
 <a href="{{ $url }}" @class([
-    'group block transition hover:-translate-y-0.5',
+    'group block border-l-[3px]',
     'medcare-stat-featured' => $featured,
     'medcare-stat-card' => ! $featured,
+    $toneBar,
 ])>
-    <div class="flex items-start justify-between gap-3">
-        <div @class([
-            'flex h-11 w-11 items-center justify-center rounded-2xl',
-            'bg-white/20 text-white' => $featured,
-            $iconWrap => ! $featured,
-        ])>
-            <x-dashboard.icon :name="$iconName" class="h-5 w-5" />
-        </div>
+    <div class="flex items-baseline justify-between gap-3">
+        <p class="font-display text-2xl font-semibold tabular-nums tracking-tight text-ink dark:text-zinc-50">{{ $value }}</p>
         @if($trend)
-            <span @class([
-                'rounded-full px-2 py-0.5 text-[11px] font-bold',
-                'bg-white/20 text-white' => $featured,
-                'bg-emerald-50 text-emerald-600' => ! $featured && (str_starts_with((string) $trend, '+') || str_starts_with((string) $trend, '↑')),
-                'bg-rose-50 text-rose-600' => ! $featured && ! str_starts_with((string) $trend, '+') && ! str_starts_with((string) $trend, '↑'),
-            ])>{{ $trend }}</span>
+            <span class="text-[11px] font-semibold tabular-nums text-ink-muted">{{ $trend }}</span>
         @endif
     </div>
-    <p @class([
-        'mt-4 font-display text-3xl font-bold tracking-tight',
-        'text-white' => $featured,
-        'text-ink' => ! $featured,
-    ])>{{ $value }}</p>
-    <p @class([
-        'mt-1 text-sm font-semibold',
-        'text-white/90' => $featured,
-        'text-ink-secondary' => ! $featured,
-    ])>{{ $label }}</p>
+    <p class="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-secondary dark:text-zinc-300">{{ $label }}</p>
     @if($hint)
-        <p @class(['mt-0.5 text-xs', 'text-white/70' => $featured, 'text-muted' => ! $featured])>{{ $hint }}</p>
+        <p class="mt-0.5 text-[11px] text-muted">{{ $hint }}</p>
     @endif
 </a>

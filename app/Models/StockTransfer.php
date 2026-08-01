@@ -153,7 +153,8 @@ class StockTransfer extends Model
     }
 
     /**
-     * Admin approval: deduct NDoH stock, create Lae AMS batch, mark as sent.
+     * Admin approval: deduct NDoH stock and mark shipment as sent (in transit).
+     * Lae AMS inventory is created only when the Store Manager confirms receipt.
      */
     public function approve(int $userId): void
     {
@@ -173,30 +174,6 @@ class StockTransfer extends Model
                 ]);
             }
 
-            $destinationBatch = $sourceDrug->batch_number.'-LAE-'.now()->format('ymdHis');
-
-            $destinationDrug = Drug::create([
-                'drug_name' => $sourceDrug->drug_name,
-                'description' => $sourceDrug->description,
-                'dosage' => $sourceDrug->dosage,
-                'dosage_form' => $sourceDrug->dosage_form,
-                'batch_number' => $destinationBatch,
-                'expiry_date' => $sourceDrug->expiry_date,
-                'quantity_received' => $quantitySent,
-                'quantity_on_hand' => $quantitySent,
-                'reorder_point' => $sourceDrug->reorder_point,
-                'unit' => $sourceDrug->unit,
-                'supplier' => $sourceDrug->supplier,
-                'cost_per_unit' => $sourceDrug->cost_per_unit,
-                'storage_location' => 'Lae AMS Warehouse',
-                'level' => 'lae_ams',
-                'status' => 'active',
-                'received_date' => $this->sent_date,
-                'notes' => "Received via shipment {$this->transfer_number} from NDoH",
-                'created_by' => $userId,
-                'updated_by' => $userId,
-            ]);
-
             $sourceDrug->update([
                 'quantity_on_hand' => $sourceDrug->quantity_on_hand - $quantitySent,
                 'last_issued_date' => now(),
@@ -204,7 +181,6 @@ class StockTransfer extends Model
             ]);
 
             $this->update([
-                'destination_drug_id' => $destinationDrug->id,
                 'status' => 'sent',
                 'approved_by' => $userId,
                 'approved_at' => now(),
@@ -213,20 +189,63 @@ class StockTransfer extends Model
     }
 
     /**
-     * Confirm receipt at Lae AMS.
+     * Confirm receipt at Lae AMS and create the warehouse inventory batch.
      */
     public function receive(int $userId, ?string $notes = null): void
     {
-        $update = [
-            'status' => 'received',
-            'received_by' => $userId,
-            'received_at' => now(),
-        ];
-
-        if ($notes) {
-            $update['notes'] = trim(($this->notes ? $this->notes."\n\n" : '').'Receipt note: '.$notes);
+        if (! $this->canReceive()) {
+            throw ValidationException::withMessages([
+                'status' => 'This shipment cannot be received.',
+            ]);
         }
 
-        $this->update($update);
+        DB::transaction(function () use ($userId, $notes) {
+            $sourceDrug = Drug::query()->lockForUpdate()->findOrFail($this->drug_id);
+            $quantitySent = (int) $this->quantity_sent;
+
+            $destinationDrugId = $this->destination_drug_id;
+
+            if (! $destinationDrugId) {
+                $destinationBatch = $sourceDrug->batch_number.'-LAE-'.now()->format('ymdHis');
+
+                $destinationDrug = Drug::create([
+                    'medicine_id' => $sourceDrug->medicine_id,
+                    'drug_name' => $sourceDrug->drug_name,
+                    'description' => $sourceDrug->description,
+                    'dosage' => $sourceDrug->dosage,
+                    'dosage_form' => $sourceDrug->dosage_form,
+                    'batch_number' => $destinationBatch,
+                    'expiry_date' => $sourceDrug->expiry_date,
+                    'quantity_received' => $quantitySent,
+                    'quantity_on_hand' => $quantitySent,
+                    'reorder_point' => $sourceDrug->reorder_point,
+                    'unit' => $sourceDrug->unit,
+                    'supplier' => $sourceDrug->supplier,
+                    'cost_per_unit' => $sourceDrug->cost_per_unit,
+                    'storage_location' => 'Lae AMS Warehouse',
+                    'level' => 'lae_ams',
+                    'status' => 'active',
+                    'received_date' => now(),
+                    'notes' => "Received via shipment {$this->transfer_number} from NDoH",
+                    'created_by' => $userId,
+                    'updated_by' => $userId,
+                ]);
+
+                $destinationDrugId = $destinationDrug->id;
+            }
+
+            $update = [
+                'destination_drug_id' => $destinationDrugId,
+                'status' => 'received',
+                'received_by' => $userId,
+                'received_at' => now(),
+            ];
+
+            if ($notes) {
+                $update['notes'] = trim(($this->notes ? $this->notes."\n\n" : '').'Receipt note: '.$notes);
+            }
+
+            $this->update($update);
+        });
     }
 }

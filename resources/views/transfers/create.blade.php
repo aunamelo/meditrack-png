@@ -48,7 +48,7 @@
                                 @if($drugs->isEmpty())
                                     <p class="mt-1 text-sm text-amber-700">No active NDoH batches with stock. Receive a procurement order first, then return here to ship stock to Lae AMS. <a href="{{ getDashboardOrderRoute('index') }}" class="font-medium text-brand-600 underline">View orders →</a></p>
                                 @else
-                                    <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. After NDoH Admin approves, stock is deducted from NDoH and a Lae AMS batch is created.</p>
+                                    <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. After NDoH Admin approves, stock is deducted from NDoH. Lae AMS inventory is created when the Store Manager confirms receipt.</p>
                                 @endif
                                 @error('drug_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
@@ -78,7 +78,7 @@
                         </div>
 
                         <div class="mt-6 p-4 bg-brand-50 border border-brand-200 rounded-md text-sm text-brand-800">
-                            This creates a shipment request for NDoH Admin approval. Stock is not moved until an admin approves. After approval, the Store Manager is notified to confirm receipt at Lae AMS.
+                            This creates a shipment request for NDoH Admin approval. Stock is deducted from NDoH when an admin approves. Lae AMS inventory is updated only when the Store Manager confirms receipt.
                         </div>
 
                         <div class="mt-6 flex gap-3">

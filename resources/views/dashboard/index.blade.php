@@ -9,30 +9,19 @@
                 $topStats = collect($stats ?? [])->take(4);
             @endphp
 
-            {{-- Page header — same typography as guest portal --}}
-            <div class="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
-                <div @class(['flex gap-4', 'items-center' => in_array($roleMeta['key'] ?? '', ['pharmacy_manager', 'pharmacist'], true)])>
-                    @if(in_array($roleMeta['key'] ?? '', ['pharmacy_manager', 'pharmacist'], true))
-                        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white p-1.5 dark:border-zinc-700 dark:bg-zinc-900">
-                            <x-app-icon size="lg" class="h-full w-full object-contain" />
-                        </div>
-                    @endif
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                            {{ $roleMeta['facility_group'] ?? 'MediTrack PNG' }} · {{ $roleMeta['inventory_label'] }}
-                        </p>
-                        <h1 class="mt-1 font-display text-2xl font-bold tracking-tight text-[#132f4f] dark:text-zinc-50 sm:text-3xl">{{ $roleMeta['label'] }} Dashboard</h1>
-                        <p class="mt-1.5 text-sm text-slate-600 dark:text-zinc-400">
-                            {{ $greeting }}, {{ $firstName }} · {{ now()->format('l, j F Y') }}
-                        </p>
-                    </div>
+            <div class="dashboard-welcome flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-section-label">{{ portalWorkspaceScope($roleMeta) }}</p>
+                    <h1 class="heading-display mt-1">{{ $roleMeta['label'] }}</h1>
+                    <p class="mt-1 text-sm text-ink-secondary dark:text-zinc-400">
+                        {{ $greeting }}, {{ $firstName }} · {{ now()->format('D, j M Y') }}
+                    </p>
                 </div>
             </div>
 
-            {{-- Key metrics --}}
             @if($topStats->isNotEmpty())
-                <section class="mb-6">
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <section class="mb-5">
+                    <div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
                         @foreach($topStats as $stat)
                             <x-dashboard.stat-card
                                 :label="$stat['label']"
@@ -49,14 +38,13 @@
             @endif
 
             @if(isset($pipelineCounts) && in_array($roleMeta['key'] ?? '', ['admin', 'procurement_officer'], true))
-                <section class="mb-6">
+                <section class="mb-5">
                     <x-dashboard.pipeline-summary :counts="$pipelineCounts" />
                 </section>
             @endif
 
-            {{-- Priority alerts --}}
             @if(count($alerts ?? []))
-                <section class="mb-6 space-y-4">
+                <section class="mb-5 space-y-2">
                     @foreach($alerts as $alert)
                         <x-dashboard.alert-panel
                             :tone="$alert['tone']"
@@ -71,7 +59,6 @@
                 </section>
             @endif
 
-            {{-- Interactive insights --}}
             @php
                 $insights = $insights ?? [];
                 $hasInsights = ($insights['stockHealth'] ?? null)
@@ -80,14 +67,11 @@
                     || ($insights['dispenseTrend'] ?? null);
             @endphp
             @if($hasInsights)
-                <section class="mb-6 space-y-6">
-                    <div>
-                        <p class="text-section-label">Insights</p>
-                        <h3 class="heading-section">Stock intelligence</h3>
-                    </div>
+                <section class="mb-5 space-y-3">
+                    <h3 class="heading-section">Stock status</h3>
 
                     @if(($insights['stockHealth'] ?? null) || ($insights['atRisk'] ?? null))
-                        <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
                             @if($insights['stockHealth'] ?? null)
                                 <x-dashboard.stock-health-panel :panel="$insights['stockHealth']" />
                             @endif
@@ -99,7 +83,7 @@
 
                     @if(($insights['expiry'] ?? null) || ($insights['dispenseTrend'] ?? null))
                         <div @class([
-                            'grid grid-cols-1 gap-6',
+                            'grid grid-cols-1 gap-3',
                             'xl:grid-cols-2' => ($insights['expiry'] ?? null) && ($insights['dispenseTrend'] ?? null),
                         ])>
                             @if($insights['expiry'] ?? null)
@@ -113,7 +97,6 @@
                 </section>
             @endif
 
-            {{-- Quick access (workflow groups matching sidebar) --}}
             @php
                 $actionGroups = $quickActionGroups ?? [];
                 if ($actionGroups === [] && count($quickActions ?? [])) {
@@ -121,18 +104,14 @@
                 }
             @endphp
             @if(count($actionGroups))
-                <section class="mb-6 space-y-6">
-                    <div class="mb-1">
-                        <p class="text-section-label">Shortcuts</p>
-                        <h3 class="heading-section">Quick access</h3>
-                    </div>
+                <section class="mb-5 space-y-4">
                     @foreach($actionGroups as $group)
                         @php $groupActions = $group['actions'] ?? []; @endphp
                         @if(count($groupActions))
                             <div>
-                                <p class="mb-3 text-xs font-bold uppercase tracking-widest text-muted">{{ $group['label'] }}</p>
+                                <p class="mb-2 text-section-label">{{ $group['label'] }}</p>
                                 <div @class([
-                                    'grid grid-cols-1 gap-4 sm:grid-cols-2',
+                                    'grid grid-cols-1 gap-2 sm:grid-cols-2',
                                     'xl:grid-cols-2' => count($groupActions) <= 2,
                                     'xl:grid-cols-3' => count($groupActions) >= 3,
                                 ])>
@@ -152,11 +131,10 @@
                 </section>
             @endif
 
-            {{-- Charts + activity --}}
             @if(count($charts ?? []) || count($recentItems ?? []))
-                <section class="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+                <section class="mb-5 grid grid-cols-1 gap-3 xl:grid-cols-3">
                     @if(count($charts ?? []))
-                        <div @class(['space-y-6', 'xl:col-span-2' => count($recentItems ?? [])])>
+                        <div @class(['space-y-3', 'xl:col-span-2' => count($recentItems ?? [])])>
                             @foreach($charts as $chart)
                                 <x-dashboard.chart :config="$chart" />
                             @endforeach
@@ -170,11 +148,8 @@
             @endif
         @else
             <div class="dashboard-empty-state">
-                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50">
-                    <x-dashboard.icon name="shield" class="h-8 w-8 text-brand-600" />
-                </div>
-                <h3 class="mt-6 heading-section">Welcome to MediTrack PNG</h3>
-                <p class="mt-2 max-w-md text-sm text-muted">Your account has no portal role assigned. Contact an administrator for access.</p>
+                <h3 class="heading-section">No portal role assigned</h3>
+                <p class="mt-2 max-w-md text-sm text-muted">Contact an administrator for MediTrack access.</p>
             </div>
         @endif
     </div>

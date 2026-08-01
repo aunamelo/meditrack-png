@@ -407,6 +407,29 @@ if (! function_exists('portalGreeting')) {
     }
 }
 
+if (! function_exists('portalWorkspaceScope')) {
+    /**
+     * Facility + inventory scope for headers, without repeating identical labels.
+     *
+     * @param  array<string, mixed>|null  $meta
+     */
+    function portalWorkspaceScope(?array $meta): string
+    {
+        $facility = trim((string) ($meta['facility_group'] ?? ''));
+        $inventory = trim((string) ($meta['inventory_label'] ?? ''));
+
+        if ($facility !== '' && $inventory !== '' && strcasecmp($facility, $inventory) !== 0) {
+            return $facility.' · '.$inventory;
+        }
+
+        if ($facility !== '') {
+            return $facility;
+        }
+
+        return $inventory !== '' ? $inventory : 'MediTrack PNG';
+    }
+}
+
 if (! function_exists('getRoleDashboardRoute')) {
     /**
      * Return the main dashboard route for the authenticated user's portal role.

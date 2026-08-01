@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header"><div><p class="text-section-label">Reports</p><h2 class="heading-page">{{ $discrepancy->report_number }}</h2></div></x-slot>
+    <x-slot name="header"><div><p class="text-section-label">Quality</p><h2 class="heading-page">{{ $discrepancy->report_number }}</h2></div></x-slot>
     <x-page-container>
         @if(session('success'))<div class="mb-4 rounded-md border border-green-200 bg-green-50 p-4 text-green-800">{{ session('success') }}</div>@endif
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

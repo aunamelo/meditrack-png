@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header"><div><p class="text-section-label">Reports</p><h2 class="heading-page">Report Discrepancy</h2></div></x-slot>
+    <x-slot name="header"><div><p class="text-section-label">Quality</p><h2 class="heading-page">Report Discrepancy</h2></div></x-slot>
     <x-page-container>
         <div class="surface-panel p-6">
             <form action="{{ getDashboardDiscrepancyRoute('store') }}" method="POST" class="grid grid-cols-1 gap-6 md:grid-cols-2">

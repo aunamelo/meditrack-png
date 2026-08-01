@@ -147,7 +147,7 @@ class StockTransferController extends Controller
     }
 
     /**
-     * Approve a pending shipment and release stock to Lae AMS (NDoH Admin only).
+     * Approve a pending shipment: deduct NDoH stock and mark in transit (NDoH Admin only).
      */
     public function approve(StockTransfer $transfer): RedirectResponse
     {
@@ -200,6 +200,6 @@ class StockTransferController extends Controller
         \Log::info("NDoH shipment [{$transfer->transfer_number}] received at Lae AMS by user ID: ".auth()->id());
 
         return redirect(getDashboardTransferRoute('show', $transfer))
-            ->with('success', 'Shipment confirmed as received at Lae AMS.');
+            ->with('success', 'Shipment confirmed as received. Lae AMS inventory has been updated.');
     }
 }

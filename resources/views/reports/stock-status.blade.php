@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <p class="text-section-label">Inventory Reports</p>
+            <p class="text-section-label">Stock</p>
             <h2 class="heading-page">Stock Status</h2>
         </div>
     </x-slot>

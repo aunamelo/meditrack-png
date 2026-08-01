@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <p class="text-section-label">Hospital Supply</p>
+            <p class="text-section-label">Supply</p>
             <h2 class="heading-page">{{ $hospitalOrder->order_number }}</h2>
         </div>
     </x-slot>
