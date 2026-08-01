@@ -35,11 +35,20 @@
         </p>
     </x-page-container>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68HdyKKbOcpzoez==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {{-- Official Leaflet CDN (correct SRI). Bad hashes previously blocked the script and left a grey canvas. --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const listEl = document.getElementById('live-map-list');
+            const countEl = document.getElementById('live-map-count');
+
+            if (typeof L === 'undefined') {
+                listEl.innerHTML = '<p class="p-4 text-sm text-red-600">Map library failed to load. Check network access to unpkg.com, then refresh.</p>';
+                return;
+            }
+
             const dataUrl = @json(getDashboardLiveMapRoute('data'));
             const map = L.map('live-map-canvas').setView([-6.3, 146.0], 8); // Lae / Madang region default view
 
@@ -48,10 +57,11 @@
                 attribution: '&copy; OpenStreetMap contributors',
             }).addTo(map);
 
+            // Leaflet needs a size recalc when laid out in a CSS grid panel.
+            setTimeout(() => map.invalidateSize(), 100);
+
             const markers = {};
             const trails = {};
-            const listEl = document.getElementById('live-map-list');
-            const countEl = document.getElementById('live-map-count');
 
             function statusColor(v) {
                 if (!v.has_location) return '#9ca3af'; // gray — never reported
@@ -59,14 +69,19 @@
             }
 
             function refresh() {
-                fetch(dataUrl, { headers: { 'Accept': 'application/json' } })
-                    .then(r => r.json())
+                fetch(dataUrl, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                    .then(r => {
+                        if (!r.ok) {
+                            throw new Error('HTTP ' + r.status);
+                        }
+                        return r.json();
+                    })
                     .then(payload => {
                         const vehicles = payload.vehicles || [];
                         countEl.textContent = vehicles.length;
 
                         if (vehicles.length === 0) {
-                            listEl.innerHTML = '<p class="p-4 text-sm text-muted">No vehicles are currently on a road delivery.</p>';
+                            listEl.innerHTML = '<p class="p-4 text-sm text-muted">No vehicles are currently on a road delivery. Dispatch a hospital order by road, then open the driver tracking link on a phone.</p>';
                         } else {
                             listEl.innerHTML = '';
                         }

@@ -11,11 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Trust Caddy / reverse proxy so HTTPS and client IP are detected correctly.
         $middleware->trustProxies(at: '*');
-
+    
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+        ]);
+    
+        $middleware->validateCsrfTokens(except: [
+            'track/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

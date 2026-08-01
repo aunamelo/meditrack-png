@@ -125,6 +125,12 @@ class StockTransfer extends Model
             return null;
         }
 
+        // Prefer the current request host so WhatsApp/SMS links match production HTTPS.
+        if (request()) {
+            URL::forceRootUrl(request()->root());
+            URL::forceScheme(request()->getScheme());
+        }
+
         return URL::temporarySignedRoute(
             'driver-track.show',
             now()->addHours(24),
