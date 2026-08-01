@@ -110,6 +110,10 @@ class OrderController extends Controller
                 'order_date' => $request->order_date,
                 'expected_delivery_date' => $request->expected_delivery_date,
                 'supplier_invoice' => $request->supplier_invoice,
+                'invoice_amount_foreign' => $request->invoice_amount_foreign,
+                'invoice_currency' => $request->invoice_currency
+                    ? strtoupper($request->invoice_currency)
+                    : $supplier->procurementCurrency(),
                 'invoice_amount' => $request->invoice_amount,
                 'source' => $request->source,
                 'notes' => $request->notes,

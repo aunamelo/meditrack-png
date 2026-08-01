@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('vehicle_locations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('vehicle_id')->constrained('vehicles')->cascadeOnDelete();
+            $table->foreignId('stock_transfer_id')->nullable()->constrained('stock_transfers')->nullOnDelete();
+            $table->decimal('latitude', 10, 7);
+            $table->decimal('longitude', 10, 7);
+            $table->decimal('speed_kmh', 6, 2)->nullable();
+            $table->decimal('heading', 6, 2)->nullable();
+            $table->decimal('accuracy_meters', 8, 2)->nullable();
+            $table->timestamp('recorded_at');
+            $table->timestamps();
+
+            $table->index(['vehicle_id', 'recorded_at']);
+            $table->index(['stock_transfer_id', 'recorded_at']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('vehicle_locations');
+    }
+};

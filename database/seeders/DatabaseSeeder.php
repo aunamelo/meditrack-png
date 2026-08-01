@@ -15,11 +15,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(UserSeeder::class);
-        $this->call(SupplierSeeder::class);
+        $this->call(SupplierSeeder::class); // needed for medicine catalogue supplier links
         $this->call(VehicleSeeder::class);
         $this->call(MedicineSeeder::class);
-        $this->call(BackfillSupplierLinksSeeder::class);
-        $this->call(OrderSeeder::class);
-        $this->call(PatientSeeder::class);
+        // Demo/domain seeders kept on disk but not run automatically:
+        // $this->call(BackfillSupplierLinksSeeder::class);
+        // $this->call(OrderSeeder::class);
+        // $this->call(PatientSeeder::class);
     }
 }

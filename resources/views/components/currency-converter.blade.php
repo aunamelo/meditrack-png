@@ -22,6 +22,7 @@
     })"
     x-init="init()"
     @currency-recalculate.window="if (Number(amount) > 0) convert()"
+    @currency-sync.window="syncFromParent($event.detail)"
     {{ $attributes->merge(['class' => 'overflow-hidden rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50/80 via-white to-brand-100/50 shadow-sm']) }}
 >
     {{-- Live rates header --}}
@@ -247,6 +248,22 @@
                         setInterval(() => {
                             this.now = Date.now();
                         }, 15000);
+                    },
+                    syncFromParent(detail = {}) {
+                        if (detail.from) {
+                            this.fromCurrency = String(detail.from).toUpperCase();
+                        }
+
+                        if (detail.amount !== undefined && detail.amount !== null && detail.amount !== '') {
+                            const value = Number(detail.amount);
+                            this.amount = Number.isFinite(value) && value > 0
+                                ? value.toFixed(2)
+                                : '';
+                        }
+
+                        if (Number(this.amount) > 0) {
+                            this.convert();
+                        }
                     },
                     pulseUpdated() {
                         this.justUpdated = true;

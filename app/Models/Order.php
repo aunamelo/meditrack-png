@@ -28,6 +28,8 @@ class Order extends Model
         'actual_delivery_date',
         'supplier_invoice',
         'invoice_amount',
+        'invoice_amount_foreign',
+        'invoice_currency',
         'status',
         'source',
         'notes',
@@ -50,6 +52,7 @@ class Order extends Model
         'expected_delivery_date' => 'date',
         'actual_delivery_date' => 'date',
         'invoice_amount' => 'decimal:2',
+        'invoice_amount_foreign' => 'decimal:2',
         'approved_at' => 'datetime',
         'manufacturing_started_at' => 'datetime',
         'shipped_at' => 'datetime',
@@ -502,6 +505,20 @@ class Order extends Model
         }
 
         return $this->expected_delivery_date->format('M d, Y');
+    }
+
+    public function formatForeignInvoiceAmount(): ?string
+    {
+        if ($this->invoice_amount_foreign === null || ! $this->invoice_currency) {
+            return null;
+        }
+
+        $amount = number_format((float) $this->invoice_amount_foreign, 2);
+        $currency = strtoupper($this->invoice_currency);
+
+        return $currency === 'PGK'
+            ? "K {$amount}"
+            : "{$amount} {$currency}";
     }
 
     /**

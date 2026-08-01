@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 
 class StockTransfer extends Model
@@ -91,6 +93,43 @@ class StockTransfer extends Model
     public function receiver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'received_by');
+    }
+
+    public function locations(): HasMany
+    {
+        return $this->hasMany(VehicleLocation::class);
+    }
+
+    /**
+     * Only the Lae AMS -> Modilon Hospital road leg carries a vehicle and
+     * is GPS-tracked; the NDoH -> Lae AMS leg travels by air/sea freight.
+     */
+    public function isRoadLeg(): bool
+    {
+        return $this->to_level === 'modilon_hospital' && $this->vehicle_id !== null;
+    }
+
+    public function isTrackable(): bool
+    {
+        return $this->isRoadLeg() && $this->status === 'sent';
+    }
+
+    /**
+     * Signed, no-login link the driver opens on their phone to start
+     * sharing GPS location for this specific delivery. Expires with the
+     * shipment window so a stale link can't be reused.
+     */
+    public function driverTrackingUrl(): ?string
+    {
+        if (! $this->isRoadLeg()) {
+            return null;
+        }
+
+        return URL::temporarySignedRoute(
+            'driver-track.show',
+            now()->addHours(24),
+            ['transfer' => $this->id]
+        );
     }
 
     public function scopeFromLevel($query, string $level)

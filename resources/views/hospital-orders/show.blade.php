@@ -98,7 +98,7 @@
                             </div>
                             <textarea name="notes" rows="2" placeholder="Road delivery notes (optional)" class="input-field">{{ old('notes') }}</textarea>
                             @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                            <button type="submit" class="w-full rounded-lg bg-purple-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-purple-700">Dispatch by road to hospital</button>
+                            <button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-brand-700">Dispatch by road to hospital</button>
                         </form>
                     </x-module.detail-card>
                 @endif

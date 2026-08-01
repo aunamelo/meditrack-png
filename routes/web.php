@@ -3,7 +3,9 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscrepancyReportController;
 use App\Http\Controllers\DispensingRecordController;
+use App\Http\Controllers\DriverTrackController;
 use App\Http\Controllers\DrugController;
+use App\Http\Controllers\LiveMapController;
 use App\Http\Controllers\HospitalOrderController;
 use App\Http\Controllers\HospitalReportController;
 use App\Http\Controllers\HospitalShipmentController;
@@ -67,6 +69,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/currency/convert', [\App\Http\Controllers\CurrencyController::class, 'convert'])->name('currency.convert');
 });
 
+// Driver GPS tracking — no MediTrack login for the driver; the signed link
+// itself (sent by the Store Manager on dispatch) is the credential.
+Route::middleware(['signed'])->prefix('track')->name('driver-track.')->group(function () {
+    Route::get('{transfer}', [DriverTrackController::class, 'show'])->name('show');
+    Route::post('{transfer}/ping', [DriverTrackController::class, 'ping'])
+        ->middleware('throttle:30,1')
+        ->name('ping');
+});
+
 // Drug Inventory & Procurement Orders — scoped under each role's portal prefix.
 // Dashboard home stays at /{role}/dashboard; modules live at /{role}/drugs and /{role}/orders.
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.dashboard.')->group(function () {
@@ -113,6 +124,8 @@ Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-man
     Route::post('hospital-orders/{hospitalOrder}/reject', [HospitalOrderController::class, 'reject'])->name('hospital-orders.reject');
     Route::post('hospital-orders/{hospitalOrder}/ship', [HospitalOrderController::class, 'ship'])->name('hospital-orders.ship');
     Route::resource('hospital-shipments', HospitalShipmentController::class)->only(['index', 'show'])->parameters(['hospital-shipments' => 'transfer']);
+    Route::get('live-map', [LiveMapController::class, 'index'])->name('live-map.index');
+    Route::get('live-map/data', [LiveMapController::class, 'data'])->name('live-map.data');
     Route::resource('discrepancies', DiscrepancyReportController::class)->only(['index', 'show']);
     Route::post('discrepancies/{discrepancy}/resolve', [DiscrepancyReportController::class, 'resolve'])->name('discrepancies.resolve');
     Route::resource('stock-adjustments', StockAdjustmentController::class)->only(['index', 'create', 'store', 'show']);
@@ -131,6 +144,8 @@ Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharma
     Route::resource('hospital-orders', HospitalOrderController::class)->only(['index', 'create', 'store', 'show']);
     Route::post('hospital-orders/{hospitalOrder}/receive', [HospitalOrderController::class, 'receive'])->name('hospital-orders.receive');
     Route::resource('hospital-shipments', HospitalShipmentController::class)->only(['index', 'show'])->parameters(['hospital-shipments' => 'transfer']);
+    Route::get('live-map', [LiveMapController::class, 'index'])->name('live-map.index');
+    Route::get('live-map/data', [LiveMapController::class, 'data'])->name('live-map.data');
     Route::resource('discrepancies', DiscrepancyReportController::class)->only(['index', 'create', 'store', 'show']);
     Route::resource('patients', PatientController::class)->except(['destroy']);
     Route::resource('dispensing', DispensingRecordController::class)->only(['index', 'show'])->parameters(['dispensing' => 'dispensing']);

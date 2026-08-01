@@ -19,6 +19,8 @@ class Medicine extends Model
         'description',
         'supplier_id',
         'reorder_point',
+        'unit_cost',
+        'currency',
         'is_active',
         'created_by',
         'updated_by',
@@ -30,6 +32,7 @@ class Medicine extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'reorder_point' => 'integer',
+        'unit_cost' => 'decimal:4',
     ];
 
     public function createdBy(): BelongsTo
@@ -78,5 +81,31 @@ class Medicine extends Model
     public function formLabel(): string
     {
         return ucfirst(str_replace('_', ' ', $this->dosage_form));
+    }
+
+    /**
+     * Quote currency for this catalog entry (explicit, or inferred from supplier country).
+     */
+    public function quoteCurrency(): ?string
+    {
+        if ($this->currency) {
+            return strtoupper($this->currency);
+        }
+
+        return $this->supplier?->procurementCurrency();
+    }
+
+    public function formatUnitCost(): ?string
+    {
+        if ($this->unit_cost === null) {
+            return null;
+        }
+
+        $currency = $this->quoteCurrency() ?? 'PGK';
+        $amount = number_format((float) $this->unit_cost, 4);
+
+        return $currency === 'PGK'
+            ? "K {$amount}"
+            : "{$amount} {$currency}";
     }
 }

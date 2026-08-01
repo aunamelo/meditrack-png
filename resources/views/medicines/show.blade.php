@@ -31,6 +31,7 @@
                     <x-module.detail-field label="Dosage" :value="$medicine->dosage" />
                     <x-module.detail-field label="Form" :value="$medicine->formLabel()" />
                     <x-module.detail-field label="Unit" :value="$medicine->unit" />
+                    <x-module.detail-field label="Unit cost" :value="$medicine->formatUnitCost() ?? '—'" />
                     <x-module.detail-field label="Registered supplier">
                         @if($medicine->supplier)
                             {{ $medicine->supplier->name }} ({{ $medicine->supplier->countryLabel() }})

@@ -107,7 +107,7 @@
                                         @if(canApproveOrders() && $order->canApprove())
                                             <form action="{{ getDashboardOrderRoute('approve', $order) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="text-sm font-medium text-blue-600 hover:text-blue-700">Approve</button>
+                                                <button type="submit" class="text-sm font-medium text-brand-600 hover:text-brand-700">Approve</button>
                                             </form>
                                         @endif
                                         @if(canApproveOrders() && $order->status === 'pending')

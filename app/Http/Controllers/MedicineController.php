@@ -56,6 +56,8 @@ class MedicineController extends Controller
             'description' => $request->description,
             'supplier_id' => $request->supplier_id,
             'reorder_point' => $request->reorder_point ?? 100,
+            'unit_cost' => $request->unit_cost,
+            'currency' => strtoupper($request->currency),
             'is_active' => true,
             'created_by' => auth()->id(),
             'updated_by' => auth()->id(),
@@ -99,6 +101,8 @@ class MedicineController extends Controller
             'description' => $request->description,
             'supplier_id' => $request->supplier_id,
             'reorder_point' => $request->reorder_point ?? 100,
+            'unit_cost' => $request->unit_cost,
+            'currency' => strtoupper($request->currency),
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $medicine->is_active,
             'updated_by' => auth()->id(),
         ]);

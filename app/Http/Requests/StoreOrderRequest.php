@@ -34,7 +34,9 @@ class StoreOrderRequest extends FormRequest
             'order_date' => 'required|date|before_or_equal:today',
             'expected_delivery_date' => 'nullable|date|after:order_date',
             'supplier_invoice' => 'nullable|string|max:100',
-            'invoice_amount' => 'nullable|numeric|min:0|max:999999.99',
+            'invoice_amount_foreign' => 'nullable|numeric|min:0|max:999999999.99',
+            'invoice_currency' => 'nullable|in:INR,CNY,PGK,USD,AUD,NZD,EUR,GBP,SGD,MYR,JPY',
+            'invoice_amount' => 'nullable|numeric|min:0|max:999999999.99',
             'source' => 'required|in:overseas,local,donation',
             'notes' => 'nullable|string',
         ];

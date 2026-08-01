@@ -31,7 +31,7 @@
                 @if(canApproveOrders() && $order->canApprove())
                     <form action="{{ getDashboardOrderRoute('approve', $order) }}" method="POST">
                         @csrf
-                        <button type="submit" class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-blue-700">Approve</button>
+                        <button type="submit" class="inline-flex items-center rounded-lg bg-brand-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-brand-700">Approve</button>
                     </form>
                 @endif
                 @if(canApproveOrders() && $order->status === 'pending')
@@ -88,8 +88,11 @@
                     @if($order->supplier_invoice)
                         <x-module.detail-field label="Invoice #" :value="$order->supplier_invoice" />
                     @endif
+                    @if($order->formatForeignInvoiceAmount())
+                        <x-module.detail-field label="Supplier quote" :value="$order->formatForeignInvoiceAmount()" />
+                    @endif
                     @if($order->invoice_amount)
-                        <x-module.detail-field label="Invoice Amount" :value="'K ' . number_format($order->invoice_amount, 2)" />
+                        <x-module.detail-field label="Invoice Amount (PGK)" :value="'K ' . number_format($order->invoice_amount, 2)" />
                     @endif
                 </dl>
             </x-module.detail-card>

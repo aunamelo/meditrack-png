@@ -54,5 +54,61 @@
                 <p class="mt-4 text-sm text-ink-secondary dark:text-zinc-300">{{ $transfer->notes }}</p>
             @endif
         </x-module.detail-card>
+
+        @if($transfer->isRoadLeg())
+            <x-module.detail-card title="GPS tracking" class="mt-6">
+                @if($transfer->isTrackable())
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            @if($transfer->vehicle->hasKnownLocation())
+                                <div class="flex items-center gap-2">
+                                    <span class="h-2.5 w-2.5 rounded-full {{ $transfer->vehicle->isTrackingStale() ? 'bg-amber-500' : 'bg-health-600' }}"></span>
+                                    <p class="font-medium text-ink">
+                                        {{ $transfer->vehicle->isTrackingStale() ? 'Signal lost / paused' : 'Live — vehicle is sharing its location' }}
+                                    </p>
+                                </div>
+                                <p class="mt-1 text-xs text-muted">
+                                    Last ping {{ $transfer->vehicle->last_ping_at->diffForHumans() }}
+                                    @if($transfer->vehicle->last_speed_kmh !== null)
+                                        · {{ round($transfer->vehicle->last_speed_kmh) }} km/h
+                                    @endif
+                                </p>
+                            @else
+                                <div class="flex items-center gap-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-zinc-400"></span>
+                                    <p class="font-medium text-ink">Not started yet</p>
+                                </div>
+                                <p class="mt-1 text-xs text-muted">Waiting for the driver to open the tracking link and tap Start Tracking.</p>
+                            @endif
+                        </div>
+
+                        <a href="{{ getDashboardLiveMapRoute('index') }}" class="btn-module-secondary text-center">View on live map</a>
+                    </div>
+
+                    @if(auth()->user()->hasRole('store_manager'))
+                        <div
+                            x-data="{ copied: false, link: @js($transfer->driverTrackingUrl()) }"
+                            class="mt-5 rounded-lg border border-line bg-surface-muted p-4"
+                        >
+                            <p class="text-xs font-semibold uppercase tracking-wider text-muted">Driver tracking link</p>
+                            <p class="mt-1 text-xs text-ink-secondary">Send this to the driver (SMS or WhatsApp). It opens a simple page on their phone with a Start Tracking button — no MediTrack login needed. Expires in 24 hours.</p>
+                            <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+                                <input type="text" readonly x-ref="linkInput" :value="link" class="input-field flex-1 text-xs" onclick="this.select()">
+                                <button
+                                    type="button"
+                                    class="btn-brand whitespace-nowrap text-xs uppercase tracking-widest"
+                                    @click="navigator.clipboard.writeText(link); copied = true; setTimeout(() => copied = false, 2000)"
+                                >
+                                    <span x-show="!copied">Copy link</span>
+                                    <span x-show="copied">Copied!</span>
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+                @else
+                    <p class="text-sm text-muted">Tracking is only active while this delivery is in transit.</p>
+                @endif
+            </x-module.detail-card>
+        @endif
     </x-page-container>
 </x-app-layout>

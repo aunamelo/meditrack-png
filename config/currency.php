@@ -7,7 +7,8 @@ return [
     | Base Currency
     |--------------------------------------------------------------------------
     |
-    | All procurement costs are stored in Papua New Guinea Kina (PGK).
+    | Catalog/order quotes may be INR or CNY; converted PGK is stored as the
+    | canonical invoice amount for NDoH approval and inventory costing.
     |
     */
     'base' => 'PGK',

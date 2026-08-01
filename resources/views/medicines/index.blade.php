@@ -47,6 +47,7 @@
                                 <th>Form</th>
                                 <th>Registered supplier</th>
                                 <th>Unit</th>
+                                <th class="text-right">Unit cost</th>
                                 <th class="text-right">Reorder point</th>
                                 <th>Status</th>
                                 <th></th>
@@ -69,6 +70,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $medicine->unit }}</td>
+                                    <td class="text-right tabular-nums">{{ $medicine->formatUnitCost() ?? '—' }}</td>
                                     <td class="text-right">{{ number_format($medicine->reorder_point) }}</td>
                                     <td>
                                         <x-module.status-badge :variant="$medicine->is_active ? 'green' : 'gray'" :label="$medicine->is_active ? 'Active' : 'Inactive'" />

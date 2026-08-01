@@ -229,6 +229,19 @@ if (! function_exists('getDashboardHospitalShipmentRoute')) {
     }
 }
 
+if (! function_exists('getDashboardLiveMapRoute')) {
+    function getDashboardLiveMapRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['store_manager', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to the live delivery map.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'live-map.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
 if (! function_exists('getDashboardDiscrepancyRoute')) {
     function getDashboardDiscrepancyRoute(string $routeName, mixed $params = null): string
     {

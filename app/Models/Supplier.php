@@ -65,6 +65,19 @@ class Supplier extends Model
         };
     }
 
+    /**
+     * Default quote currency for this supplier's country.
+     */
+    public function procurementCurrency(): string
+    {
+        return match ($this->country) {
+            'india' => 'INR',
+            'china' => 'CNY',
+            'png' => 'PGK',
+            default => 'USD',
+        };
+    }
+
     public function displayLabel(): string
     {
         return "{$this->name} ({$this->countryLabel()})";

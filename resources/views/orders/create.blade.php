@@ -25,10 +25,25 @@
                               expectedDeliveryDate: @js(old('expected_delivery_date', '')),
                               supplierInvoice: @js(old('supplier_invoice', '')),
                               invoiceAmount: @js(old('invoice_amount', '')),
+                              invoiceAmountForeign: @js(old('invoice_amount_foreign', '')),
+                              invoiceCurrency: @js(old('invoice_currency', '')),
                               notes: @js(old('notes', '')),
                               notesEdited: @js(filled(old('notes'))),
-                              medicineOptions: @js($medicines->map(fn ($medicine) => ['id' => (string) $medicine->id, 'label' => $medicine->displayLabel(), 'supplier_id' => $medicine->supplier_id ? (string) $medicine->supplier_id : ''])->values()),
-                              supplierOptions: @js($suppliers->map(fn ($supplier) => ['id' => (string) $supplier->id, 'name' => $supplier->name, 'label' => $supplier->displayLabel(), 'country' => $supplier->country])->values()),
+                              medicineOptions: @js($medicines->map(fn ($medicine) => [
+                                  'id' => (string) $medicine->id,
+                                  'label' => $medicine->displayLabel(),
+                                  'supplier_id' => $medicine->supplier_id ? (string) $medicine->supplier_id : '',
+                                  'unit_cost' => $medicine->unit_cost !== null ? (float) $medicine->unit_cost : null,
+                                  'currency' => $medicine->quoteCurrency(),
+                                  'unit' => $medicine->unit,
+                              ])->values()),
+                              supplierOptions: @js($suppliers->map(fn ($supplier) => [
+                                  'id' => (string) $supplier->id,
+                                  'name' => $supplier->name,
+                                  'label' => $supplier->displayLabel(),
+                                  'country' => $supplier->country,
+                                  'currency' => $supplier->procurementCurrency(),
+                              ])->values()),
                               lmisSuggestions: @js($lmisSuggestions),
                           })">
                         @csrf
@@ -58,7 +73,7 @@
                                 <template x-for="(item, index) in items" :key="index">
                                     <div class="bg-white rounded-md border border-gray-200 p-3 space-y-3">
                                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
-                                            <div class="md:col-span-7">
+                                            <div class="md:col-span-5">
                                                 <label class="block text-xs font-medium text-gray-700 mb-1">Medicine <span class="text-red-500">*</span></label>
                                                 <select :name="`items[${index}][medicine_id]`" x-model="item.medicine_id" @change="applySuggestion(index)" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
                                                     <option value="">Select a medicine...</option>
@@ -67,9 +82,13 @@
                                                     </template>
                                                 </select>
                                             </div>
-                                            <div class="md:col-span-3">
+                                            <div class="md:col-span-2">
                                                 <label class="block text-xs font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
                                                 <input type="number" :name="`items[${index}][quantity_ordered]`" x-model="item.quantity_ordered" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
+                                            </div>
+                                            <div class="md:col-span-3">
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">Unit cost / line total</label>
+                                                <p class="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="lineCostLabel(item)"></p>
                                             </div>
                                             <div class="md:col-span-2 flex items-end">
                                                 <button type="button" x-show="items.length > 1" @click="removeItem(index)" class="w-full inline-flex justify-center items-center px-3 py-2 border border-red-200 rounded-md text-xs font-semibold text-red-600 uppercase hover:bg-red-50">
@@ -91,6 +110,16 @@
                                         </div>
                                     </div>
                                 </template>
+                            </div>
+
+                            <div class="mt-4 flex flex-wrap items-end justify-between gap-3 rounded-md border border-brand-100 bg-white px-4 py-3">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-brand-700">Supplier currency total</p>
+                                    <p class="mt-1 font-display text-2xl font-bold text-ink" x-text="foreignTotalLabel"></p>
+                                    <p class="mt-1 text-xs text-amber-700" x-show="mixedCurrencies" x-cloak>Lines use different currencies — pick medicines from one country (India or China) so the total can be converted cleanly.</p>
+                                    <p class="mt-1 text-xs text-gray-500" x-show="!mixedCurrencies && !foreignTotal" x-cloak>Add medicines with unit costs to calculate the foreign total.</p>
+                                </div>
+                                <p class="text-xs text-gray-500 max-w-sm text-right">India quotes in INR, China in CNY. Convert below to PGK before sending to NDoH Admin.</p>
                             </div>
 
                             @if($medicines->isEmpty())
@@ -145,19 +174,30 @@
                             </div>
 
                             <div>
+                                <label for="invoice_amount_foreign" class="block text-sm font-medium text-gray-700 mb-1">Foreign invoice total</label>
+                                <div class="flex gap-2">
+                                    <input type="number" name="invoice_amount_foreign" id="invoice_amount_foreign" x-model="invoiceAmountForeign" step="0.01" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50" placeholder="From medicine costs">
+                                    <input type="text" name="invoice_currency" id="invoice_currency" x-model="invoiceCurrency" maxlength="3" class="w-24 rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50 uppercase" placeholder="INR">
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Filled from catalog unit costs × quantity. Edit if the supplier quote differs.</p>
+                                @error('invoice_amount_foreign')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                @error('invoice_currency')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <div>
                                 <label for="invoice_amount" class="block text-sm font-medium text-gray-700 mb-1">Invoice Amount (PGK)</label>
                                 <div class="relative">
                                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-500">K</span>
                                     <input type="number" name="invoice_amount" id="invoice_amount" x-model="invoiceAmount" step="0.01" min="0" class="w-full pl-8 rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50">
                                 </div>
-                                <p class="mt-1 text-xs text-gray-500">Total for all lines. Use the currency converter below if needed.</p>
+                                <p class="mt-1 text-xs text-gray-500">Converted Kina total sent with the order to NDoH Admin.</p>
                                 @error('invoice_amount')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div class="md:col-span-2">
                                 <x-currency-converter
                                     quantity-alpine="totalQuantity"
-                                    default-currency="USD"
+                                    default-currency="INR"
                                 />
                             </div>
 
@@ -193,9 +233,12 @@
                 expectedDeliveryDate: initial.expectedDeliveryDate ?? '',
                 supplierInvoice: initial.supplierInvoice ?? '',
                 invoiceAmount: initial.invoiceAmount ?? '',
+                invoiceAmountForeign: initial.invoiceAmountForeign ?? '',
+                invoiceCurrency: initial.invoiceCurrency ?? '',
                 notes: initial.notes ?? '',
                 notesEdited: initial.notesEdited ?? false,
                 foreignQuote: null,
+                syncingForeignTotal: false,
                 sourceLabels: {
                     overseas: 'Overseas',
                     local: 'Local',
@@ -240,8 +283,133 @@
 
                     return option ? option.name : '';
                 },
+                medicineFor(medicineId) {
+                    return this.medicineOptions.find((entry) => entry.id === String(medicineId)) ?? null;
+                },
+                lineTotal(item) {
+                    const medicine = this.medicineFor(item.medicine_id);
+                    const qty = Number(item.quantity_ordered) || 0;
+                    const unitCost = medicine?.unit_cost;
+
+                    if (!medicine || unitCost === null || unitCost === undefined || qty <= 0) {
+                        return null;
+                    }
+
+                    return qty * Number(unitCost);
+                },
+                lineCostLabel(item) {
+                    const medicine = this.medicineFor(item.medicine_id);
+                    if (!medicine) {
+                        return 'Select a medicine';
+                    }
+
+                    if (medicine.unit_cost === null || medicine.unit_cost === undefined) {
+                        return 'No catalog unit cost';
+                    }
+
+                    const currency = medicine.currency || '—';
+                    const unit = Number(medicine.unit_cost).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 4,
+                    });
+                    const total = this.lineTotal(item);
+
+                    if (total === null) {
+                        return `${unit} ${currency} / ${medicine.unit || 'unit'}`;
+                    }
+
+                    const line = total.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    });
+
+                    return `${unit} ${currency} → ${line} ${currency}`;
+                },
+                get pricedLines() {
+                    return this.items
+                        .map((item) => {
+                            const medicine = this.medicineFor(item.medicine_id);
+                            const total = this.lineTotal(item);
+
+                            if (!medicine || total === null || !medicine.currency) {
+                                return null;
+                            }
+
+                            return { total, currency: medicine.currency };
+                        })
+                        .filter(Boolean);
+                },
+                get mixedCurrencies() {
+                    const currencies = [...new Set(this.pricedLines.map((line) => line.currency))];
+
+                    return currencies.length > 1;
+                },
+                get foreignTotal() {
+                    if (this.mixedCurrencies || this.pricedLines.length === 0) {
+                        return null;
+                    }
+
+                    return this.pricedLines.reduce((sum, line) => sum + line.total, 0);
+                },
+                get foreignTotalCurrency() {
+                    if (this.mixedCurrencies || this.pricedLines.length === 0) {
+                        const supplier = this.supplierOptions.find((entry) => entry.id === String(this.supplierId));
+
+                        return supplier?.currency || this.invoiceCurrency || '';
+                    }
+
+                    return this.pricedLines[0].currency;
+                },
+                get foreignTotalLabel() {
+                    if (this.mixedCurrencies) {
+                        return 'Mixed currencies';
+                    }
+
+                    if (this.foreignTotal === null) {
+                        return '—';
+                    }
+
+                    const amount = this.foreignTotal.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    });
+
+                    return `${amount} ${this.foreignTotalCurrency}`;
+                },
+                syncForeignQuoteFields() {
+                    if (this.mixedCurrencies) {
+                        return;
+                    }
+
+                    this.syncingForeignTotal = true;
+
+                    if (this.foreignTotal !== null) {
+                        this.invoiceAmountForeign = this.foreignTotal.toFixed(2);
+                        this.invoiceCurrency = this.foreignTotalCurrency;
+                    } else if (this.supplierId) {
+                        const supplier = this.supplierOptions.find((entry) => entry.id === String(this.supplierId));
+                        if (supplier?.currency && !this.invoiceCurrency) {
+                            this.invoiceCurrency = supplier.currency;
+                        }
+                    }
+
+                    this.$nextTick(() => {
+                        this.syncingForeignTotal = false;
+                        this.pushToConverter();
+                    });
+                },
+                pushToConverter() {
+                    const amount = Number(this.invoiceAmountForeign);
+                    const from = String(this.invoiceCurrency || this.foreignTotalCurrency || '').toUpperCase();
+
+                    if (!from || !Number.isFinite(amount) || amount <= 0) {
+                        return;
+                    }
+
+                    this.$dispatch('currency-sync', { amount, from });
+                },
                 init() {
-                    ['supplierId', 'source', 'orderDate', 'expectedDeliveryDate', 'supplierInvoice', 'invoiceAmount']
+                    ['supplierId', 'source', 'orderDate', 'expectedDeliveryDate', 'supplierInvoice', 'invoiceAmount', 'invoiceAmountForeign', 'invoiceCurrency']
                         .forEach((field) => this.$watch(field, () => this.refreshNotes()));
 
                     this.$watch('source', () => {
@@ -250,10 +418,31 @@
                         }
                     });
 
+                    this.$watch('supplierId', () => {
+                        const supplier = this.supplierOptions.find((entry) => entry.id === String(this.supplierId));
+                        if (supplier?.currency && !this.foreignTotal) {
+                            this.invoiceCurrency = supplier.currency;
+                            this.pushToConverter();
+                        }
+                    });
+
                     this.$watch('items', () => {
                         this.applyPreferredSupplierFromItems();
+                        this.syncForeignQuoteFields();
                         this.refreshNotes();
                     }, { deep: true });
+
+                    this.$watch('invoiceAmountForeign', () => {
+                        if (!this.syncingForeignTotal) {
+                            this.pushToConverter();
+                        }
+                    });
+
+                    this.$watch('invoiceCurrency', () => {
+                        if (!this.syncingForeignTotal) {
+                            this.pushToConverter();
+                        }
+                    });
 
                     if (!this.notesEdited) {
                         this.refreshNotes();
@@ -262,6 +451,8 @@
                     this.$watch('totalQuantity', () => {
                         this.$dispatch('currency-recalculate');
                     });
+
+                    this.$nextTick(() => this.syncForeignQuoteFields());
                 },
                 addItem() {
                     this.items.push({ medicine_id: '', quantity_ordered: '' });
@@ -351,7 +542,12 @@
                         const invoiceNumber = String(this.supplierInvoice).replace(/^#/, '');
                         invoiceDetails.push(`Invoice #${invoiceNumber}`);
                     }
-                    if (this.foreignQuote) {
+                    if (this.invoiceAmountForeign !== '' && this.invoiceAmountForeign !== null && this.invoiceCurrency) {
+                        const foreign = Number(this.invoiceAmountForeign);
+                        if (!Number.isNaN(foreign)) {
+                            invoiceDetails.push(`Supplier quote: ${foreign.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${String(this.invoiceCurrency).toUpperCase()}`);
+                        }
+                    } else if (this.foreignQuote) {
                         invoiceDetails.push(`Converted amount: ${Number(this.foreignQuote.originalAmount).toLocaleString()} ${this.foreignQuote.from}`);
                     }
                     if (this.invoiceAmount !== '' && this.invoiceAmount !== null) {

@@ -18,9 +18,15 @@
                       dosage: @js(old('dosage', '')),
                       dosageForm: @js(old('dosage_form', '')),
                       supplierId: @js(old('supplier_id', '')),
+                      unitCost: @js(old('unit_cost', '')),
+                      currency: @js(old('currency', '')),
                       description: @js(old('description', '')),
                       descriptionEdited: @js(filled(old('description'))),
-                      supplierOptions: @js($suppliers->map(fn ($supplier) => ['id' => (string) $supplier->id, 'name' => $supplier->name])->values()),
+                      supplierOptions: @js($suppliers->map(fn ($supplier) => [
+                          'id' => (string) $supplier->id,
+                          'name' => $supplier->name,
+                          'currency' => $supplier->procurementCurrency(),
+                      ])->values()),
                       formLabels: @js(['tablet' => 'tablet', 'injection' => 'injection', 'syrup' => 'syrup', 'cream' => 'cream', 'ointment' => 'ointment', 'other' => 'other']),
                   })">
                 @csrf
@@ -71,6 +77,25 @@
                         @error('reorder_point')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
+                    <div>
+                        <label for="unit_cost" class="form-label">Unit cost <span class="text-red-500">*</span></label>
+                        <input type="number" name="unit_cost" id="unit_cost" x-model="unitCost" value="{{ old('unit_cost') }}" step="0.0001" min="0" required class="input-field" placeholder="e.g. 2.40">
+                        <p class="mt-1 text-xs text-muted">Supplier quote per unit in the currency below (INR for India, CNY for China).</p>
+                        @error('unit_cost')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label for="currency" class="form-label">Currency <span class="text-red-500">*</span></label>
+                        <select name="currency" id="currency" x-model="currency" required class="input-field">
+                            <option value="">Select...</option>
+                            <option value="INR">INR — Indian Rupee</option>
+                            <option value="CNY">CNY — Chinese Yuan</option>
+                            <option value="USD">USD — US Dollar</option>
+                            <option value="PGK">PGK — Papua New Guinea Kina</option>
+                        </select>
+                        @error('currency')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+
                     <div class="md:col-span-2">
                         <label for="supplier_id" class="form-label">Registered supplier (India / China) <span class="text-red-500">*</span></label>
                         <select name="supplier_id" id="supplier_id" x-model="supplierId" required class="input-field">
@@ -112,6 +137,8 @@
                 dosage: initial.dosage ?? '',
                 dosageForm: initial.dosageForm ?? '',
                 supplierId: initial.supplierId ?? '',
+                unitCost: initial.unitCost ?? '',
+                currency: initial.currency ?? '',
                 description: initial.description ?? '',
                 descriptionEdited: initial.descriptionEdited ?? false,
                 supplierOptions: initial.supplierOptions ?? [],
@@ -124,6 +151,13 @@
                 init() {
                     ['name', 'dosage', 'dosageForm', 'supplierId'].forEach((field) => {
                         this.$watch(field, () => this.refreshDescription());
+                    });
+
+                    this.$watch('supplierId', () => {
+                        const option = this.supplierOptions.find((entry) => entry.id === String(this.supplierId));
+                        if (option?.currency) {
+                            this.currency = option.currency;
+                        }
                     });
 
                     if (!this.descriptionEdited) {
