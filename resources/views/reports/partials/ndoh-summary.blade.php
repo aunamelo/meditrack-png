@@ -3,6 +3,9 @@
     Period: {{ $report['period']['from'] }} — {{ $report['period']['to'] }}
     · Generated {{ $report['generated_at'] }} by {{ $report['generated_by'] }}
 </p>
+<p class="mb-1 text-sm text-slate-500 dark:text-slate-400">
+    Inventory value and units on hand are current snapshots. Spend and shipment counts use the selected period (cancelled shipments excluded from totals).
+</p>
 
 <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
     @foreach([
@@ -10,10 +13,10 @@
         ['Committed spend (PGK)', 'K '.number_format($report['spending']['amount_committed'], 2)],
         ['In pipeline (PGK)', 'K '.number_format($report['spending']['amount_in_pipeline'], 2)],
         ['Pending approval (PGK)', 'K '.number_format($report['spending']['amount_pending_approval'], 2)],
-        ['NDoH inventory value', 'K '.number_format($report['spending']['inventory_value'], 2)],
+        ['NDoH inventory value (now)', 'K '.number_format($report['spending']['inventory_value'], 2)],
         ['Procurement orders', $report['orders']['total']],
         ['Shipments to Lae AMS', $report['shipments']['total']],
-        ['NDoH units on hand', number_format($report['inventory']['total_units'])],
+        ['NDoH units on hand (now)', number_format($report['inventory']['total_units'])],
     ] as [$label, $value])
         <div class="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
             <p class="text-xs font-semibold uppercase text-slate-500">{{ $label }}</p>
@@ -54,7 +57,7 @@
 
 <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
     <div>
-        <h3 class="mb-3 font-semibold text-slate-900 dark:text-slate-100">Corridor stock on hand</h3>
+        <h3 class="mb-3 font-semibold text-slate-900 dark:text-slate-100">Corridor stock on hand (now)</h3>
         <ul class="space-y-2 text-sm">
             <li class="flex justify-between gap-4"><span class="text-slate-600 dark:text-slate-300">NDoH central</span><span class="font-semibold">{{ number_format($report['corridor']['ndoh_units']) }}</span></li>
             <li class="flex justify-between gap-4"><span class="text-slate-600 dark:text-slate-300">Lae AMS</span><span class="font-semibold">{{ number_format($report['corridor']['lae_ams_units']) }}</span></li>

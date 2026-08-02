@@ -3,11 +3,14 @@
     Period: {{ $report['period']['from'] }} — {{ $report['period']['to'] }}
     · Generated {{ $report['generated_at'] }} by {{ $report['generated_by'] }}
 </p>
+<p class="mb-1 text-sm text-slate-500 dark:text-slate-400">
+    Stock figures are on hand now. Order, receipt, delivery, and discrepancy counts use the selected period (cancelled road deliveries excluded).
+</p>
 
 <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
     @foreach([
-        ['Lae AMS batches', $report['inventory']['total_batches']],
-        ['Units on hand', number_format($report['inventory']['total_units'])],
+        ['Lae AMS batches (now)', $report['inventory']['total_batches']],
+        ['Units on hand (now)', number_format($report['inventory']['total_units'])],
         ['Low stock batches', $report['inventory']['low_stock_batches']],
         ['Expiring soon', $report['inventory']['expiring_soon']],
         ['Hospital orders', $report['hospital_orders']['total']],

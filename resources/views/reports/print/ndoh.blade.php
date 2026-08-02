@@ -15,10 +15,10 @@
             ['Committed spend', 'K '.number_format($report['spending']['amount_committed'], 2)],
             ['In pipeline', 'K '.number_format($report['spending']['amount_in_pipeline'], 2)],
             ['Pending approval', 'K '.number_format($report['spending']['amount_pending_approval'], 2)],
-            ['Inventory value', 'K '.number_format($report['spending']['inventory_value'], 2)],
+            ['Inventory value (now)', 'K '.number_format($report['spending']['inventory_value'], 2)],
             ['Procurement orders', $report['orders']['total']],
             ['Shipments to Lae', $report['shipments']['total']],
-            ['NDoH units on hand', number_format($report['inventory']['total_units'])],
+            ['NDoH units on hand (now)', number_format($report['inventory']['total_units'])],
         ] as [$label, $value])
             <div class="card">
                 <div class="label">{{ $label }}</div>

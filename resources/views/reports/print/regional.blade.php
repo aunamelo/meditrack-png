@@ -11,8 +11,8 @@
 
     <div class="grid">
         @foreach([
-            ['Lae AMS batches', $report['inventory']['total_batches']],
-            ['Units on hand', number_format($report['inventory']['total_units'])],
+            ['Lae AMS batches (now)', $report['inventory']['total_batches']],
+            ['Units on hand (now)', number_format($report['inventory']['total_units'])],
             ['Low stock batches', $report['inventory']['low_stock_batches']],
             ['Expiring soon', $report['inventory']['expiring_soon']],
             ['Hospital orders', $report['hospital_orders']['total']],

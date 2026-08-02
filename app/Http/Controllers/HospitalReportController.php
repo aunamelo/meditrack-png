@@ -16,7 +16,7 @@ class HospitalReportController extends Controller
         $this->authorizePharmacyManager();
 
         [$from, $to] = $this->period($request);
-        $report = HospitalReportService::generate(auth()->id(), $from, $to);
+        $report = HospitalReportService::generate($from, $to);
 
         return view('reports.hospital', compact('report', 'from', 'to'));
     }
@@ -26,7 +26,7 @@ class HospitalReportController extends Controller
         $this->authorizePharmacyManager();
 
         [$from, $to] = $this->period($request);
-        $report = HospitalReportService::generate(auth()->id(), $from, $to);
+        $report = HospitalReportService::generate($from, $to);
 
         return view('reports.print.hospital', compact('report', 'from', 'to'));
     }
@@ -36,7 +36,7 @@ class HospitalReportController extends Controller
         $this->authorizePharmacyManager();
 
         [$from, $to] = $this->period($request);
-        $report = HospitalReportService::generate(auth()->id(), $from, $to);
+        $report = HospitalReportService::generate($from, $to);
         $filename = 'modilon-hospital-report-'.$from->toDateString().'-to-'.$to->toDateString().'.csv';
 
         return ReportCsvService::download($filename, HospitalReportService::toCsvRows($report));
