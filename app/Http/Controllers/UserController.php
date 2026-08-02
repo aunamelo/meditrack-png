@@ -92,10 +92,11 @@ class UserController extends Controller
     {
         $this->authorize('delete', $user);
 
+        // Soft-delete so audit FKs remain valid.
         $user->delete();
 
         return redirect()
             ->to(getDashboardUserRoute('index'))
-            ->with('success', 'User account deleted successfully.');
+            ->with('success', 'User account deactivated successfully. Historical records are retained.');
     }
 }

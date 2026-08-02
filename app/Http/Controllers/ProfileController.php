@@ -77,11 +77,13 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        // Soft-deletes the account so audit FKs stay intact.
         $user->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::route('home');
+        return Redirect::route('login')
+            ->with('status', 'Your account has been deactivated. Historical audit records are retained. Contact an administrator if you need access restored.');
     }
 }

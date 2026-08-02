@@ -40,7 +40,7 @@ class UserManagementService
     {
         $assignable = self::assignableRolesFor($actor);
 
-        $query = User::query()
+        $query = User::withTrashed()
             ->with('roles')
             ->whereHas('roles', fn (Builder $q) => $q->whereIn('name', $assignable));
 

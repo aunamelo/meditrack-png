@@ -20,9 +20,9 @@
                         </h3>
                         <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">
                             @if(auth()->user()->hasRole('admin'))
-                                Create, edit, or remove Procurement Officers, Store Managers, and Pharmacy Managers.
+                                Create, edit, or deactivate Procurement Officers, Store Managers, and Pharmacy Managers.
                             @else
-                                Create, edit, or remove Pharmacist accounts for Modilon Hospital.
+                                Create, edit, or deactivate Pharmacist accounts for Modilon Hospital.
                             @endif
                         </p>
                     </div>
@@ -79,28 +79,40 @@
                                 @php
                                     $roleKey = $managedUser->getRoleNames()->first();
                                     $roleLabel = config("portal.roles.{$roleKey}.label", ucfirst(str_replace('_', ' ', $roleKey ?? '')));
+                                    $isDeactivated = $managedUser->trashed();
                                 @endphp
-                                <tr>
-                                    <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-zinc-100">{{ $managedUser->name }}</td>
+                                <tr class="{{ $isDeactivated ? 'opacity-60' : '' }}">
+                                    <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-zinc-100">
+                                        <span class="inline-flex items-center gap-2">
+                                            {{ $managedUser->name }}
+                                            @if($isDeactivated)
+                                                <span class="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-zinc-700 dark:text-zinc-300">Deactivated</span>
+                                            @endif
+                                        </span>
+                                    </td>
                                     <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-zinc-400">{{ $managedUser->email }}</td>
                                     <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-zinc-400">{{ $roleLabel }}</td>
                                     <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
-                                        <div class="inline-flex items-center gap-2">
-                                            <a href="{{ getDashboardUserRoute('edit', $managedUser) }}" class="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">Edit</a>
-                                            <form
-                                                action="{{ getDashboardUserRoute('destroy', $managedUser) }}"
-                                                method="POST"
-                                                class="inline"
-                                                data-confirm="Delete this user account? This cannot be undone."
-                                                data-confirm-title="Delete user"
-                                                data-confirm-label="Delete"
-                                                data-confirm-danger="1"
-                                            >
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="font-semibold text-red-600 hover:text-red-700 dark:text-red-400">Delete</button>
-                                            </form>
-                                        </div>
+                                        @if($isDeactivated)
+                                            <span class="text-xs text-gray-400 dark:text-zinc-500">No actions</span>
+                                        @else
+                                            <div class="inline-flex items-center gap-2">
+                                                <a href="{{ getDashboardUserRoute('edit', $managedUser) }}" class="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">Edit</a>
+                                                <form
+                                                    action="{{ getDashboardUserRoute('destroy', $managedUser) }}"
+                                                    method="POST"
+                                                    class="inline"
+                                                    data-confirm="Deactivate this user account? They will lose portal access. Audit history is kept."
+                                                    data-confirm-title="Deactivate user"
+                                                    data-confirm-label="Deactivate"
+                                                    data-confirm-danger="1"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="font-semibold text-red-600 hover:text-red-700 dark:text-red-400">Deactivate</button>
+                                                </form>
+                                            </div>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty

@@ -62,13 +62,21 @@ class MicrosoftAuthController extends Controller
                 ->withErrors(['email' => 'Microsoft 365 did not return an email address for this account.']);
         }
 
-        $user = User::query()->whereRaw('LOWER(email) = ?', [$email])->first();
+        $user = User::withTrashed()->whereRaw('LOWER(email) = ?', [$email])->first();
 
         if (! $user) {
             return redirect()
                 ->route('login', array_filter(['role' => $portalSlug]))
                 ->withErrors([
                     'email' => 'No MediTrack account exists for '.$email.'. Ask your administrator to provision access first.',
+                ]);
+        }
+
+        if ($user->trashed()) {
+            return redirect()
+                ->route('login', array_filter(['role' => $portalSlug]))
+                ->withErrors([
+                    'email' => 'This MediTrack account has been deactivated. Contact an administrator if you need access restored.',
                 ]);
         }
 
