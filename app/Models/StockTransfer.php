@@ -25,6 +25,7 @@ class StockTransfer extends Model
         'from_level',
         'to_level',
         'sent_date',
+        'expected_arrival_at',
         'status',
         'notes',
         'sent_by',
@@ -39,6 +40,7 @@ class StockTransfer extends Model
      */
     protected $casts = [
         'sent_date' => 'date',
+        'expected_arrival_at' => 'datetime',
         'approved_at' => 'datetime',
         'received_at' => 'datetime',
     ];
@@ -165,7 +167,19 @@ class StockTransfer extends Model
 
     public function formatSentDate(): string
     {
-        return $this->sent_date->format('M d, Y');
+        return formatDate($this->sent_date);
+    }
+
+    public function formatExpectedArrival(): ?string
+    {
+        return $this->expected_arrival_at ? formatDateTime($this->expected_arrival_at) : null;
+    }
+
+    public function isArrivalOverdue(): bool
+    {
+        return $this->status === 'sent'
+            && $this->expected_arrival_at !== null
+            && $this->expected_arrival_at->isPast();
     }
 
     public function getStatusBadge(): string
@@ -195,6 +209,51 @@ class StockTransfer extends Model
     public function isReceived(): bool
     {
         return $this->status === 'received';
+    }
+
+    /**
+     * Progress stages for NDoH → Lae AMS national shipments (not hospital road legs).
+     *
+     * @return array<int, array{key: string, label: string, date: \Carbon\Carbon|null, completed: bool, current: bool}>
+     */
+    public function pipelineStages(): array
+    {
+        $stages = [
+            ['key' => 'pending', 'label' => 'Awaiting NDoH approval', 'date' => $this->created_at],
+            ['key' => 'sent', 'label' => 'In transit to Lae AMS', 'date' => $this->approved_at ?? ($this->status !== 'pending' ? $this->sent_date : null)],
+            ['key' => 'received', 'label' => 'Received at Lae AMS', 'date' => $this->received_at],
+        ];
+
+        $currentIndex = match ($this->status) {
+            'pending' => 0,
+            'sent' => 1,
+            'received' => 2,
+            'cancelled' => 0,
+            default => 0,
+        };
+
+        return collect($stages)->values()->map(function (array $stage, int $index) use ($currentIndex) {
+            return [
+                'key' => $stage['key'],
+                'label' => $stage['label'],
+                'date' => $stage['date'],
+                'completed' => $this->status === 'received' ? true : $index < $currentIndex,
+                'current' => $this->status === 'received' ? false : $index === $currentIndex,
+            ];
+        })->all();
+    }
+
+    public function pipelineProgressPercentage(): int
+    {
+        if ($this->status === 'received') {
+            return 100;
+        }
+
+        return match ($this->status) {
+            'pending' => 0,
+            'sent' => 50,
+            default => 0,
+        };
     }
 
     /**

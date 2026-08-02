@@ -6,6 +6,7 @@ use App\Http\Requests\ResolveDiscrepancyReportRequest;
 use App\Http\Requests\StoreDiscrepancyReportRequest;
 use App\Models\DiscrepancyReport;
 use App\Models\HospitalOrder;
+use App\Services\HospitalOrderNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -48,7 +49,7 @@ class DiscrepancyReportController extends Controller
 
     public function store(StoreDiscrepancyReportRequest $request): RedirectResponse
     {
-        DiscrepancyReport::create([
+        $report = DiscrepancyReport::create([
             'report_number' => DiscrepancyReport::generateReportNumber(),
             'hospital_order_id' => $request->validated('hospital_order_id'),
             'stock_transfer_id' => $request->validated('stock_transfer_id'),
@@ -59,6 +60,8 @@ class DiscrepancyReportController extends Controller
             'reported_by' => auth()->id(),
             'status' => 'open',
         ]);
+
+        HospitalOrderNotificationService::notifyStoreManagersOfDiscrepancy($report);
 
         return redirect()
             ->to(getDashboardDiscrepancyRoute('index'))

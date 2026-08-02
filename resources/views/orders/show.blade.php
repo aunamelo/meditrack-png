@@ -80,7 +80,7 @@
                     <x-module.detail-field label="Created By" :value="$order->creator->name ?? 'N/A'" />
                     <x-module.detail-field label="Approval Status">
                         @if($order->approved_at)
-                            Approved on {{ $order->approved_at->format('M d, Y') }} by {{ $order->approver->name ?? 'N/A' }}
+                            Approved on {{ formatDate($order->approved_at) }} by {{ $order->approver->name ?? 'N/A' }}
                         @else
                             Pending approval
                         @endif
@@ -132,7 +132,7 @@
                         @endif
                     </x-module.detail-field>
                     @if($order->actual_delivery_date)
-                        <x-module.detail-field label="Received Date" :value="$order->actual_delivery_date->format('M d, Y')" />
+                        <x-module.detail-field label="Received Date" :value="formatDate($order->actual_delivery_date)" />
                     @endif
                     @if($order->receiver)
                         <x-module.detail-field label="Received By" :value="$order->receiver->name" />

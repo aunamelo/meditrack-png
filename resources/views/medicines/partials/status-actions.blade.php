@@ -1,5 +1,13 @@
 @if($medicine->is_active)
-    <form action="{{ getDashboardMedicineRoute('deactivate', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Mark this medicine inactive? It will be hidden from new procurement orders.');">
+    <form
+        action="{{ getDashboardMedicineRoute('deactivate', $medicine) }}"
+        method="POST"
+        class="inline"
+        data-confirm="Mark this medicine inactive? It will be hidden from new procurement orders."
+        data-confirm-title="Mark medicine inactive"
+        data-confirm-label="Mark inactive"
+        data-confirm-danger="1"
+    >
         @csrf
         <button type="submit" class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-amber-800 hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/60">
             Mark inactive

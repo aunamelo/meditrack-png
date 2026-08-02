@@ -50,7 +50,13 @@
                         </x-dropdown-link>
 
                         <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Are you sure you want to log out?')">
+                        <form
+                            method="POST"
+                            action="{{ route('logout') }}"
+                            data-confirm="Are you sure you want to log out?"
+                            data-confirm-title="Log out"
+                            data-confirm-label="Log out"
+                        >
                             @csrf
                             <button type="submit" class="block w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-ink-muted transition hover:border-line hover:bg-surface-muted hover:text-ink focus:border-line focus:bg-surface-muted focus:text-ink focus:outline-none dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-200">
                                 {{ __('Log Out') }}
@@ -106,7 +112,13 @@
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Are you sure you want to log out?')">
+                <form
+                    method="POST"
+                    action="{{ route('logout') }}"
+                    data-confirm="Are you sure you want to log out?"
+                    data-confirm-title="Log out"
+                    data-confirm-label="Log out"
+                >
                     @csrf
                     <button type="submit" class="block w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-ink-muted transition hover:border-line hover:bg-surface-muted hover:text-ink focus:border-line focus:bg-surface-muted focus:text-ink focus:outline-none dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-200">
                         {{ __('Log Out') }}

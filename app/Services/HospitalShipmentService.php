@@ -14,16 +14,22 @@ class HospitalShipmentService
      * Dispatch an approved hospital order from Lae AMS to Modilon Hospital by road.
      * Lae AMS stock is deducted immediately; Modilon inventory is created on receipt only.
      */
-    public static function ship(HospitalOrder $order, int $storeManagerId, int $vehicleId, ?string $notes = null): StockTransfer
-    {
+    public static function ship(
+        HospitalOrder $order,
+        int $storeManagerId,
+        int $vehicleId,
+        ?string $notes = null,
+        ?\Carbon\CarbonInterface $expectedArrivalAt = null,
+    ): StockTransfer {
         if (! $order->canShip()) {
             throw new \InvalidArgumentException('This hospital order cannot be dispatched by road.');
         }
 
         $sourceDrug = Drug::findOrFail($order->source_drug_id);
         $quantitySent = (int) $order->quantity_approved;
+        $expectedArrivalAt ??= now()->addDays(2)->setTime(17, 0);
 
-        return DB::transaction(function () use ($order, $sourceDrug, $quantitySent, $storeManagerId, $vehicleId, $notes) {
+        return DB::transaction(function () use ($order, $sourceDrug, $quantitySent, $storeManagerId, $vehicleId, $notes, $expectedArrivalAt) {
             $transferNumber = StockTransfer::generateTransferNumber();
 
             $sourceDrug->update([
@@ -43,6 +49,7 @@ class HospitalShipmentService
                 'from_level' => 'lae_ams',
                 'to_level' => 'modilon_hospital',
                 'sent_date' => now()->toDateString(),
+                'expected_arrival_at' => $expectedArrivalAt,
                 'status' => 'sent',
                 'notes' => $notes,
                 'sent_by' => $storeManagerId,

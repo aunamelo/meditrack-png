@@ -12,19 +12,45 @@
         <div class="module-actions-bar">
             <x-module.back-link :href="getDashboardTransferRoute('index')" label="Back to Shipments" />
             @if(canApproveTransfers() && $transfer->canApprove())
-                <form action="{{ getDashboardTransferRoute('approve', $transfer) }}" method="POST" class="inline" onsubmit="return confirm('Approve this shipment? NDoH stock will be deducted and the shipment will be marked in transit to Lae AMS.');">
+                <form
+                    action="{{ getDashboardTransferRoute('approve', $transfer) }}"
+                    method="POST"
+                    class="inline"
+                    data-confirm="Approve this shipment? NDoH stock will be deducted and the shipment will be marked in transit to Lae AMS."
+                    data-confirm-title="Approve shipment"
+                    data-confirm-label="Approve & send"
+                >
                     @csrf
                     <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Approve &amp; send</button>
                 </form>
             @endif
             @if(canReceiveTransfers() && $transfer->canReceive())
-                <form action="{{ getDashboardTransferRoute('receive', $transfer) }}" method="POST" class="inline-flex flex-wrap items-center gap-3" onsubmit="return confirm('Confirm receipt? This will add the stock to Lae AMS inventory.');">
+                <form
+                    action="{{ getDashboardTransferRoute('receive', $transfer) }}"
+                    method="POST"
+                    class="inline-flex flex-wrap items-center gap-3"
+                    data-confirm="Confirm receipt? This will add the stock to Lae AMS inventory."
+                    data-confirm-title="Confirm receipt"
+                    data-confirm-label="Confirm receipt"
+                >
                     @csrf
                     <input type="text" name="notes" placeholder="Optional receipt note..." class="input-field w-64 text-sm">
                     <button type="submit" class="btn-brand text-xs uppercase tracking-wider">Confirm Receipt</button>
                 </form>
             @endif
         </div>
+
+        @if($transfer->to_level === 'lae_ams' && $transfer->hospital_order_id === null && $transfer->status !== 'cancelled')
+            <div class="module-panel mb-6 p-6">
+                <x-service-pipeline
+                    title="NDoH → Lae AMS shipment"
+                    subtitle="{{ $transfer->transfer_number }} · {{ $transfer->drug->drug_name ?? 'Medicine' }}"
+                    :status-label="ndohToLaeAmsTransferStatusLabel($transfer->status)"
+                    :progress="$transfer->pipelineProgressPercentage()"
+                    :stages="$transfer->pipelineStages()"
+                />
+            </div>
+        @endif
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <x-module.detail-card title="Shipment Details">
@@ -37,13 +63,13 @@
                     <x-module.detail-field label="Requested By" :value="$transfer->sender->name ?? 'N/A'" />
                     @if($transfer->approver)
                         <x-module.detail-field label="Approved By" :value="$transfer->approver->name" />
-                        <x-module.detail-field label="Approved At" :value="$transfer->approved_at?->format('M d, Y g:i A') ?? 'N/A'" />
+                        <x-module.detail-field label="Approved At" :value="formatDateTime($transfer->approved_at)" />
                     @elseif($transfer->status === 'pending')
                         <x-module.detail-field label="Approval" value="Awaiting NDoH Admin" />
                     @endif
                     @if($transfer->receiver)
                         <x-module.detail-field label="Received By" :value="$transfer->receiver->name" />
-                        <x-module.detail-field label="Received At" :value="$transfer->received_at?->format('M d, Y g:i A') ?? 'N/A'" />
+                        <x-module.detail-field label="Received At" :value="formatDateTime($transfer->received_at)" />
                     @endif
                     <x-module.detail-field label="Route" value="NDoH → Lae AMS" />
                     <x-module.detail-field label="Logistics" value="National shipment to regional warehouse" />

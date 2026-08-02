@@ -60,7 +60,7 @@
     }
 
     .text-section-label {
-        @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-muted dark:text-zinc-400;
+        @apply text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted dark:text-zinc-400;
     }
 
     .medcare-sidebar {
@@ -73,7 +73,7 @@
     }
 
     .medcare-sidebar-label {
-        @apply px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/45;
+        @apply px-3 text-xs font-bold uppercase tracking-[0.14em] text-white/70;
     }
 
     .sidebar-brand-text {
@@ -435,7 +435,7 @@
     }
 
     .form-label {
-        @apply mb-1 block text-sm font-medium text-ink-secondary dark:text-zinc-300;
+        @apply mb-1 block text-sm font-medium text-ink dark:text-zinc-200;
     }
 
     .module-progress-track {

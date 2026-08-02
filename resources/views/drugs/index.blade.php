@@ -128,7 +128,15 @@
                                                 <a href="{{ getDashboardDrugRoute('edit', $drug->id) }}" class="module-table-action module-table-action-edit">Edit</a>
                                             @endif
                                             @if(auth()->user()->hasRole('admin'))
-                                                <form action="{{ getDashboardDrugRoute('destroy', $drug->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this drug?');">
+                                                <form
+                                                    action="{{ getDashboardDrugRoute('destroy', $drug->id) }}"
+                                                    method="POST"
+                                                    class="inline"
+                                                    data-confirm="Are you sure you want to delete this drug batch?"
+                                                    data-confirm-title="Delete drug batch"
+                                                    data-confirm-label="Delete"
+                                                    data-confirm-danger="1"
+                                                >
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-sm font-medium text-rose-600 hover:text-rose-700">Delete</button>

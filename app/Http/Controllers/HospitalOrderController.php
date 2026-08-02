@@ -10,6 +10,7 @@ use App\Http\Requests\StoreHospitalOrderRequest;
 use App\Models\Drug;
 use App\Models\HospitalOrder;
 use App\Models\Vehicle;
+use App\Services\HospitalOrderNotificationService;
 use App\Services\HospitalShipmentService;
 use App\Services\LmisService;
 use Illuminate\Http\RedirectResponse;
@@ -60,7 +61,7 @@ class HospitalOrderController extends Controller
 
     public function store(StoreHospitalOrderRequest $request): RedirectResponse
     {
-        HospitalOrder::create([
+        $order = HospitalOrder::create([
             'order_number' => HospitalOrder::generateOrderNumber(),
             'drug_name' => $request->validated('drug_name'),
             'dosage' => $request->validated('dosage'),
@@ -69,6 +70,8 @@ class HospitalOrderController extends Controller
             'requested_by' => auth()->id(),
             'status' => 'pending',
         ]);
+
+        HospitalOrderNotificationService::notifyStoreManagersOfRequest($order);
 
         return redirect()
             ->to(getDashboardHospitalOrderRoute('index'))
@@ -116,6 +119,9 @@ class HospitalOrderController extends Controller
             'reviewed_at' => now(),
         ]);
 
+        $hospitalOrder->load('requester');
+        HospitalOrderNotificationService::notifyRequesterOfDecision($hospitalOrder);
+
         return redirect()
             ->to(getDashboardHospitalOrderRoute('show', $hospitalOrder))
             ->with('success', 'Hospital order approved. You can now dispatch stock by road to Modilon Hospital.');
@@ -130,6 +136,9 @@ class HospitalOrderController extends Controller
             'reviewed_at' => now(),
         ]);
 
+        $hospitalOrder->load('requester');
+        HospitalOrderNotificationService::notifyRequesterOfDecision($hospitalOrder);
+
         return redirect()
             ->to(getDashboardHospitalOrderRoute('show', $hospitalOrder))
             ->with('success', 'Hospital order rejected due to stock unavailability.');
@@ -141,8 +150,12 @@ class HospitalOrderController extends Controller
             $hospitalOrder,
             auth()->id(),
             (int) $request->validated('vehicle_id'),
-            $request->validated('notes')
+            $request->validated('notes'),
+            \Illuminate\Support\Carbon::parse($request->validated('expected_arrival_at'))
         );
+
+        $hospitalOrder->refresh()->load(['requester', 'stockTransfer']);
+        HospitalOrderNotificationService::notifyRequesterOfShipment($hospitalOrder);
 
         return redirect(getDashboardHospitalShipmentRoute('show', $transfer))
             ->with('success', 'Drugs dispatched by road to Modilon Hospital.');
@@ -163,7 +176,21 @@ class HospitalOrderController extends Controller
         $data['batch_verified'] = true;
         $data['expiry_verified'] = true;
 
+        $existingDiscrepancyIds = $hospitalOrder->discrepancyReports()->pluck('id');
+
         HospitalShipmentService::confirmHospitalReceipt($hospitalOrder, auth()->id(), $data);
+
+        $hospitalOrder->refresh()->load(['requester', 'discrepancyReports']);
+        HospitalOrderNotificationService::notifyStoreManagersOfReceipt($hospitalOrder);
+
+        $newDiscrepancy = $hospitalOrder->discrepancyReports()
+            ->whereNotIn('id', $existingDiscrepancyIds)
+            ->latest('id')
+            ->first();
+
+        if ($newDiscrepancy) {
+            HospitalOrderNotificationService::notifyStoreManagersOfDiscrepancy($newDiscrepancy);
+        }
 
         $expected = (int) ($hospitalOrder->quantity_approved ?? $hospitalOrder->quantity_requested);
         $received = (int) $data['quantity_received'];

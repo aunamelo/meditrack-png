@@ -194,8 +194,10 @@ class StockTransferController extends Controller
         }
 
         $transfer->receive(auth()->id(), $request->notes);
+        $transfer->load(['drug', 'sender']);
 
         TransferNotificationService::markTransferNotificationsAsRead(auth()->user(), $transfer);
+        TransferNotificationService::notifySenderOfReceipt($transfer);
 
         \Log::info("NDoH shipment [{$transfer->transfer_number}] received at Lae AMS by user ID: ".auth()->id());
 

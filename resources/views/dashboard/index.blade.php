@@ -14,7 +14,7 @@
                     <p class="text-section-label">{{ portalWorkspaceScope($roleMeta) }}</p>
                     <h1 class="heading-display mt-1">{{ $roleMeta['label'] }}</h1>
                     <p class="mt-1 text-sm text-ink-secondary dark:text-zinc-400">
-                        {{ $greeting }}, {{ $firstName }} · {{ now()->format('D, j M Y') }}
+                        {{ $greeting }}, {{ $firstName }} · {{ formatDate(now()) }}
                     </p>
                 </div>
             </div>

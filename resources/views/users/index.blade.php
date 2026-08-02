@@ -87,7 +87,15 @@
                                     <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
                                         <div class="inline-flex items-center gap-2">
                                             <a href="{{ getDashboardUserRoute('edit', $managedUser) }}" class="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">Edit</a>
-                                            <form action="{{ getDashboardUserRoute('destroy', $managedUser) }}" method="POST" class="inline" onsubmit="return confirm('Delete this user account? This cannot be undone.');">
+                                            <form
+                                                action="{{ getDashboardUserRoute('destroy', $managedUser) }}"
+                                                method="POST"
+                                                class="inline"
+                                                data-confirm="Delete this user account? This cannot be undone."
+                                                data-confirm-title="Delete user"
+                                                data-confirm-label="Delete"
+                                                data-confirm-danger="1"
+                                            >
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="font-semibold text-red-600 hover:text-red-700 dark:text-red-400">Delete</button>

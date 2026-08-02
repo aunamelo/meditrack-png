@@ -12,6 +12,7 @@ use App\Http\Controllers\HospitalShipmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\NdohReportController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegionalReportController;
@@ -64,6 +65,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
     Route::get('/currency/rates', [\App\Http\Controllers\CurrencyController::class, 'rates'])->name('currency.rates');
     Route::get('/currency/convert', [\App\Http\Controllers\CurrencyController::class, 'convert'])->name('currency.convert');

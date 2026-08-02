@@ -122,18 +122,66 @@ class LmisService
     }
 
     /**
-     * Options for hospital requisition form (Modilon catalog + suggestions).
+     * Options for hospital requisition form (Modilon stock status + NDoH catalog).
+     * Free-text drug names are not used — every option is a known medicine/batch row.
      *
      * @return Collection<int, array<string, mixed>>
      */
     public static function hospitalRequisitionOptions(): Collection
     {
-        return self::stockStatusForLevel('modilon_hospital')
+        $stockRows = self::stockStatusForLevel('modilon_hospital')
+            ->map(function (array $row) {
+                $row['source'] = 'stock_status';
+
+                return $row;
+            });
+
+        $knownKeys = $stockRows
+            ->map(fn (array $row) => strtolower(trim($row['drug_name']).'|'.trim($row['dosage'])))
+            ->flip();
+
+        $catalogRows = Medicine::query()
+            ->active()
+            ->orderBy('name')
+            ->orderBy('dosage')
+            ->get()
+            ->filter(function (Medicine $medicine) use ($knownKeys) {
+                $pair = strtolower(trim($medicine->name).'|'.trim($medicine->dosage));
+
+                return ! $knownKeys->has($pair);
+            })
+            ->map(function (Medicine $medicine) {
+                $key = self::itemKey($medicine->id, $medicine->name, $medicine->dosage);
+
+                return [
+                    'key' => $key,
+                    'medicine_id' => $medicine->id,
+                    'drug_name' => $medicine->name,
+                    'dosage' => $medicine->dosage,
+                    'unit' => $medicine->unit ?? 'units',
+                    'label' => $medicine->displayLabel(),
+                    'stock_on_hand' => 0,
+                    'consumed' => 0,
+                    'amc' => 0,
+                    'days_of_stock' => null,
+                    'status' => 'catalog',
+                    'status_label' => 'Catalog',
+                    'suggested_quantity' => max(1, (int) $medicine->reorder_point),
+                    'months_of_cover' => self::HOSPITAL_MONTHS_OF_COVER,
+                    'reorder_point' => $medicine->reorder_point,
+                    'source' => 'catalog',
+                ];
+            })
+            ->values();
+
+        return $stockRows
+            ->concat($catalogRows)
             ->sortBy([
                 fn ($row) => match ($row['status']) {
                     'stock_out' => 0,
                     'critical' => 1,
                     'low' => 2,
+                    'catalog' => 4,
                     default => 3,
                 },
                 fn ($row) => $row['drug_name'],

@@ -111,7 +111,15 @@
                                             </form>
                                         @endif
                                         @if(canApproveOrders() && $order->status === 'pending')
-                                            <form action="{{ getDashboardOrderRoute('destroy', $order) }}" method="POST" class="inline" onsubmit="return confirm('Delete this order?');">
+                                            <form
+                                                action="{{ getDashboardOrderRoute('destroy', $order) }}"
+                                                method="POST"
+                                                class="inline"
+                                                data-confirm="Delete this order?"
+                                                data-confirm-title="Delete order"
+                                                data-confirm-label="Delete"
+                                                data-confirm-danger="1"
+                                            >
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-sm font-medium text-rose-600 hover:text-rose-700">Delete</button>

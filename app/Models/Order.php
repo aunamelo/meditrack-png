@@ -495,16 +495,12 @@ class Order extends Model
 
     public function formatOrderDate(): string
     {
-        return $this->order_date->format('M d, Y');
+        return formatDate($this->order_date);
     }
 
     public function formatDeliveryDate(): string
     {
-        if (! $this->expected_delivery_date) {
-            return 'N/A';
-        }
-
-        return $this->expected_delivery_date->format('M d, Y');
+        return formatDate($this->expected_delivery_date);
     }
 
     public function formatForeignInvoiceAmount(): ?string

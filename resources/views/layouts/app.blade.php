@@ -60,6 +60,7 @@
                 @endauth
             </div>
         </div>
+        <x-confirm-dialog />
         @stack('scripts')
     </body>
 </html>

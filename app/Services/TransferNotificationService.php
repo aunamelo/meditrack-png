@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\StockTransfer;
 use App\Models\User;
+use App\Notifications\ServiceUpdateNotification;
 use App\Notifications\ShipmentIncomingNotification;
 use App\Notifications\ShipmentPendingApprovalNotification;
 use Illuminate\Support\Collection;
@@ -30,6 +31,33 @@ class TransferNotificationService
         );
     }
 
+    public static function notifySenderOfReceipt(StockTransfer $transfer): void
+    {
+        $sender = $transfer->sender;
+
+        if (! $sender) {
+            return;
+        }
+
+        $drugName = $transfer->drug->drug_name ?? 'medicine';
+
+        $sender->notify(new ServiceUpdateNotification(
+            message: "Shipment {$transfer->transfer_number} ({$drugName}) was confirmed received at Lae AMS.",
+            entity: 'transfer',
+            entityId: $transfer->id,
+            reference: $transfer->transfer_number,
+        ));
+
+        self::adminUsers()->each(
+            fn (User $admin) => $admin->notify(new ServiceUpdateNotification(
+                message: "Shipment {$transfer->transfer_number} was confirmed received at Lae AMS.",
+                entity: 'transfer',
+                entityId: $transfer->id,
+                reference: $transfer->transfer_number,
+            ))
+        );
+    }
+
     /**
      * Mark shipment notifications as read for the given user.
      */
@@ -39,10 +67,15 @@ class TransferNotificationService
             ->whereIn('type', [
                 ShipmentIncomingNotification::class,
                 ShipmentPendingApprovalNotification::class,
+                ServiceUpdateNotification::class,
             ])
             ->get()
             ->each(function ($notification) use ($transfer) {
-                if ((int) ($notification->data['transfer_id'] ?? 0) === $transfer->id) {
+                $data = $notification->data;
+                $matches = ((int) ($data['transfer_id'] ?? 0) === $transfer->id)
+                    || (($data['entity'] ?? null) === 'transfer' && (int) ($data['entity_id'] ?? 0) === $transfer->id);
+
+                if ($matches) {
                     $notification->markAsRead();
                 }
             });

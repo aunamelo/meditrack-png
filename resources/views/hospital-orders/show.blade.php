@@ -11,6 +11,18 @@
 
         <x-module.back-link :href="getDashboardHospitalOrderRoute('index')" label="Back to Hospital Orders" class="mb-6" />
 
+        @if(! in_array($hospitalOrder->status, ['cancelled'], true))
+            <div class="module-panel mb-6 p-6">
+                <x-service-pipeline
+                    title="Hospital supply request"
+                    subtitle="{{ $hospitalOrder->order_number }} · {{ $hospitalOrder->drug_name }} ({{ $hospitalOrder->dosage }})"
+                    :status-label="hospitalOrderStatusLabel($hospitalOrder->status)"
+                    :progress="$hospitalOrder->pipelineProgressPercentage()"
+                    :stages="$hospitalOrder->pipelineStages()"
+                />
+            </div>
+        @endif
+
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <x-module.detail-card title="{{ $hospitalOrder->drug_name }}" subtitle="{{ $hospitalOrder->dosage }}" class="lg:col-span-2">
                 <div class="mb-4">
@@ -23,7 +35,7 @@
                     @endif
                     <x-module.detail-field label="Requested by" :value="$hospitalOrder->requester->name ?? 'N/A'" />
                     @if($hospitalOrder->reviewer)
-                        <x-module.detail-field label="Reviewed by" :value="$hospitalOrder->reviewer->name . ' · ' . $hospitalOrder->reviewed_at?->format('M d, Y')" />
+                        <x-module.detail-field label="Reviewed by" :value="$hospitalOrder->reviewer->name . ' · ' . formatDate($hospitalOrder->reviewed_at)" />
                     @endif
                 </dl>
                 @if($hospitalOrder->notes)
@@ -34,10 +46,18 @@
                         <span class="font-semibold">Rejection reason:</span> {{ $hospitalOrder->rejection_reason }}
                     </p>
                 @endif
-                @if($hospitalOrder->stockTransfer)
+                    @if($hospitalOrder->stockTransfer)
                     <a href="{{ getDashboardHospitalShipmentRoute('show', $hospitalOrder->stockTransfer) }}" class="module-table-link mt-4 inline-flex text-sm">
                         View road delivery {{ $hospitalOrder->stockTransfer->transfer_number }} →
                     </a>
+                    @if($hospitalOrder->stockTransfer->expected_arrival_at)
+                        <p class="mt-2 text-sm {{ $hospitalOrder->stockTransfer->isArrivalOverdue() ? 'font-semibold text-rose-700 dark:text-rose-300' : 'text-muted' }}">
+                            ETA: {{ $hospitalOrder->stockTransfer->formatExpectedArrival() }}
+                            @if($hospitalOrder->stockTransfer->isArrivalOverdue())
+                                · Overdue
+                            @endif
+                        </p>
+                    @endif
                     @if($hospitalOrder->stockTransfer->vehicle)
                         <p class="mt-2 text-sm text-muted">
                             Vehicle: <span class="font-medium text-ink dark:text-zinc-200">{{ $hospitalOrder->stockTransfer->vehicle->displayLabel() }}</span>
@@ -52,8 +72,8 @@
                         <form action="{{ getDashboardHospitalOrderRoute('approve', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
                             <div>
-                                <label class="form-label">Lae AMS batch *</label>
-                                <select name="source_drug_id" required class="input-field">
+                                <x-form-label for="source_drug_id" required>Lae AMS batch</x-form-label>
+                                <select name="source_drug_id" id="source_drug_id" required class="input-field">
                                     <option value="">Select available stock</option>
                                     @forelse($availableDrugs as $drug)
                                         <option value="{{ $drug->id }}">{{ $drug->drug_name }} · Batch {{ $drug->batch_number }} · {{ $drug->quantity_on_hand }} on hand</option>
@@ -63,8 +83,8 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="form-label">Quantity approved *</label>
-                                <input type="number" name="quantity_approved" min="1" max="{{ $hospitalOrder->quantity_requested }}" value="{{ old('quantity_approved', $hospitalOrder->quantity_requested) }}" required class="input-field">
+                                <x-form-label for="quantity_approved" required>Quantity approved</x-form-label>
+                                <input type="number" name="quantity_approved" id="quantity_approved" min="1" max="{{ $hospitalOrder->quantity_requested }}" value="{{ old('quantity_approved', $hospitalOrder->quantity_requested) }}" required class="input-field">
                             </div>
                             <button type="submit" class="btn-brand w-full text-xs uppercase">Approve</button>
                         </form>
@@ -84,7 +104,7 @@
                         <form action="{{ getDashboardHospitalOrderRoute('ship', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
                             <div>
-                                <label for="vehicle_id" class="form-label">Assigned vehicle <span class="text-red-500">*</span></label>
+                                <x-form-label for="vehicle_id" required>Assigned vehicle</x-form-label>
                                 <select name="vehicle_id" id="vehicle_id" required class="input-field">
                                     <option value="">Select vehicle...</option>
                                     @foreach($vehicles as $vehicle)
@@ -96,8 +116,25 @@
                                 @error('vehicle_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                                 <p class="mt-1 text-xs text-muted">Vehicle registration is stored for future delivery tracking.</p>
                             </div>
-                            <textarea name="notes" rows="2" placeholder="Road delivery notes (optional)" class="input-field">{{ old('notes') }}</textarea>
-                            @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            <div>
+                                <x-form-label for="expected_arrival_at" required>Estimated arrival at Modilon</x-form-label>
+                                <input
+                                    type="datetime-local"
+                                    name="expected_arrival_at"
+                                    id="expected_arrival_at"
+                                    required
+                                    min="{{ now()->addHour()->format('Y-m-d\TH:i') }}"
+                                    value="{{ old('expected_arrival_at', now()->addDays(2)->setTime(17, 0)->format('Y-m-d\TH:i')) }}"
+                                    class="input-field"
+                                >
+                                @error('expected_arrival_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                <p class="mt-1 text-xs text-muted">Shown on the live map and hospital shipment page so staff can track ETA.</p>
+                            </div>
+                            <div>
+                                <x-form-label for="ship_notes" optional>Road delivery notes</x-form-label>
+                                <textarea name="notes" id="ship_notes" rows="2" placeholder="Road delivery notes" class="input-field">{{ old('notes') }}</textarea>
+                                @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
                             <button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-brand-700">Dispatch by road to hospital</button>
                         </form>
                     </x-module.detail-card>
@@ -116,17 +153,17 @@
                         <dl class="mb-4 space-y-1 rounded-lg border border-line bg-canvas p-3 text-sm">
                             <div class="flex justify-between gap-3"><dt class="text-muted">Expected qty</dt><dd class="font-semibold tabular-nums">{{ number_format($expectedQty) }}</dd></div>
                             <div class="flex justify-between gap-3"><dt class="text-muted">Batch on dispatch</dt><dd class="font-semibold">{{ $sourceBatch ?: '—' }}</dd></div>
-                            <div class="flex justify-between gap-3"><dt class="text-muted">Expiry on dispatch</dt><dd class="font-semibold">{{ $sourceExpiry?->format('d M Y') ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-3"><dt class="text-muted">Expiry on dispatch</dt><dd class="font-semibold">{{ $sourceExpiry ? formatDate($sourceExpiry) : '—' }}</dd></div>
                         </dl>
                         <form action="{{ getDashboardHospitalOrderRoute('receive', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
                             <div>
-                                <label for="quantity_received" class="form-label">Quantity received *</label>
+                                <x-form-label for="quantity_received" required>Quantity received</x-form-label>
                                 <input type="number" name="quantity_received" id="quantity_received" min="0" max="{{ $expectedQty }}" value="{{ old('quantity_received', $expectedQty) }}" required class="input-field">
                                 @error('quantity_received')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
                             </div>
                             <div>
-                                <label for="condition" class="form-label">Delivery condition *</label>
+                                <x-form-label for="condition" required>Delivery condition</x-form-label>
                                 <select name="condition" id="condition" required class="input-field">
                                     @foreach([
                                         'good' => 'Good — matches dispatch',

@@ -39,11 +39,16 @@ class LiveMapController extends Controller
             $shipment = $vehicle->activeShipment()?->load(['drug', 'hospitalOrder.requester']);
             $location = $vehicle->latestLocation;
 
+            $trackingStatus = ! $vehicle->hasKnownLocation()
+                ? 'No signal'
+                : ($vehicle->isTrackingStale() ? 'Signal stale' : 'Live');
+
             return [
                 'vehicle_id' => $vehicle->id,
                 'vehicle_label' => $vehicle->displayLabel(),
                 'has_location' => $vehicle->hasKnownLocation(),
                 'is_stale' => $vehicle->isTrackingStale(),
+                'tracking_status' => $trackingStatus,
                 'latitude' => $vehicle->last_latitude,
                 'longitude' => $vehicle->last_longitude,
                 'speed_kmh' => $vehicle->last_speed_kmh,
@@ -52,6 +57,11 @@ class LiveMapController extends Controller
                 'transfer_number' => $shipment?->transfer_number,
                 'drug_name' => $shipment?->drug?->drug_name,
                 'quantity_sent' => $shipment?->quantity_sent,
+                'expected_arrival' => $shipment?->expected_arrival_at
+                    ? formatDateTime($shipment->expected_arrival_at)
+                    : null,
+                'expected_arrival_human' => $shipment?->expected_arrival_at?->diffForHumans(),
+                'is_arrival_overdue' => (bool) $shipment?->isArrivalOverdue(),
                 'trail' => $location ? $vehicle->locations()
                     ->where('recorded_at', '>=', now()->subHours(6))
                     ->orderBy('recorded_at')

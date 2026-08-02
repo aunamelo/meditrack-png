@@ -234,7 +234,8 @@ class OrderController extends Controller
 
         $order->advancePipeline($request->validated('notes'));
 
-        $order->refresh();
+        $order->refresh()->load('creator');
+        OrderNotificationService::notifyCreatorOfPipelineAdvance($order);
 
         \Log::info("Order [{$order->order_number}] advanced to {$order->status} by user ID: ".auth()->id());
 
@@ -261,6 +262,9 @@ class OrderController extends Controller
         if ($admin = auth()->user()) {
             OrderNotificationService::markOrderNotificationsAsRead($admin, $order);
         }
+
+        $order->load('creator');
+        OrderNotificationService::notifyCreatorOfApproval($order);
 
         \Log::info("Order [{$order->order_number}] approved by user ID: ".auth()->id());
 
@@ -304,6 +308,9 @@ class OrderController extends Controller
 
         $totalReceived = array_sum($quantitiesByItem);
 
+        $order->load('creator');
+        OrderNotificationService::notifyCreatorOfReceipt($order);
+
         \Log::info("Order [{$order->order_number}] received ({$totalReceived} units across lines) by user ID: ".auth()->id());
 
         return redirect(getDashboardOrderRoute('show', $order))
@@ -321,6 +328,8 @@ class OrderController extends Controller
         }
 
         $order->cancel($request->reason);
+        $order->load('creator');
+        OrderNotificationService::notifyCreatorOfCancellation($order);
 
         \Log::info("Order [{$order->order_number}] cancelled by user ID: ".auth()->id());
 

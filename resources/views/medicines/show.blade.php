@@ -15,7 +15,15 @@
                 <a href="{{ getDashboardMedicineRoute('edit', $medicine) }}" class="btn-module-secondary">Edit</a>
                 @include('medicines.partials.status-actions', ['medicine' => $medicine])
                 @if(auth()->user()->hasRole('admin'))
-                    <form action="{{ getDashboardMedicineRoute('destroy', $medicine) }}" method="POST" class="inline" onsubmit="return confirm('Remove or deactivate this catalog entry?');">
+                    <form
+                        action="{{ getDashboardMedicineRoute('destroy', $medicine) }}"
+                        method="POST"
+                        class="inline"
+                        data-confirm="Remove or deactivate this catalog entry?"
+                        data-confirm-title="Remove medicine"
+                        data-confirm-label="Remove"
+                        data-confirm-danger="1"
+                    >
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-rose-700 hover:bg-rose-100">Remove</button>

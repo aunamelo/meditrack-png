@@ -31,6 +31,7 @@ class ShipHospitalOrderRequest extends FormRequest
                     ->where('is_active', true)
                     ->where('depot', 'lae_ams')),
             ],
+            'expected_arrival_at' => 'required|date|after:now',
             'notes' => 'nullable|string|max:1000',
         ];
     }
@@ -43,6 +44,8 @@ class ShipHospitalOrderRequest extends FormRequest
         return [
             'vehicle_id.required' => 'Select the vehicle carrying this delivery.',
             'vehicle_id.exists' => 'Select an active Lae AMS vehicle.',
+            'expected_arrival_at.required' => 'Enter the estimated arrival at Modilon Hospital.',
+            'expected_arrival_at.after' => 'Estimated arrival must be in the future.',
         ];
     }
 }

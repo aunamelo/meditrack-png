@@ -31,7 +31,7 @@
         </div>
 
         <p class="mt-3 text-xs text-muted">
-            A vehicle turns amber if it hasn't sent a position in over 10 minutes, and gray if tracking hasn't started or signal has been lost for a while — common on rural stretches of road with weak coverage.
+            Status labels: <strong class="text-ink">Live</strong> (recent ping), <strong class="text-ink">Signal stale</strong> (no ping for 10+ minutes), <strong class="text-ink">No signal</strong> (tracking not started). ETA comes from the estimated arrival set when the Store Manager dispatches the road delivery.
         </p>
     </x-page-container>
 
@@ -66,6 +66,10 @@
             function statusColor(v) {
                 if (!v.has_location) return '#9ca3af'; // gray — never reported
                 return v.is_stale ? '#d97706' : '#0d6b6b'; // amber vs brand teal
+            }
+
+            function statusLabel(v) {
+                return v.tracking_status || (!v.has_location ? 'No signal' : (v.is_stale ? 'Signal stale' : 'Live'));
             }
 
             function refresh() {
@@ -110,7 +114,9 @@
 
                                 markers[v.vehicle_id].bindPopup(
                                     '<strong>' + v.vehicle_label + '</strong><br>' +
+                                    'Status: ' + statusLabel(v) + '<br>' +
                                     (v.transfer_number ? v.transfer_number + ' &middot; ' + (v.drug_name || '') + '<br>' : '') +
+                                    (v.expected_arrival ? 'ETA: ' + v.expected_arrival + (v.is_arrival_overdue ? ' (overdue)' : '') + '<br>' : '') +
                                     (v.speed_kmh ? Math.round(v.speed_kmh) + ' km/h &middot; ' : '') +
                                     'Last ping: ' + (v.last_ping_at || 'never')
                                 );
@@ -127,11 +133,17 @@
                             const row = document.createElement('div');
                             row.className = 'p-4 text-sm';
                             row.innerHTML =
-                                '<div class="flex items-center justify-between">' +
+                                '<div class="flex items-center justify-between gap-2">' +
                                     '<span class="font-semibold text-ink">' + v.vehicle_label + '</span>' +
-                                    '<span class="h-2.5 w-2.5 rounded-full" style="background:' + color + '"></span>' +
+                                    '<span class="inline-flex items-center gap-1.5 text-xs font-semibold" style="color:' + color + '">' +
+                                        '<span class="h-2.5 w-2.5 rounded-full" style="background:' + color + '" aria-hidden="true"></span>' +
+                                        statusLabel(v) +
+                                    '</span>' +
                                 '</div>' +
                                 (v.transfer_number ? '<p class="mt-0.5 text-xs text-ink-secondary">' + v.transfer_number + ' &middot; ' + (v.drug_name || '') + '</p>' : '<p class="mt-0.5 text-xs text-muted">No active delivery linked</p>') +
+                                (v.expected_arrival
+                                    ? '<p class="mt-0.5 text-xs ' + (v.is_arrival_overdue ? 'font-semibold text-rose-700' : 'text-ink-secondary') + '">ETA ' + v.expected_arrival + (v.is_arrival_overdue ? ' · Overdue' : '') + '</p>'
+                                    : '') +
                                 '<p class="mt-1 text-xs text-muted">' + (v.has_location ? 'Last ping ' + v.last_ping_at : 'No GPS signal received yet') + '</p>';
                             listEl.appendChild(row);
                         });

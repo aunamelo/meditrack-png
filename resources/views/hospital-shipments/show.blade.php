@@ -26,6 +26,20 @@
                     @endif
                 </x-module.detail-field>
                 <x-module.detail-field label="Dispatched" :value="$transfer->formatSentDate()" />
+                <x-module.detail-field label="Estimated arrival">
+                    @if($transfer->expected_arrival_at)
+                        <span @class(['font-medium', 'text-rose-700 dark:text-rose-300' => $transfer->isArrivalOverdue()])>
+                            {{ $transfer->formatExpectedArrival() }}
+                            @if($transfer->isArrivalOverdue())
+                                <span class="block text-xs font-semibold uppercase tracking-wide">Overdue</span>
+                            @else
+                                <span class="block text-xs text-muted">{{ $transfer->expected_arrival_at->diffForHumans() }}</span>
+                            @endif
+                        </span>
+                    @else
+                        <span class="text-sm text-muted">Not set</span>
+                    @endif
+                </x-module.detail-field>
                 <x-module.detail-field label="Status">
                     <x-module.status-badge :variant="$transfer->status" :label="logisticsTransferStatusLabel($transfer->status)" />
                 </x-module.detail-field>
@@ -40,7 +54,7 @@
                 </x-module.detail-field>
                 <x-module.detail-field label="Dispatched by" :value="$transfer->sender->name ?? 'N/A'" />
                 @if($transfer->receiver)
-                    <x-module.detail-field label="Received by" :value="$transfer->receiver->name . ' · ' . $transfer->received_at?->format('M d, Y')" />
+                    <x-module.detail-field label="Received by" :value="$transfer->receiver->name . ' · ' . formatDate($transfer->received_at)" />
                 @endif
             </dl>
 
