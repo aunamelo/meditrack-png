@@ -159,10 +159,6 @@
         @apply flex shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-4 py-2.5 dark:border-white/10 dark:bg-night-elevated sm:px-6;
     }
 
-    .medcare-search {
-        @apply flex max-w-md flex-1 items-center rounded border border-line bg-surface px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800/80;
-    }
-
     .medcare-panel {
         @apply overflow-hidden rounded border border-line bg-surface dark:border-white/10 dark:bg-night-elevated;
     }
@@ -185,18 +181,6 @@
         @apply text-ink-muted dark:text-zinc-400;
     }
 
-    .surface-card {
-        @apply rounded border border-line bg-surface p-4 dark:border-white/10 dark:bg-night-elevated;
-    }
-
-    .surface-card-hover {
-        @apply surface-card hover:border-health-600/50;
-    }
-
-    .hero-banner {
-        @apply rounded border border-line bg-surface p-4 dark:border-white/10 dark:bg-night-elevated sm:p-5;
-    }
-
     .btn-brand {
         @apply inline-flex items-center justify-center rounded border border-transparent bg-health-700 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-health-800 focus:outline-none focus:ring-2 focus:ring-health-600/25 focus:ring-offset-1;
     }
@@ -213,34 +197,12 @@
         @apply w-full rounded border border-slate-300 bg-white text-sm text-ink shadow-none placeholder:text-ink-faint focus:border-health-600 focus:ring focus:ring-health-600/15 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-health-500;
     }
 
-    .sidebar-shell {
-        @apply medcare-sidebar;
-    }
-
     .topbar-shell {
         @apply medcare-topbar;
     }
 
     .dashboard-shell {
         @apply mx-auto w-full max-w-[1120px];
-    }
-
-    .dashboard-hero {
-        @apply relative mb-5 overflow-hidden rounded border border-line bg-surface p-4 dark:border-white/10 dark:bg-night-elevated sm:p-5;
-        border-left-width: 3px;
-        border-left-color: #0f766e;
-    }
-
-    .dashboard-hero-pattern {
-        @apply pointer-events-none absolute inset-0 hidden;
-    }
-
-    .dashboard-hero-cta {
-        @apply inline-flex shrink-0 items-center gap-2 rounded border border-health-700 bg-health-700 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-health-800;
-    }
-
-    .dashboard-stat-card {
-        @apply medcare-stat-card;
     }
 
     .dashboard-module-card {
@@ -251,17 +213,9 @@
         @apply border-health-700 bg-health-700 text-white hover:bg-health-800 hover:border-health-800;
     }
 
-    .dashboard-module-icon {
-        @apply flex h-8 w-8 shrink-0 items-center justify-center rounded;
-    }
-
     .dashboard-alert {
         @apply overflow-hidden rounded border bg-surface dark:bg-night-elevated;
         border-left-width: 3px;
-    }
-
-    .dashboard-alert-icon {
-        @apply flex h-8 w-8 items-center justify-center rounded;
     }
 
     .dashboard-alert-item {
@@ -300,10 +254,6 @@
         @apply mb-5 border-b border-line pb-4 dark:border-zinc-800;
     }
 
-    .stat-health {
-        @apply rounded border border-line bg-surface px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900;
-    }
-
     .module-hero {
         @apply relative mb-4 overflow-hidden rounded border border-line bg-surface px-4 py-3 dark:border-white/10 dark:bg-night-elevated;
         border-left-width: 3px;
@@ -312,14 +262,6 @@
 
     .module-hero-compact {
         @apply mb-3 px-3.5 py-2.5;
-    }
-
-    .module-hero-pattern {
-        @apply pointer-events-none absolute inset-0 hidden;
-    }
-
-    .module-hero-icon {
-        @apply flex h-8 w-8 shrink-0 items-center justify-center rounded bg-health-50 text-health-700 dark:bg-health-900/40 dark:text-health-300;
     }
 
     .module-hero-action {
@@ -332,10 +274,6 @@
 
     .module-flash-success {
         @apply border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200;
-    }
-
-    .module-flash-error {
-        @apply border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200;
     }
 
     .module-panel {
@@ -694,86 +632,6 @@
         @apply border-health-700 bg-white text-health-800 hover:bg-health-50 dark:border-health-500 dark:bg-night-elevated dark:text-health-200 dark:hover:bg-health-900/40;
     }
 
-    .guest-role-groups {
-        @apply mt-8 space-y-8;
-    }
-
-    .guest-role-group-title {
-        @apply mb-3 font-display text-xs font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400;
-    }
-
-    .guest-role-grid {
-        @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
-    }
-
-    .guest-role-card {
-        @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left no-underline shadow-sm transition dark:border-white/10 dark:bg-night-elevated;
-        border-left-width: 4px;
-        border-left-color: #0f766e;
-    }
-
-    .guest-role-card:hover {
-        @apply border-health-200 bg-health-50/40 dark:border-health-700 dark:bg-health-900/20;
-        border-left-color: #0d9488;
-        box-shadow: 0 4px 14px rgba(15, 118, 110, 0.1);
-    }
-
-    .guest-role-card-icon {
-        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white p-1.5 dark:border-white/10 dark:bg-night;
-    }
-
-    .guest-role-card-logo {
-        @apply h-full w-full object-contain;
-    }
-
-    .guest-role-card-body {
-        @apply min-w-0 flex-1;
-    }
-
-    .guest-role-card-label {
-        @apply block font-display text-sm font-bold text-[#132f4f] dark:text-zinc-50;
-    }
-
-    .guest-role-card-subtitle {
-        @apply mt-0.5 block text-xs leading-snug text-slate-600 dark:text-zinc-400;
-    }
-
-    .guest-role-card-facility {
-        @apply mt-1.5 inline-block rounded-md bg-health-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-health-800 dark:bg-health-900/50 dark:text-health-200;
-    }
-
-    .guest-role-card-chevron {
-        @apply shrink-0 text-slate-400 transition dark:text-zinc-500;
-    }
-
-    .guest-role-card:hover .guest-role-card-chevron {
-        @apply text-health-600 dark:text-health-300;
-    }
-
-    .guest-role-strip {
-        @apply mt-5 flex max-w-xl items-center gap-3 rounded border border-health-700 bg-health-700 px-3.5 py-2.5 text-white;
-    }
-
-    .guest-role-strip-icon {
-        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5;
-    }
-
-    .guest-role-strip-logo {
-        @apply h-full w-full object-contain;
-    }
-
-    .guest-role-strip-kicker {
-        @apply m-0 text-[10px] font-bold uppercase tracking-widest text-white/55;
-    }
-
-    .guest-role-strip-label {
-        @apply m-0 mt-0.5 font-display text-sm font-bold text-white;
-    }
-
-    .guest-role-strip-meta {
-        @apply m-0 mt-0.5 text-xs leading-snug text-white/70;
-    }
-
     .guest-portal-footer-bar {
         @apply mt-auto shrink-0 bg-[#2d2f3b] text-[#8e9196] dark:bg-night-elevated;
     }
@@ -788,11 +646,5 @@
 
     .guest-portal-footer-note {
         @apply m-0 text-[11px] font-semibold uppercase tracking-wide text-[#8e9196]/80;
-    }
-}
-
-@layer utilities {
-    .text-balance {
-        text-wrap: balance;
     }
 }
