@@ -31,4 +31,9 @@ class UserPolicy
     {
         return UserManagementService::canManage($user, $model);
     }
+
+    public function restore(User $user, User $model): bool
+    {
+        return UserManagementService::canManage($user, $model);
+    }
 }

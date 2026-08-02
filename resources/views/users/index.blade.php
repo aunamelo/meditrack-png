@@ -94,7 +94,17 @@
                                     <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 dark:text-zinc-400">{{ $roleLabel }}</td>
                                     <td class="whitespace-nowrap px-4 py-3 text-right text-sm">
                                         @if($isDeactivated)
-                                            <span class="text-xs text-gray-400 dark:text-zinc-500">No actions</span>
+                                            <form
+                                                action="{{ getDashboardUserRoute('restore', $managedUser) }}"
+                                                method="POST"
+                                                class="inline"
+                                                data-confirm="Reactivate this user account? They will be able to sign in again."
+                                                data-confirm-title="Reactivate user"
+                                                data-confirm-label="Reactivate"
+                                            >
+                                                @csrf
+                                                <button type="submit" class="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">Reactivate</button>
+                                            </form>
                                         @else
                                             <div class="inline-flex items-center gap-2">
                                                 <a href="{{ getDashboardUserRoute('edit', $managedUser) }}" class="font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400">Edit</a>

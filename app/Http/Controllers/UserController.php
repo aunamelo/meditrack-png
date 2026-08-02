@@ -99,4 +99,21 @@ class UserController extends Controller
             ->to(getDashboardUserRoute('index'))
             ->with('success', 'User account deactivated successfully. Historical records are retained.');
     }
+
+    public function restore(User $user): RedirectResponse
+    {
+        $this->authorize('restore', $user);
+
+        if (! $user->trashed()) {
+            return redirect()
+                ->to(getDashboardUserRoute('index'))
+                ->with('success', 'User account is already active.');
+        }
+
+        $user->restore();
+
+        return redirect()
+            ->to(getDashboardUserRoute('index'))
+            ->with('success', 'User account reactivated successfully. They can sign in again.');
+    }
 }

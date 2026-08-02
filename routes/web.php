@@ -96,6 +96,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::resource('orders', OrderController::class);
     Route::post('transfers/{transfer}/approve', [StockTransferController::class, 'approve'])->name('transfers.approve');
     Route::resource('transfers', StockTransferController::class)->only(['index', 'show']);
+    Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore')->withTrashed();
     Route::resource('users', UserController::class)->except(['show']);
     Route::resource('stock-adjustments', StockAdjustmentController::class)->only(['index', 'create', 'store', 'show']);
     Route::get('reports/ndoh', [NdohReportController::class, 'index'])->name('reports.ndoh.index');
@@ -144,6 +145,7 @@ Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharma
     Route::resource('drugs', DrugController::class);
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('users/{user}/restore', [UserController::class, 'restore'])->name('users.restore')->withTrashed();
     Route::resource('users', UserController::class)->except(['show']);
     Route::resource('hospital-orders', HospitalOrderController::class)->only(['index', 'create', 'store', 'show']);
     Route::post('hospital-orders/{hospitalOrder}/receive', [HospitalOrderController::class, 'receive'])->name('hospital-orders.receive');
