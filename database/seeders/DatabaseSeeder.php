@@ -10,17 +10,17 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Foundation data only — no inventory, orders, patients, or transfers.
+     * Walk the full corridor from empty stock using the app.
      */
     public function run(): void
     {
         $this->call(UserSeeder::class);
-        $this->call(SupplierSeeder::class); // needed for medicine catalogue supplier links
+        $this->call(SupplierSeeder::class); // catalogue FK for medicines
         $this->call(VehicleSeeder::class);
-        $this->call(MedicineSeeder::class);
-        // Demo/domain seeders kept on disk but not run automatically:
-        // $this->call(BackfillSupplierLinksSeeder::class);
-        // $this->call(OrderSeeder::class);
-        // $this->call(PatientSeeder::class);
+        $this->call(MedicineSeeder::class); // NDoH procurement catalogue (not stock)
+
+        // Not seeded (kept on disk for optional demos):
+        // DrugSeeder, OrderSeeder, PatientSeeder, BackfillSupplierLinksSeeder
     }
 }
