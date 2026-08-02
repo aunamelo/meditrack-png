@@ -244,14 +244,6 @@ class Drug extends Model
     }
 
     /**
-     * Get the available quantity.
-     */
-    public function getAvailableQuantity(): int
-    {
-        return $this->quantity_on_hand;
-    }
-
-    /**
      * Check if the drug can be dispensed (not expired and has quantity).
      */
     public function canBeDispensed(): bool
