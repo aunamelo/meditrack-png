@@ -19,9 +19,18 @@ A web-based drug tracking system for Papua New Guinea's medicine supply chain
 
 ## About MediTrack PNG
 
-MediTrack PNG is a final-year Information Systems project developed to address critical gaps in the procurement, distribution, and dispensing of medicinal drugs across Papua New Guinea's public hospitals. Phase 1 is piloted in Madang Province, tracking drug deliveries from the National Department of Health (NDoH), through the Lae Area Medical Store (Lae AMS), to Modilon General Hospital.
+MediTrack PNG is a final-year Information Systems project built to close critical gaps in how medicinal drugs are procured, distributed, and dispensed across Papua New Guinea's public hospitals. Phase 1 is piloted in Madang Province, following the movement of drug deliveries from the National Department of Health (NDoH), through the Lae Area Medical Store (Lae AMS), to Modilon General Hospital.
 
-Papua New Guinea's drug supply chain is currently managed through largely manual, fragmented processes with no integrated digital system providing real-time visibility — resulting in stock shortages, expired medication, theft, and inefficiencies that directly affect patient care. MediTrack PNG aims to digitize and integrate this chain, giving every stakeholder — from national administrators down to hospital pharmacists — real-time visibility into the movement of medicines relevant to their role:
+At present, PNG's drug supply chain relies on largely manual, disconnected processes, with no integrated digital system offering real-time oversight. This has contributed to stock shortages, expired medication, theft, and broader inefficiencies that ultimately affect patient care. MediTrack PNG sets out to digitize and unify this chain, giving every stakeholder — from national-level administrators to hospital pharmacists — real-time visibility into the medicines relevant to their role:
+
+Role-based authentication and access control, maintaining strict separation across five distinct portals.
+Drug inventory management, including batch tracking and expiry monitoring.
+Distribution and transfer tracking between the regional store and hospital facilities.
+Dispensing records tied directly to patient prescriptions.
+Automated, rule-based alerts for low stock and drugs nearing expiry.
+A reporting dashboard that gives administrators complete visibility across the supply chain.
+
+The system is designed to be accessible, role-scoped, and reliable even in low-connectivity environments.
 
 - [Role-based authentication and access control](#roles--organizational-levels), enforcing strict separation between five distinct portals.
 - Drug inventory management with **batch tracking and expiry monitoring**.
@@ -56,7 +65,7 @@ NDoH (Port Moresby) → Lae Area Medical Store (Lae AMS) → Modilon General Hos
 
 ## Learning the Stack
 
-MediTrack PNG is built on [Laravel 11](https://laravel.com/docs), using [Laravel Breeze](https://laravel.com/docs/starter-kits#laravel-breeze) for authentication and [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission) for role-based access control. The frontend is styled with [Tailwind CSS](https://tailwindcss.com) and [Alpine.js](https://alpinejs.dev), built with [Vite](https://vitejs.dev), and backed by a [MySQL](https://www.mysql.com) database normalized to Third Normal Form (3NF).
+MediTrack PNG is built with Laravel 11, using Laravel Breeze for authentication and Spatie Laravel Permission for role-based access control. The frontend uses Tailwind CSS and Alpine.js, built with Vite, and the database is MySQL, normalized to Third Normal Form (3NF). Alerts work on simple rules: administrators set thresholds — like minimum stock levels or days until expiry — and the system automatically sends a notification when those limits are reached. This rule-based approach was used instead of machine learning, since there isn't enough historical data yet to train a predictive model.
 
 The system's alerting component is a **rule-based alert system** — administrators configure thresholds (minimum stock levels, days-to-expiry) that automatically trigger notifications, a practical approach suited to a context where historical digital data for machine learning is not yet available.
 
