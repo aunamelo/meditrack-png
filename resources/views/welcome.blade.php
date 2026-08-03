@@ -5,6 +5,19 @@
 @php
     $portalRoles = config('portal.roles', []);
     $roleOrder = ['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager', 'pharmacist'];
+    $roleIcons = [
+        'admin' => 'shield',
+        'procurement_officer' => 'clipboard',
+        'store_manager' => 'warehouse',
+        'pharmacy_manager' => 'hospital',
+        'pharmacist' => 'pill',
+    ];
+    $facilityStats = [
+        ['value' => '21', 'label' => 'Provincial Hospitals'],
+        ['value' => '18', 'label' => 'District Hospitals'],
+        ['value' => '737', 'label' => 'Health Centres'],
+        ['value' => '49', 'label' => 'Community Health Posts'],
+    ];
 @endphp
 
 @section('content')
@@ -14,51 +27,36 @@
             Select your MediTrack role to continue. If you do not have an account, contact your NDoH or facility administrator.
         </p>
 
-        <form action="{{ route('login') }}" method="GET" id="roleSelectionForm" class="guest-auth-form">
-            <div class="guest-auth-field">
-                <label for="userRole" class="guest-auth-label">Your role</label>
-                <select
-                    id="userRole"
-                    name="role"
-                    required
-                    class="guest-auth-input guest-auth-select"
-                    aria-describedby="roleError"
-                    aria-invalid="false"
-                >
-                    <option value="" disabled selected>Select role</option>
-                    @foreach($roleOrder as $roleKey)
-                        @if(isset($portalRoles[$roleKey]))
-                            <option value="{{ str_replace('_', '-', $roleKey) }}">
-                                {{ $portalRoles[$roleKey]['label'] }}
-                            </option>
-                        @endif
-                    @endforeach
-                </select>
-                <p id="roleError" class="guest-auth-error hidden" role="alert" aria-live="assertive">Select a role to continue.</p>
-            </div>
-
-            <button type="submit" class="guest-auth-submit">
-                Continue to sign in
-            </button>
-        </form>
+        <div class="guest-role-grid" role="list">
+            @foreach($roleOrder as $roleKey)
+                @if(isset($portalRoles[$roleKey]))
+                    <a
+                        href="{{ route('login', ['role' => str_replace('_', '-', $roleKey)]) }}"
+                        class="guest-role-card"
+                        role="listitem"
+                    >
+                        <span class="guest-role-card-icon" aria-hidden="true">
+                            <x-dashboard.icon :name="$roleIcons[$roleKey]" class="h-6 w-6" />
+                        </span>
+                        <span class="guest-role-card-body">
+                            <span class="guest-role-card-label">{{ $portalRoles[$roleKey]['label'] }}</span>
+                            <span class="guest-role-card-subtitle">{{ $portalRoles[$roleKey]['subtitle'] }}</span>
+                        </span>
+                    </a>
+                @endif
+            @endforeach
+        </div>
     </div>
+
+    <aside class="guest-facility-stats" aria-label="Papua New Guinea health facility network">
+        <ul class="guest-facility-stats-grid">
+            @foreach($facilityStats as $stat)
+                <li class="guest-facility-stats-item">
+                    <p class="guest-facility-stats-value">{{ $stat['value'] }}</p>
+                    <span class="guest-facility-stats-rule" aria-hidden="true"></span>
+                    <p class="guest-facility-stats-label">{{ $stat['label'] }}</p>
+                </li>
+            @endforeach
+        </ul>
+    </aside>
 @endsection
-
-@push('scripts')
-    <script>
-        document.getElementById('roleSelectionForm').addEventListener('submit', function (event) {
-            const select = document.getElementById('userRole');
-            const error = document.getElementById('roleError');
-
-            if (! select.value) {
-                event.preventDefault();
-                error.classList.remove('hidden');
-                select.setAttribute('aria-invalid', 'true');
-                select.focus();
-            } else {
-                error.classList.add('hidden');
-                select.setAttribute('aria-invalid', 'false');
-            }
-        });
-    </script>
-@endpush

@@ -31,6 +31,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+Route::view('/privacy', 'guest.privacy')->name('guest.privacy');
+Route::view('/terms', 'guest.terms')->name('guest.terms');
+Route::view('/accessibility', 'guest.accessibility')->name('guest.accessibility');
+
 // Fallback dashboard — only reached if a logged-in user has none of the
 // 5 portal roles assigned. Keeps things safe rather than erroring out.
 Route::get('/dashboard', [DashboardController::class, 'index'])

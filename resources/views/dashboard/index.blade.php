@@ -11,10 +11,9 @@
 
             <div class="dashboard-welcome flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="text-section-label">{{ portalWorkspaceScope($roleMeta) }}</p>
-                    <h1 class="heading-display mt-1">{{ $roleMeta['label'] }}</h1>
+                    <h1 class="heading-display">{{ $greeting }}, {{ $firstName }}</h1>
                     <p class="mt-1 text-sm text-ink-secondary dark:text-zinc-400">
-                        {{ $greeting }}, {{ $firstName }} · {{ formatDate(now()) }}
+                        {{ formatDate(now()) }}
                     </p>
                 </div>
             </div>

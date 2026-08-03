@@ -39,8 +39,8 @@
                         src="{{ asset($guestBrandIcon) }}"
                         alt="{{ $guestBrandAlt }}"
                         class="guest-portal-topbar-logo"
-                        width="56"
-                        height="52"
+                        width="80"
+                        height="74"
                         decoding="async"
                         fetchpriority="high"
                     >

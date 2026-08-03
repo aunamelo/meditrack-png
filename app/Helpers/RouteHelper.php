@@ -111,16 +111,6 @@ if (! function_exists('getDashboardTransferRoute')) {
     }
 }
 
-if (! function_exists('canManageTransfers')) {
-    /**
-     * Whether the current user can ship stock from NDoH to Lae AMS.
-     */
-    function canManageTransfers(): bool
-    {
-        return auth()->user()->hasRole('procurement_officer');
-    }
-}
-
 if (! function_exists('canManageOrders')) {
     /**
      * Whether the current user can create/edit procurement orders.
@@ -294,19 +284,6 @@ if (! function_exists('getDashboardStockStatusRoute')) {
     }
 }
 
-if (! function_exists('getDashboardStockMovementRoute')) {
-    function getDashboardStockMovementRoute(string $routeName = 'index', mixed $params = null): string
-    {
-        if (! auth()->user()->hasAnyRole(['admin', 'procurement_officer', 'store_manager', 'pharmacy_manager', 'pharmacist'])) {
-            abort(403, 'You do not have access to stock movement reports.');
-        }
-
-        $fullRouteName = getDashboardRoutePrefix().'reports.stock-movements.'.$routeName;
-
-        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
-    }
-}
-
 if (! function_exists('getDashboardStockAdjustmentRoute')) {
     function getDashboardStockAdjustmentRoute(string $routeName, mixed $params = null): string
     {
@@ -330,20 +307,6 @@ if (! function_exists('getDashboardHospitalReportRoute')) {
         $fullRouteName = getDashboardRoutePrefix().'reports.hospital.'.$routeName;
 
         return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
-    }
-}
-
-if (! function_exists('canManageHospitalOrders')) {
-    function canManageHospitalOrders(): bool
-    {
-        return auth()->user()->hasRole('store_manager');
-    }
-}
-
-if (! function_exists('canRequestHospitalOrders')) {
-    function canRequestHospitalOrders(): bool
-    {
-        return auth()->user()->hasRole('pharmacy_manager');
     }
 }
 

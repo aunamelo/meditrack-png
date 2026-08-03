@@ -542,15 +542,6 @@ class DashboardService
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $actions
-     * @return array<int, array<string, mixed>>
-     */
-    protected static function quickActions(array $actions): array
-    {
-        return $actions;
-    }
-
-    /**
      * @return array<string, mixed>
      */
     protected static function recentOrderRow(Order $order): array
