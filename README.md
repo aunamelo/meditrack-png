@@ -56,7 +56,7 @@ NDoH (Port Moresby) → Lae Area Medical Store (Lae AMS) → Modilon General Hos
 
 ## Learning the Stack
 
-MediTrack PNG is built on [Laravel 11](https://laravel.com/docs), using [Laravel Breeze](https://laravel.com/docs/starter-kits#laravel-breeze) for authentication and [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission) for role-based access control. The frontend is styled with [Tailwind CSS](https://tailwindcss.com) and [Alpine.js](https://alpinejs.dev), built with [Vite](https://vitejs.dev), and backed by a [MySQL](https://www.mysql.com) database normalized to Third Normal Form (3NF).
+MediTrack PNG is built with Laravel 11, using Laravel Breeze for authentication and Spatie Laravel Permission for role-based access control. The frontend uses Tailwind CSS and Alpine.js, built with Vite, and the database is MySQL, normalized to Third Normal Form (3NF). Alerts work on simple rules: administrators set thresholds — like minimum stock levels or days until expiry — and the system automatically sends a notification when those limits are reached. This rule-based approach was used instead of machine learning, since there isn't enough historical data yet to train a predictive model.
 
 The system's alerting component is a **rule-based alert system** — administrators configure thresholds (minimum stock levels, days-to-expiry) that automatically trigger notifications, a practical approach suited to a context where historical digital data for machine learning is not yet available.
 
