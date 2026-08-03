@@ -51,6 +51,9 @@
                                     <p class="mt-1 text-xs text-gray-500">Select a specific NDoH batch with available stock. After NDoH Admin approves, stock is deducted from NDoH. Lae AMS inventory is created when the Store Manager confirms receipt.</p>
                                 @endif
                                 @error('drug_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                <div class="mt-2">
+                                    <x-qr-scanner title="Scan batch QR" hint="Scan a batch label to select the NDoH stock batch to ship." />
+                                </div>
                             </div>
 
                             <div>

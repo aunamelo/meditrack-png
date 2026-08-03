@@ -260,6 +260,31 @@ class Drug extends Model
     }
 
     /**
+     * JSON payload encoded into this batch's QR label.
+     *
+     * In MediTrack, each `drugs` row is one inventory batch (there is no
+     * separate batches table). `drug_id` is therefore this batch's primary key.
+     *
+     * @return array{drug_id: int, batch_no: string, expiry: string}
+     */
+    public function qrPayload(): array
+    {
+        return [
+            'drug_id' => $this->id,
+            'batch_no' => (string) $this->batch_number,
+            'expiry' => $this->expiry_date->format('Y-m-d'),
+        ];
+    }
+
+    /**
+     * Compact JSON string written into the QR code.
+     */
+    public function qrPayloadJson(): string
+    {
+        return json_encode($this->qrPayload(), JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
      * Format the received date for display.
      */
     public function formatReceivedDate(): string

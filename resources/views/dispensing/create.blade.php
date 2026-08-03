@@ -58,6 +58,9 @@
                             </option>
                         @endforeach
                     </select>
+                    <div class="mt-2">
+                        <x-qr-scanner title="Scan batch QR" hint="Scan a batch label to select the matching Modilon stock batch." />
+                    </div>
                     <div class="mt-2 rounded-lg border border-line bg-canvas p-3 text-xs text-muted" x-show="selected" x-cloak>
                         <p>Available: <strong class="text-ink" x-text="selected ? (selected.qty + ' ' + selected.unit) : ''"></strong></p>
                         <p>Batch: <strong class="text-ink" x-text="selected ? selected.batch : ''"></strong></p>

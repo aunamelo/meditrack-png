@@ -99,6 +99,11 @@
             </x-module.detail-card>
         </div>
 
+        {{-- QR batch label: printable sticker with drug name, batch, expiry + QR payload --}}
+        <div class="mt-6">
+            <x-drug-qr-label :drug="$drug" />
+        </div>
+
         @if($drug->notes)
             <x-module.detail-card title="Notes" class="mt-6">
                 <p class="text-sm text-ink-secondary dark:text-zinc-300">{{ $drug->notes }}</p>
