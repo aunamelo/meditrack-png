@@ -13,7 +13,7 @@
 
         <h2 class="guest-auth-heading">Terms of Use</h2>
         <p class="guest-auth-lead">
-            These Terms of Use govern your use of the MediTrack PNG eLog portal.
+            These Terms of Use govern your use of the MediTrack PNG portal.
             By using this portal, you agree to these terms. If you do not agree, you must not use it.
         </p>
 

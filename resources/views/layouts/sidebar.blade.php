@@ -23,7 +23,7 @@
                 </div>
                 <div class="sidebar-brand-text min-w-0">
                     <p class="sidebar-brand-tagline">{{ $roleMeta['facility_group'] ?? 'National Department of Health' }}</p>
-                    <p class="sidebar-brand-title">{{ $roleMeta['brand_tagline'] ?? 'MediTrack PNG eLog Portal' }}</p>
+                    <p class="sidebar-brand-title">{{ $roleMeta['brand_tagline'] ?? 'MediTrack PNG' }}</p>
                 </div>
             </a>
             <button

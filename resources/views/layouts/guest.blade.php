@@ -4,9 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="MediTrack PNG eLog Portal — National Department of Health medicine supply chain system.">
+    <meta name="description" content="MediTrack PNG — National Department of Health medicine supply chain system.">
     <meta name="theme-color" content="#0f766e">
-    <title>@yield('title', 'MediTrack PNG | eLog Portal')</title>
+    <title>@yield('title', 'MediTrack PNG')</title>
 
     @include('partials.app-icon')
 
@@ -24,8 +24,8 @@
     $guestBrandAlt = $guestRoleMeta['brand_alt'] ?? 'National Department of Health — Papua New Guinea';
     $guestKicker = $guestRoleMeta['facility_group'] ?? 'National Department of Health';
     $guestTitle = $guestRoleMeta
-        ? ($guestRoleMeta['brand_tagline'] ?? 'MediTrack PNG eLog Portal')
-        : 'MediTrack PNG eLog Portal';
+        ? ($guestRoleMeta['brand_tagline'] ?? 'MediTrack PNG')
+        : 'MediTrack PNG';
 @endphp
 
 <body class="guest-portal-body">

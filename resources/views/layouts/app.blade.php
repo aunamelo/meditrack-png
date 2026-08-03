@@ -52,7 +52,7 @@
                     <footer class="app-portal-footer">
                         <div class="app-portal-footer-inner">
                             <p class="app-portal-footer-copy">
-                                Copyright &copy; {{ date('Y') }} National Department of Health of Papua New Guinea · MediTrack eLog
+                                Copyright &copy; {{ date('Y') }} National Department of Health of Papua New Guinea · MediTrack PNG
                             </p>
                             <p class="app-portal-footer-note">Authorized NDoH personnel only</p>
                         </div>

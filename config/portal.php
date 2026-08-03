@@ -20,7 +20,7 @@ return [
             'dashboard_route' => 'dashboard.admin',
             'brand_icon' => 'images/ndoh-portal.png',
             'brand_alt' => 'National Department of Health — Papua New Guinea',
-            'brand_tagline' => 'NDoH eLog Portal',
+            'brand_tagline' => 'MediTrack PNG',
             'facility_group' => 'National Department of Health',
         ],
         'procurement_officer' => [
@@ -31,7 +31,7 @@ return [
             'dashboard_route' => 'dashboard.procurement_officer',
             'brand_icon' => 'images/ndoh-portal.png',
             'brand_alt' => 'National Department of Health — Papua New Guinea',
-            'brand_tagline' => 'NDoH eLog Portal',
+            'brand_tagline' => 'MediTrack PNG',
             'facility_group' => 'National Department of Health',
         ],
         'store_manager' => [
@@ -42,7 +42,7 @@ return [
             'dashboard_route' => 'dashboard.store_manager',
             'brand_icon' => 'images/ndoh-portal.png',
             'brand_alt' => 'Lae Area Medical Store — Papua New Guinea',
-            'brand_tagline' => 'Lae AMS eLog Portal',
+            'brand_tagline' => 'MediTrack PNG',
             'facility_group' => 'Lae Area Medical Store',
         ],
         'pharmacy_manager' => [
@@ -53,7 +53,7 @@ return [
             'dashboard_route' => 'dashboard.pharmacy_manager',
             'brand_icon' => 'images/modilon-hospital.webp',
             'brand_alt' => 'Modilon General Hospital — Madang',
-            'brand_tagline' => 'Modilon eLog Portal',
+            'brand_tagline' => 'MediTrack PNG',
             'facility_group' => 'Modilon General Hospital',
         ],
         'pharmacist' => [
@@ -64,7 +64,7 @@ return [
             'dashboard_route' => 'dashboard.pharmacist',
             'brand_icon' => 'images/modilon-hospital.webp',
             'brand_alt' => 'Modilon General Hospital — Madang',
-            'brand_tagline' => 'Modilon eLog Portal',
+            'brand_tagline' => 'MediTrack PNG',
             'facility_group' => 'Modilon General Hospital',
         ],
     ],

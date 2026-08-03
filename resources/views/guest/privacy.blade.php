@@ -13,7 +13,7 @@
 
         <h2 class="guest-auth-heading">Privacy Statement</h2>
         <p class="guest-auth-lead">
-            This is a National Department of Health (NDoH) MediTrack PNG eLog portal.
+            This is a National Department of Health (NDoH) MediTrack PNG portal.
             We are committed to protecting your privacy and providing a secure environment for authorized staff.
         </p>
 

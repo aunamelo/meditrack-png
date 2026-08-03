@@ -13,7 +13,7 @@
                 <a href="https://www.health.gov.pg/" class="guest-portal-footer-link" target="_blank" rel="noopener noreferrer">
                     National Department of Health
                 </a>
-                · MediTrack eLog
+                · MediTrack PNG
             </p>
             <p class="guest-portal-footer-help">
                 Need access? Contact your facility administrator or NDoH ICT help desk.

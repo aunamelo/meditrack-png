@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', 'MediTrack PNG | eLog Portal')
+@section('title', 'MediTrack PNG')
 
 @php
     $portalRoles = config('portal.roles', []);
