@@ -19,7 +19,7 @@ A web-based drug tracking system for Papua New Guinea's medicine supply chain
 
 ## About MediTrack PNG
 
-MediTrack PNG is a final-year Information Systems project built to close critical gaps in how medicinal drugs are procured, distributed, and dispensed across Papua New Guinea's public hospitals. Phase 1 is piloted in Madang Province, following the movement of drug deliveries from the National Department of Health (NDoH), through the Lae Area Medical Store (Lae AMS), to Modilon General Hospital. Phase two of this project can be implemented to other 21 hospitals based on retrospectives from phase 1.
+MediTrack PNG is a final-year Information Systems project built to close critical gaps in how medicinal drugs are procured, distributed, and dispensed across Papua New Guinea's public hospitals. Phase 1 is piloted in Madang Province, following the movement of drug deliveries from the National Department of Health (NDoH), through the Lae Area Medical Store (Lae AMS), to Modilon General Hospital. Phase two of this project can be implemented to other 20 hospitals in Papau New Guinea based on retrospectives from phase 1.
 
 At present, PNG's drug supply chain relies on largely manual, disconnected processes, with no integrated digital system offering real-time oversight. This has contributed to stock shortages, expired medication, theft, and broader inefficiencies that ultimately affect patient care. MediTrack PNG sets out to digitize and unify this chain, giving every stakeholder — from national-level administrators to hospital pharmacists — real-time visibility into the medicines relevant to their role:
 
