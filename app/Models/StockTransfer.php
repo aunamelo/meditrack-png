@@ -102,6 +102,49 @@ class StockTransfer extends Model
         return $this->hasMany(VehicleLocation::class);
     }
 
+    public function items(): HasMany
+    {
+        return $this->hasMany(StockTransferItem::class);
+    }
+
+    /**
+     * Human-readable medicines on this delivery (one or many batches).
+     */
+    public function medicinesLabel(): string
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->with('drug')->get();
+
+        if ($items->isEmpty()) {
+            $drug = $this->drug;
+
+            return $drug
+                ? trim($drug->drug_name.($drug->dosage ? ' ('.$drug->dosage.')' : ''))
+                : 'Shipment';
+        }
+
+        $first = $items->first()->drug;
+        $firstLabel = $first
+            ? trim($first->drug_name.($first->dosage ? ' ('.$first->dosage.')' : ''))
+            : 'Medicine';
+
+        if ($items->count() === 1) {
+            return $firstLabel;
+        }
+
+        return $firstLabel.' + '.($items->count() - 1).' more';
+    }
+
+    public function lineCount(): int
+    {
+        if ($this->relationLoaded('items') && $this->items->isNotEmpty()) {
+            return $this->items->count();
+        }
+
+        $count = $this->items()->count();
+
+        return $count > 0 ? $count : 1;
+    }
+
     /**
      * Only the Lae AMS -> Modilon Hospital road leg carries a vehicle and
      * is GPS-tracked; the NDoH -> Lae AMS leg travels by air/sea freight.
@@ -257,7 +300,7 @@ class StockTransfer extends Model
     }
 
     /**
-     * Admin approval: deduct NDoH stock and mark shipment as sent (in transit).
+     * Admin approval: deduct NDoH stock for every line and mark shipment as sent.
      * Lae AMS inventory is created only when the Store Manager confirms receipt.
      */
     public function approve(int $userId): void
@@ -269,20 +312,31 @@ class StockTransfer extends Model
         }
 
         DB::transaction(function () use ($userId) {
-            $sourceDrug = Drug::query()->lockForUpdate()->findOrFail($this->drug_id);
-            $quantitySent = (int) $this->quantity_sent;
+            $this->loadMissing('items');
 
-            if ($sourceDrug->quantity_on_hand < $quantitySent) {
-                throw ValidationException::withMessages([
-                    'quantity_sent' => 'NDoH stock is no longer sufficient for this shipment. Available: '.$sourceDrug->quantity_on_hand.'.',
+            $lines = $this->items->isNotEmpty()
+                ? $this->items
+                : collect([(object) [
+                    'drug_id' => $this->drug_id,
+                    'quantity_sent' => $this->quantity_sent,
+                ]]);
+
+            foreach ($lines as $line) {
+                $sourceDrug = Drug::query()->lockForUpdate()->findOrFail($line->drug_id);
+                $quantitySent = (int) $line->quantity_sent;
+
+                if ($sourceDrug->quantity_on_hand < $quantitySent) {
+                    throw ValidationException::withMessages([
+                        'quantity_sent' => "NDoH stock is no longer sufficient for {$sourceDrug->drug_name} (batch {$sourceDrug->batch_number}). Available: {$sourceDrug->quantity_on_hand}.",
+                    ]);
+                }
+
+                $sourceDrug->update([
+                    'quantity_on_hand' => $sourceDrug->quantity_on_hand - $quantitySent,
+                    'last_issued_date' => now(),
+                    'updated_by' => $userId,
                 ]);
             }
-
-            $sourceDrug->update([
-                'quantity_on_hand' => $sourceDrug->quantity_on_hand - $quantitySent,
-                'last_issued_date' => now(),
-                'updated_by' => $userId,
-            ]);
 
             $this->update([
                 'status' => 'sent',
@@ -293,7 +347,7 @@ class StockTransfer extends Model
     }
 
     /**
-     * Confirm receipt at Lae AMS and create the warehouse inventory batch.
+     * Confirm receipt at Lae AMS and create warehouse inventory for each line.
      */
     public function receive(int $userId, ?string $notes = null): void
     {
@@ -304,42 +358,46 @@ class StockTransfer extends Model
         }
 
         DB::transaction(function () use ($userId, $notes) {
-            $sourceDrug = Drug::query()->lockForUpdate()->findOrFail($this->drug_id);
-            $quantitySent = (int) $this->quantity_sent;
+            $this->loadMissing('items');
 
-            $destinationDrugId = $this->destination_drug_id;
+            $firstDestinationDrugId = $this->destination_drug_id;
 
-            if (! $destinationDrugId) {
-                $destinationBatch = $sourceDrug->batch_number.'-LAE-'.now()->format('ymdHis');
+            if ($this->items->isNotEmpty()) {
+                foreach ($this->items as $line) {
+                    if ($line->destination_drug_id) {
+                        if (! $firstDestinationDrugId) {
+                            $firstDestinationDrugId = $line->destination_drug_id;
+                        }
 
-                $destinationDrug = Drug::create([
-                    'medicine_id' => $sourceDrug->medicine_id,
-                    'drug_name' => $sourceDrug->drug_name,
-                    'description' => $sourceDrug->description,
-                    'dosage' => $sourceDrug->dosage,
-                    'dosage_form' => $sourceDrug->dosage_form,
-                    'batch_number' => $destinationBatch,
-                    'expiry_date' => $sourceDrug->expiry_date,
-                    'quantity_received' => $quantitySent,
-                    'quantity_on_hand' => $quantitySent,
-                    'reorder_point' => $sourceDrug->reorder_point,
-                    'unit' => $sourceDrug->unit,
-                    'supplier' => $sourceDrug->supplier,
-                    'cost_per_unit' => $sourceDrug->cost_per_unit,
-                    'storage_location' => 'Lae AMS Warehouse',
-                    'level' => 'lae_ams',
-                    'status' => 'active',
-                    'received_date' => now(),
-                    'notes' => "Received via shipment {$this->transfer_number} from NDoH",
-                    'created_by' => $userId,
-                    'updated_by' => $userId,
-                ]);
+                        continue;
+                    }
 
-                $destinationDrugId = $destinationDrug->id;
+                    $destinationDrug = $this->createLaeAmsBatchFromSource(
+                        Drug::query()->lockForUpdate()->findOrFail($line->drug_id),
+                        (int) $line->quantity_sent,
+                        $userId,
+                    );
+
+                    $line->update([
+                        'destination_drug_id' => $destinationDrug->id,
+                        'quantity_received' => (int) $line->quantity_sent,
+                    ]);
+
+                    if (! $firstDestinationDrugId) {
+                        $firstDestinationDrugId = $destinationDrug->id;
+                    }
+                }
+            } elseif (! $firstDestinationDrugId) {
+                $destinationDrug = $this->createLaeAmsBatchFromSource(
+                    Drug::query()->lockForUpdate()->findOrFail($this->drug_id),
+                    (int) $this->quantity_sent,
+                    $userId,
+                );
+                $firstDestinationDrugId = $destinationDrug->id;
             }
 
             $update = [
-                'destination_drug_id' => $destinationDrugId,
+                'destination_drug_id' => $firstDestinationDrugId,
                 'status' => 'received',
                 'received_by' => $userId,
                 'received_at' => now(),
@@ -351,5 +409,33 @@ class StockTransfer extends Model
 
             $this->update($update);
         });
+    }
+
+    protected function createLaeAmsBatchFromSource(Drug $sourceDrug, int $quantitySent, int $userId): Drug
+    {
+        $destinationBatch = $sourceDrug->batch_number.'-LAE-'.now()->format('ymdHis').'-'.$sourceDrug->id;
+
+        return Drug::create([
+            'medicine_id' => $sourceDrug->medicine_id,
+            'drug_name' => $sourceDrug->drug_name,
+            'description' => $sourceDrug->description,
+            'dosage' => $sourceDrug->dosage,
+            'dosage_form' => $sourceDrug->dosage_form,
+            'batch_number' => $destinationBatch,
+            'expiry_date' => $sourceDrug->expiry_date,
+            'quantity_received' => $quantitySent,
+            'quantity_on_hand' => $quantitySent,
+            'reorder_point' => $sourceDrug->reorder_point,
+            'unit' => $sourceDrug->unit,
+            'supplier' => $sourceDrug->supplier,
+            'cost_per_unit' => $sourceDrug->cost_per_unit,
+            'storage_location' => 'Lae AMS Warehouse',
+            'level' => 'lae_ams',
+            'status' => 'active',
+            'received_date' => now(),
+            'notes' => "Received via shipment {$this->transfer_number} from NDoH",
+            'created_by' => $userId,
+            'updated_by' => $userId,
+        ]);
     }
 }

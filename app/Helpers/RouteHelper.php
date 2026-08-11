@@ -232,6 +232,22 @@ if (! function_exists('getDashboardLiveMapRoute')) {
     }
 }
 
+if (! function_exists('getDashboardVehicleRoute')) {
+    /**
+     * Build a role-scoped Lae AMS vehicle registry route for the current user.
+     */
+    function getDashboardVehicleRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasRole('store_manager')) {
+            abort(403, 'Only Lae AMS Store Managers can manage registered vehicles.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'vehicles.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
 if (! function_exists('getDashboardDiscrepancyRoute')) {
     function getDashboardDiscrepancyRoute(string $routeName, mixed $params = null): string
     {

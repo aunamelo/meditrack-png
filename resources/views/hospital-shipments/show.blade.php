@@ -11,11 +11,9 @@
 
         <x-module.detail-card title="Road delivery details">
             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <x-module.detail-field label="Drug">
-                    {{ $transfer->drug->drug_name ?? 'N/A' }} ({{ $transfer->drug->dosage ?? '' }})
-                </x-module.detail-field>
-                <x-module.detail-field label="Quantity sent" :value="number_format($transfer->quantity_sent)" />
-                <x-module.detail-field label="Batch" :value="$transfer->batch_number" />
+                <x-module.detail-field label="Medicines" :value="$transfer->medicinesLabel()" />
+                <x-module.detail-field label="Batches on delivery" :value="(string) $transfer->lineCount()" />
+                <x-module.detail-field label="Total quantity sent" :value="number_format($transfer->quantity_sent)" />
                 <x-module.detail-field label="Route" value="Lae AMS → Modilon Hospital (by road)" />
                 <x-module.detail-field label="Assigned vehicle">
                     @if($transfer->vehicle)
@@ -43,20 +41,57 @@
                 <x-module.detail-field label="Status">
                     <x-module.status-badge :variant="$transfer->status" :label="logisticsTransferStatusLabel($transfer->status)" />
                 </x-module.detail-field>
-                <x-module.detail-field label="Modilon inventory">
-                    @if($transfer->destinationDrug)
-                        <a href="{{ getDashboardDrugRoute('show', $transfer->destinationDrug) }}" class="module-table-link">
-                            Batch {{ $transfer->destinationDrug->batch_number }} · {{ number_format($transfer->destinationDrug->quantity_on_hand) }} on hand
-                        </a>
-                    @else
-                        <span class="text-sm text-muted">Not added until pharmacy confirms receipt</span>
-                    @endif
-                </x-module.detail-field>
                 <x-module.detail-field label="Dispatched by" :value="$transfer->sender->name ?? 'N/A'" />
                 @if($transfer->receiver)
                     <x-module.detail-field label="Received by" :value="$transfer->receiver->name . ' · ' . formatDate($transfer->received_at)" />
                 @endif
             </dl>
+
+            @php
+                $lines = $transfer->items->isNotEmpty()
+                    ? $transfer->items
+                    : collect([(object) [
+                        'drug' => $transfer->drug,
+                        'batch_number' => $transfer->batch_number,
+                        'quantity_sent' => $transfer->quantity_sent,
+                        'destinationDrug' => $transfer->destinationDrug,
+                    ]]);
+            @endphp
+            <div class="module-table-wrap mt-6 overflow-x-auto">
+                <table class="module-table">
+                    <thead>
+                        <tr>
+                            <th>Drug</th>
+                            <th>Source batch</th>
+                            <th>Qty</th>
+                            <th>Modilon batch</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($lines as $line)
+                            <tr>
+                                <td>
+                                    {{ $line->drug->drug_name ?? 'N/A' }}
+                                    @if($line->drug)
+                                        <span class="text-muted">({{ $line->drug->dosage }})</span>
+                                    @endif
+                                </td>
+                                <td class="whitespace-nowrap">{{ $line->batch_number }}</td>
+                                <td class="whitespace-nowrap">{{ number_format($line->quantity_sent) }}</td>
+                                <td class="whitespace-nowrap">
+                                    @if($line->destinationDrug ?? null)
+                                        <a href="{{ getDashboardDrugRoute('show', $line->destinationDrug) }}" class="module-table-link">
+                                            {{ $line->destinationDrug->batch_number }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted">Pending receipt</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
             @if($transfer->hospitalOrder)
                 <a href="{{ getDashboardHospitalOrderRoute('show', $transfer->hospitalOrder) }}" class="module-table-link mt-4 inline-flex text-sm">

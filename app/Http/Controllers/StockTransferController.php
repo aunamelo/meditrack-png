@@ -6,9 +6,11 @@ use App\Http\Requests\ReceiveStockTransferRequest;
 use App\Http\Requests\StoreStockTransferRequest;
 use App\Models\Drug;
 use App\Models\StockTransfer;
+use App\Models\StockTransferItem;
 use App\Services\TransferNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -20,7 +22,7 @@ class StockTransferController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $query = StockTransfer::with(['drug', 'destinationDrug', 'sender', 'approver'])
+        $query = StockTransfer::with(['drug', 'destinationDrug', 'sender', 'approver', 'items.drug'])
             ->whereNull('hospital_order_id')
             ->fromLevel('ndoh')
             ->toLevel('lae_ams');
@@ -36,7 +38,8 @@ class StockTransferController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('transfer_number', 'like', "%{$search}%")
                     ->orWhere('batch_number', 'like', "%{$search}%")
-                    ->orWhereHas('drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"));
+                    ->orWhereHas('drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"))
+                    ->orWhereHas('items.drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"));
             });
         }
 
@@ -78,41 +81,52 @@ class StockTransferController extends Controller
     }
 
     /**
-     * Create a pending NDoH → Lae AMS shipment for admin approval.
+     * Create one combined NDoH → Lae AMS delivery (multi-batch) for a single Admin approval.
      */
     public function store(StoreStockTransferRequest $request): RedirectResponse
     {
-        $sourceDrug = Drug::findOrFail($request->drug_id);
-        $quantitySent = (int) $request->quantity_sent;
+        $transfer = DB::transaction(function () use ($request) {
+            $lines = collect($request->input('items', []));
+            $firstDrug = Drug::findOrFail($lines->first()['drug_id']);
+            $totalSent = (int) $lines->sum(fn ($item) => (int) $item['quantity_sent']);
 
-        if ($sourceDrug->quantity_on_hand < $quantitySent) {
-            throw ValidationException::withMessages([
-                'quantity_sent' => 'Quantity exceeds available NDoH stock.',
+            $transfer = StockTransfer::create([
+                'transfer_number' => StockTransfer::generateTransferNumber(),
+                // Header mirrors first line for older screens / notifications.
+                'drug_id' => $firstDrug->id,
+                'destination_drug_id' => null,
+                'batch_number' => $firstDrug->batch_number,
+                'quantity_sent' => $totalSent,
+                'from_level' => 'ndoh',
+                'to_level' => 'lae_ams',
+                'sent_date' => $request->sent_date,
+                'status' => 'pending',
+                'notes' => $request->notes,
+                'sent_by' => auth()->id(),
             ]);
-        }
 
-        $transfer = StockTransfer::create([
-            'transfer_number' => StockTransfer::generateTransferNumber(),
-            'drug_id' => $sourceDrug->id,
-            'destination_drug_id' => null,
-            'batch_number' => $sourceDrug->batch_number,
-            'quantity_sent' => $quantitySent,
-            'from_level' => 'ndoh',
-            'to_level' => 'lae_ams',
-            'sent_date' => $request->sent_date,
-            'status' => 'pending',
-            'notes' => $request->notes,
-            'sent_by' => auth()->id(),
-        ]);
+            foreach ($lines as $item) {
+                $sourceDrug = Drug::findOrFail($item['drug_id']);
 
-        $transfer->load(['drug', 'sender']);
+                StockTransferItem::create([
+                    'stock_transfer_id' => $transfer->id,
+                    'hospital_order_item_id' => null,
+                    'drug_id' => $sourceDrug->id,
+                    'destination_drug_id' => null,
+                    'batch_number' => $sourceDrug->batch_number,
+                    'quantity_sent' => (int) $item['quantity_sent'],
+                ]);
+            }
+
+            return $transfer->load(['drug', 'sender', 'items.drug']);
+        });
 
         TransferNotificationService::notifyAdminsOfPendingShipment($transfer);
 
         \Log::info("NDoH shipment [{$transfer->transfer_number}] submitted for approval by user ID: ".auth()->id());
 
         return redirect(getDashboardTransferRoute('show', $transfer))
-            ->with('success', 'Shipment submitted for NDoH Admin approval. Stock will move after approval.');
+            ->with('success', 'Combined delivery submitted for NDoH Admin approval. Stock will move after approval.');
     }
 
     /**
@@ -141,7 +155,7 @@ class StockTransferController extends Controller
             TransferNotificationService::markTransferNotificationsAsRead($user, $transfer);
         }
 
-        $transfer->load(['drug', 'destinationDrug', 'sender', 'approver', 'receiver']);
+        $transfer->load(['drug', 'destinationDrug', 'sender', 'approver', 'receiver', 'items.drug', 'items.destinationDrug']);
 
         return view('transfers.show', compact('transfer'));
     }

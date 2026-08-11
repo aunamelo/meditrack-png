@@ -20,11 +20,12 @@ class StoreHospitalOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'stock_key' => ['required', 'string', 'max:255'],
-            'drug_name' => ['required', 'string', 'max:255'],
-            'dosage' => ['required', 'string', 'max:100'],
-            'quantity_requested' => ['required', 'integer', 'min:1', 'max:999999'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'items' => ['required', 'array', 'min:1', 'max:30'],
+            'items.*.stock_key' => ['required', 'string', 'max:255'],
+            'items.*.drug_name' => ['required', 'string', 'max:255'],
+            'items.*.dosage' => ['required', 'string', 'max:100'],
+            'items.*.quantity_requested' => ['required', 'integer', 'min:1', 'max:999999'],
         ];
     }
 
@@ -35,20 +36,40 @@ class StoreHospitalOrderRequest extends FormRequest
                 return;
             }
 
-            $option = LmisService::hospitalRequisitionOptions()
-                ->firstWhere('key', $this->input('stock_key'));
+            $options = LmisService::hospitalRequisitionOptions()->keyBy('key');
+            $seenKeys = [];
 
-            if (! $option) {
-                $validator->errors()->add('stock_key', 'Select a medicine from Modilon stock status or the NDoH catalog.');
+            foreach ($this->input('items', []) as $index => $item) {
+                $stockKey = (string) ($item['stock_key'] ?? '');
+                $option = $options->get($stockKey);
 
-                return;
-            }
+                if (! $option) {
+                    $validator->errors()->add(
+                        "items.{$index}.stock_key",
+                        'Select a medicine from Modilon stock status or the NDoH catalog.'
+                    );
 
-            if (
-                strcasecmp((string) $this->input('drug_name'), (string) $option['drug_name']) !== 0
-                || strcasecmp((string) $this->input('dosage'), (string) $option['dosage']) !== 0
-            ) {
-                $validator->errors()->add('drug_name', 'Drug details must match the selected catalog or stock-status medicine.');
+                    continue;
+                }
+
+                if (
+                    strcasecmp((string) ($item['drug_name'] ?? ''), (string) $option['drug_name']) !== 0
+                    || strcasecmp((string) ($item['dosage'] ?? ''), (string) $option['dosage']) !== 0
+                ) {
+                    $validator->errors()->add(
+                        "items.{$index}.drug_name",
+                        'Drug details must match the selected catalog or stock-status medicine.'
+                    );
+                }
+
+                // Same medicine twice in one submission is confusing for Lae AMS review.
+                if (isset($seenKeys[$stockKey])) {
+                    $validator->errors()->add(
+                        "items.{$index}.stock_key",
+                        'This medicine is already on another line. Combine quantities on one line.'
+                    );
+                }
+                $seenKeys[$stockKey] = true;
             }
         });
     }
@@ -59,9 +80,13 @@ class StoreHospitalOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'stock_key.required' => 'Select a medicine from the list.',
-            'drug_name.required' => 'Select a medicine from the list.',
-            'dosage.required' => 'Select a medicine from the list.',
+            'items.required' => 'Add at least one medicine request.',
+            'items.min' => 'Add at least one medicine request.',
+            'items.*.stock_key.required' => 'Select a medicine for each line.',
+            'items.*.drug_name.required' => 'Select a medicine for each line.',
+            'items.*.dosage.required' => 'Select a medicine for each line.',
+            'items.*.quantity_requested.required' => 'Enter a quantity for each line.',
+            'items.*.quantity_requested.min' => 'Quantity must be at least 1.',
         ];
     }
 }

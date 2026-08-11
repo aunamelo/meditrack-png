@@ -14,7 +14,7 @@ class HospitalOrderNotificationService
     {
         self::storeManagers()->each(
             fn (User $manager) => $manager->notify(new ServiceUpdateNotification(
-                message: "Hospital order {$order->order_number} for {$order->drug_name} needs Lae AMS review.",
+                message: "Hospital order {$order->order_number} ({$order->medicinesLabel()}) needs Lae AMS review.",
                 entity: 'hospital_order',
                 entityId: $order->id,
                 reference: $order->order_number,

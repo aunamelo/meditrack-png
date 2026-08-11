@@ -35,6 +35,18 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'This field is required.',
+            'password.required' => 'This field is required.',
+            'email.email' => 'Enter a valid username or email address.',
+        ];
+    }
+
+    /**
      * Attempt to authenticate the request's credentials.
      *
      * @throws ValidationException
@@ -52,7 +64,7 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => 'This account has been deactivated. Contact an administrator if you need access restored.',
+                'credentials' => 'This account has been deactivated. Contact an administrator if you need access restored.',
             ]);
         }
 
@@ -60,7 +72,7 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'credentials' => 'Incorrect username or password. Please try again.',
             ]);
         }
 
@@ -83,7 +95,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            'credentials' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),

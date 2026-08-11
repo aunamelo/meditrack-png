@@ -14,7 +14,7 @@ class HospitalShipmentController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $query = StockTransfer::with(['drug', 'destinationDrug', 'sender', 'receiver', 'hospitalOrder', 'vehicle'])
+        $query = StockTransfer::with(['drug', 'destinationDrug', 'sender', 'receiver', 'hospitalOrder', 'vehicle', 'items.drug'])
             ->where('from_level', 'lae_ams')
             ->where('to_level', 'modilon_hospital');
 
@@ -28,6 +28,7 @@ class HospitalShipmentController extends Controller
                 $q->where('transfer_number', 'like', "%{$search}%")
                     ->orWhere('batch_number', 'like', "%{$search}%")
                     ->orWhereHas('drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"))
+                    ->orWhereHas('items.drug', fn ($drugQuery) => $drugQuery->where('drug_name', 'like', "%{$search}%"))
                     ->orWhereHas('vehicle', fn ($vehicleQuery) => $vehicleQuery
                         ->where('name', 'like', "%{$search}%")
                         ->orWhere('registration', 'like', "%{$search}%"));
@@ -58,7 +59,7 @@ class HospitalShipmentController extends Controller
             }
         }
 
-        $transfer->load(['drug', 'destinationDrug', 'sender', 'receiver', 'hospitalOrder.requester', 'vehicle']);
+        $transfer->load(['drug', 'destinationDrug', 'sender', 'receiver', 'hospitalOrder.requester', 'vehicle', 'items.drug', 'items.destinationDrug']);
 
         return view('hospital-shipments.show', compact('transfer'));
     }

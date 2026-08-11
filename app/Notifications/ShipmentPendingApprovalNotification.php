@@ -25,17 +25,16 @@ class ShipmentPendingApprovalNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $this->transfer->loadMissing(['drug', 'sender']);
+        $this->transfer->loadMissing(['drug', 'sender', 'items.drug']);
 
-        $drugLabel = $this->transfer->drug
-            ? $this->transfer->drug->drug_name.' ('.$this->transfer->drug->dosage.')'
-            : 'Unknown drug';
+        $drugLabel = $this->transfer->medicinesLabel();
 
         return [
             'transfer_id' => $this->transfer->id,
             'transfer_number' => $this->transfer->transfer_number,
             'drug_name' => $drugLabel,
             'quantity_sent' => $this->transfer->quantity_sent,
+            'line_count' => $this->transfer->lineCount(),
             'created_by' => $this->transfer->sender->name ?? 'Procurement Officer',
             'message' => "Shipment {$this->transfer->transfer_number} for {$drugLabel} requires NDoH approval before it can be sent to Lae AMS.",
         ];

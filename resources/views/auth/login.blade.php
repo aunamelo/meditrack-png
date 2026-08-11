@@ -52,42 +52,115 @@
             <span>or continue with email</span>
         </div>
 
-        <form action="{{ route('login') }}" method="POST" class="guest-auth-form">
+        <form
+            action="{{ route('login') }}"
+            method="POST"
+            class="guest-auth-form"
+            novalidate
+            x-data="{
+                email: @js(old('email', '')),
+                password: '',
+                showPassword: false,
+                emailError: @js($errors->first('email') ?: ''),
+                passwordError: @js($errors->first('password') ?: ''),
+                credentialsError: @js($errors->first('credentials') ?: ''),
+                clearEmail() {
+                    this.emailError = '';
+                    this.credentialsError = '';
+                },
+                clearPassword() {
+                    this.passwordError = '';
+                    this.credentialsError = '';
+                },
+                onSubmit(event) {
+                    this.emailError = '';
+                    this.passwordError = '';
+                    this.credentialsError = '';
+
+                    let valid = true;
+                    if (! String(this.email).trim()) {
+                        this.emailError = 'This field is required.';
+                        valid = false;
+                    }
+                    if (! String(this.password)) {
+                        this.passwordError = 'This field is required.';
+                        valid = false;
+                    }
+
+                    if (! valid) {
+                        event.preventDefault();
+                    }
+                },
+            }"
+            @submit="onSubmit($event)"
+        >
             @csrf
 
             @if ($roleKey)
                 <input type="hidden" name="role" value="{{ $roleKey }}">
             @endif
 
+            <p id="guest-auth-required-legend" class="guest-auth-legend">
+                <span class="guest-auth-required" aria-hidden="true">*</span> Required field
+            </p>
+
             <div class="guest-auth-field">
-                <label for="email" class="guest-auth-label">Login</label>
+                <label for="email" class="guest-auth-label">
+                    Username or Email
+                    <span class="guest-auth-required" aria-hidden="true">*</span>
+                </label>
                 <input
                     type="email"
                     id="email"
                     name="email"
-                    value="{{ old('email') }}"
+                    x-model="email"
                     required
+                    aria-required="true"
                     autofocus
                     autocomplete="username"
-                    placeholder="Username or email"
+                    placeholder="Enter your username or email"
                     class="guest-auth-input"
+                    :class="{ 'is-invalid': emailError || credentialsError }"
+                    :aria-invalid="(emailError || credentialsError) ? 'true' : 'false'"
+                    :aria-describedby="[
+                        'guest-auth-required-legend',
+                        emailError ? 'email-error' : null,
+                        credentialsError ? 'guest-auth-credentials-error' : null,
+                    ].filter(Boolean).join(' ')"
+                    @input="clearEmail()"
                 />
-                @error('email')
-                    <p class="guest-auth-error">{{ $message }}</p>
-                @enderror
+                <p
+                    id="email-error"
+                    class="guest-auth-error"
+                    x-show="emailError"
+                    x-cloak
+                    x-text="emailError"
+                ></p>
             </div>
 
             <div class="guest-auth-field">
-                <label for="password" class="guest-auth-label">Password</label>
-                <div x-data="{ showPassword: false }" class="relative">
+                <label for="password" class="guest-auth-label">
+                    Password
+                    <span class="guest-auth-required" aria-hidden="true">*</span>
+                </label>
+                <div class="relative">
                     <input
                         :type="showPassword ? 'text' : 'password'"
                         id="password"
                         name="password"
+                        x-model="password"
                         required
+                        aria-required="true"
                         autocomplete="current-password"
-                        placeholder="Password"
+                        placeholder="Enter your password"
                         class="guest-auth-input pe-11"
+                        :class="{ 'is-invalid': passwordError || credentialsError }"
+                        :aria-invalid="(passwordError || credentialsError) ? 'true' : 'false'"
+                        :aria-describedby="[
+                            passwordError ? 'password-error' : null,
+                            credentialsError ? 'guest-auth-credentials-error' : null,
+                        ].filter(Boolean).join(' ')"
+                        @input="clearPassword()"
                     />
                     <button
                         type="button"
@@ -104,9 +177,13 @@
                         </svg>
                     </button>
                 </div>
-                @error('password')
-                    <p class="guest-auth-error">{{ $message }}</p>
-                @enderror
+                <p
+                    id="password-error"
+                    class="guest-auth-error"
+                    x-show="passwordError"
+                    x-cloak
+                    x-text="passwordError"
+                ></p>
             </div>
 
             @if (Route::has('password.request'))
@@ -118,7 +195,17 @@
                 Remember Me
             </label>
 
-            <button type="submit" class="guest-auth-submit guest-auth-submit-outline">
+            <div
+                id="guest-auth-credentials-error"
+                class="guest-auth-form-error"
+                role="alert"
+                aria-live="assertive"
+                x-show="credentialsError"
+                x-cloak
+                x-text="credentialsError"
+            ></div>
+
+            <button type="submit" class="guest-auth-submit">
                 Sign In
             </button>
         </form>

@@ -48,6 +48,11 @@ class HospitalOrder extends Model
         return $prefix.str_pad((string) $nextSequence, 3, '0', STR_PAD_LEFT);
     }
 
+    public function items(): HasMany
+    {
+        return $this->hasMany(HospitalOrderItem::class);
+    }
+
     public function sourceDrug(): BelongsTo
     {
         return $this->belongsTo(Drug::class, 'source_drug_id');
@@ -73,6 +78,61 @@ class HospitalOrder extends Model
         return $this->hasMany(DiscrepancyReport::class);
     }
 
+    /**
+     * Human-readable list of medicines on this request (one delivery).
+     */
+    public function medicinesLabel(): string
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+
+        if ($items->isEmpty()) {
+            return trim(($this->drug_name ?? '').($this->dosage ? ' ('.$this->dosage.')' : '')) ?: 'Hospital order';
+        }
+
+        if ($items->count() === 1) {
+            return $items->first()->displayLabel();
+        }
+
+        return $items->first()->displayLabel().' + '.($items->count() - 1).' more';
+    }
+
+    public function totalQuantityRequested(): int
+    {
+        if ($this->relationLoaded('items') && $this->items->isNotEmpty()) {
+            return (int) $this->items->sum('quantity_requested');
+        }
+
+        return (int) ($this->quantity_requested ?? 0);
+    }
+
+    public function totalQuantityApproved(): int
+    {
+        if ($this->relationLoaded('items') && $this->items->isNotEmpty()) {
+            return (int) $this->items->sum('quantity_approved');
+        }
+
+        return (int) ($this->quantity_approved ?? 0);
+    }
+
+    /**
+     * Sync header summary columns from line items (keeps index/search working).
+     */
+    public function syncHeaderFromItems(): void
+    {
+        $items = $this->items()->get();
+        $first = $items->first();
+
+        $this->update([
+            'drug_name' => $first?->drug_name ?? $this->drug_name,
+            'dosage' => $first?->dosage ?? $this->dosage,
+            'quantity_requested' => (int) $items->sum('quantity_requested'),
+            'quantity_approved' => $items->every(fn (HospitalOrderItem $item) => $item->quantity_approved !== null)
+                ? (int) $items->sum('quantity_approved')
+                : null,
+            'source_drug_id' => $items->count() === 1 ? $first?->source_drug_id : null,
+        ]);
+    }
+
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
@@ -95,7 +155,17 @@ class HospitalOrder extends Model
 
     public function canShip(): bool
     {
-        return $this->status === 'approved' && $this->source_drug_id;
+        if ($this->status !== 'approved') {
+            return false;
+        }
+
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+
+        if ($items->isNotEmpty()) {
+            return $items->every(fn (HospitalOrderItem $item) => $item->source_drug_id && $item->quantity_approved);
+        }
+
+        return (bool) $this->source_drug_id;
     }
 
     public function canReceive(): bool

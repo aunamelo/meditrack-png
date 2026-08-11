@@ -106,7 +106,7 @@ class DashboardService
                 'action_url' => getDashboardTransferRoute('index').'?status=pending',
                 'items' => TransferNotificationService::pendingShipmentsForAdmin()->map(fn (StockTransfer $transfer) => [
                     'title' => $transfer->transfer_number,
-                    'subtitle' => ($transfer->drug->drug_name ?? 'Drug').' · '.number_format($transfer->quantity_sent).' units · '.($transfer->sender->name ?? 'Procurement'),
+                    'subtitle' => $transfer->medicinesLabel().' · '.number_format($transfer->quantity_sent).' units · '.($transfer->sender->name ?? 'Procurement'),
                     'url' => getDashboardTransferRoute('show', $transfer),
                     'action' => 'Approve',
                 ])->all(),
@@ -242,7 +242,7 @@ class DashboardService
                 'badge' => $user->unreadNotifications()->count() ?: null,
                 'items' => TransferNotificationService::pendingShipmentsForStoreManager()->map(fn (StockTransfer $transfer) => [
                     'title' => $transfer->transfer_number,
-                    'subtitle' => ($transfer->drug->drug_name ?? 'Unknown drug').' · '.number_format($transfer->quantity_sent).' units · Batch '.$transfer->batch_number,
+                    'subtitle' => $transfer->medicinesLabel().' · '.number_format($transfer->quantity_sent).' units · '.$transfer->lineCount().' batch'.($transfer->lineCount() === 1 ? '' : 'es'),
                     'url' => getDashboardTransferRoute('show', $transfer),
                     'action' => 'Confirm',
                 ])->all(),

@@ -25,9 +25,9 @@ class ShipmentIncomingNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $this->transfer->loadMissing(['drug', 'sender']);
+        $this->transfer->loadMissing(['drug', 'sender', 'items.drug']);
 
-        $drugName = $this->transfer->drug->drug_name ?? 'Unknown drug';
+        $drugName = $this->transfer->medicinesLabel();
 
         return [
             'transfer_id' => $this->transfer->id,
@@ -35,6 +35,7 @@ class ShipmentIncomingNotification extends Notification
             'drug_name' => $drugName,
             'batch_number' => $this->transfer->batch_number,
             'quantity_sent' => $this->transfer->quantity_sent,
+            'line_count' => $this->transfer->lineCount(),
             'sent_by' => $this->transfer->sender->name ?? 'Procurement Officer',
             'message' => "Shipment {$this->transfer->transfer_number} ({$drugName}) has been shipped from NDoH to Lae AMS.",
         ];

@@ -21,6 +21,7 @@ use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\StockStatusController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VehicleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -129,12 +130,16 @@ Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-man
     Route::post('transfers/{transfer}/receive', [StockTransferController::class, 'receive'])->name('transfers.receive');
     Route::resource('transfers', StockTransferController::class)->only(['index', 'show']);
     Route::resource('hospital-orders', HospitalOrderController::class)->only(['index', 'show']);
+    Route::get('hospital-orders/{hospitalOrder}/pick-list', [HospitalOrderController::class, 'pickList'])->name('hospital-orders.pick-list');
     Route::post('hospital-orders/{hospitalOrder}/approve', [HospitalOrderController::class, 'approve'])->name('hospital-orders.approve');
     Route::post('hospital-orders/{hospitalOrder}/reject', [HospitalOrderController::class, 'reject'])->name('hospital-orders.reject');
     Route::post('hospital-orders/{hospitalOrder}/ship', [HospitalOrderController::class, 'ship'])->name('hospital-orders.ship');
     Route::resource('hospital-shipments', HospitalShipmentController::class)->only(['index', 'show'])->parameters(['hospital-shipments' => 'transfer']);
     Route::get('live-map', [LiveMapController::class, 'index'])->name('live-map.index');
     Route::get('live-map/data', [LiveMapController::class, 'data'])->name('live-map.data');
+    Route::resource('vehicles', VehicleController::class)->except(['destroy']);
+    Route::post('vehicles/{vehicle}/deactivate', [VehicleController::class, 'deactivate'])->name('vehicles.deactivate');
+    Route::post('vehicles/{vehicle}/activate', [VehicleController::class, 'activate'])->name('vehicles.activate');
     Route::resource('discrepancies', DiscrepancyReportController::class)->only(['index', 'show']);
     Route::post('discrepancies/{discrepancy}/resolve', [DiscrepancyReportController::class, 'resolve'])->name('discrepancies.resolve');
     Route::resource('stock-adjustments', StockAdjustmentController::class)->only(['index', 'create', 'store', 'show']);

@@ -39,7 +39,8 @@ class TransferNotificationService
             return;
         }
 
-        $drugName = $transfer->drug->drug_name ?? 'medicine';
+        $transfer->loadMissing(['drug', 'items.drug']);
+        $drugName = $transfer->medicinesLabel();
 
         $sender->notify(new ServiceUpdateNotification(
             message: "Shipment {$transfer->transfer_number} ({$drugName}) was confirmed received at Lae AMS.",
@@ -90,7 +91,7 @@ class TransferNotificationService
             ->pending()
             ->fromLevel('ndoh')
             ->toLevel('lae_ams')
-            ->with(['drug', 'sender'])
+            ->with(['drug', 'sender', 'items.drug'])
             ->orderByDesc('created_at')
             ->limit($limit)
             ->get();
@@ -105,7 +106,7 @@ class TransferNotificationService
             ->sent()
             ->toLevel('lae_ams')
             ->whereNull('hospital_order_id')
-            ->with(['drug', 'sender'])
+            ->with(['drug', 'sender', 'items.drug'])
             ->orderByDesc('sent_date')
             ->limit($limit)
             ->get();

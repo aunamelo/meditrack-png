@@ -19,20 +19,20 @@
                 <table class="module-table">
                     <thead>
                         <tr>
-                            <th>Transfer #</th>
-                            <th>Drug</th>
-                            <th>Vehicle</th>
-                            <th>Qty</th>
-                            <th>Sent</th>
-                            <th>Status</th>
-                            <th class="text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($transfers as $transfer)
-                            <tr>
-                                <td class="font-semibold text-ink dark:text-zinc-100">{{ $transfer->transfer_number }}</td>
-                                <td>{{ $transfer->drug->drug_name ?? 'N/A' }}</td>
+                                <th>Transfer #</th>
+                                <th>Medicines</th>
+                                <th>Vehicle</th>
+                                <th>Qty</th>
+                                <th>Sent</th>
+                                <th>Status</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($transfers as $transfer)
+                                <tr>
+                                    <td class="font-semibold text-ink dark:text-zinc-100">{{ $transfer->transfer_number }}</td>
+                                    <td>{{ $transfer->medicinesLabel() }}</td>
                                 <td>
                                     @if($transfer->vehicle)
                                         <span class="font-medium text-ink dark:text-zinc-100">{{ $transfer->vehicle->registration }}</span>

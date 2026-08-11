@@ -567,12 +567,29 @@
         @apply w-full;
     }
 
+    .guest-auth-legend {
+        @apply m-0 text-xs text-slate-600 dark:text-zinc-400;
+    }
+
+    .guest-auth-required {
+        @apply ms-0.5 font-bold text-[#ce1126];
+    }
+
     .guest-auth-label {
         @apply mb-1.5 block text-sm font-semibold text-slate-800 dark:text-zinc-200;
     }
 
     .guest-auth-input {
         @apply h-11 w-full rounded border border-slate-300 bg-white px-3.5 text-[15px] text-slate-900 shadow-none transition placeholder:text-slate-400 focus:border-health-600 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-100 dark:placeholder:text-zinc-500;
+    }
+
+    .guest-auth-input.is-invalid {
+        @apply border-[#ce1126] focus:border-[#ce1126] focus:ring-[#ce1126]/20;
+    }
+
+    .guest-auth-form-error {
+        @apply rounded-md border border-[#ce1126]/40 bg-[#ce1126]/5 px-3 py-2 text-sm font-medium text-[#ce1126]
+            dark:border-rose-500/40 dark:bg-rose-950/30 dark:text-rose-300;
     }
 
     .guest-auth-select {
@@ -603,15 +620,140 @@
         @apply mt-1 flex cursor-pointer items-center gap-2 text-sm text-slate-700 dark:text-zinc-300;
     }
 
+    /*
+     * Equal row-gap and column-gap so the 5 cards read as one grid.
+     * 6-column track on large screens lets the last pair span/center cleanly.
+     */
     .guest-role-grid {
-        @apply mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3;
+        @apply mt-6 grid grid-cols-1 rounded-md;
+        column-gap: 0.75rem;
+        row-gap: 0.75rem;
+        transition: box-shadow 180ms ease, outline-color 180ms ease;
+        outline: 2px solid transparent;
+        outline-offset: 4px;
+    }
+
+    .guest-role-grid--attention {
+        outline-color: #ce1126;
+        box-shadow: 0 0 0 3px rgba(206, 17, 38, 0.12);
+    }
+
+    @media (min-width: 640px) and (max-width: 1023px) {
+        .guest-role-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        /* Solo fifth card on the last row — center under the pair above */
+        .guest-role-grid > .guest-role-card:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            width: calc((100% - 0.75rem) / 2);
+            justify-self: center;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .guest-role-grid {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .guest-role-grid > .guest-role-card {
+            grid-column: span 2;
+        }
+
+        /* Center Pharmacy Manager + Pharmacist under the first row of three */
+        .guest-role-grid > .guest-role-card:nth-child(4) {
+            grid-column: 2 / span 2;
+        }
+
+        .guest-role-grid > .guest-role-card:nth-child(5) {
+            grid-column: 4 / span 2;
+        }
+    }
+
+    @keyframes guest-role-card-enter {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes guest-role-btn-shake {
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        20% {
+            transform: translateX(-4px);
+        }
+
+        40% {
+            transform: translateX(4px);
+        }
+
+        60% {
+            transform: translateX(-3px);
+        }
+
+        80% {
+            transform: translateX(3px);
+        }
     }
 
     .guest-role-card {
-        @apply flex items-start gap-3 rounded border border-slate-300 bg-white p-4 text-left no-underline shadow-none transition
-            hover:border-health-600 hover:bg-health-50
-            focus:outline-none focus-visible:border-health-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-health-600
-            dark:border-white/10 dark:bg-night-elevated dark:hover:border-health-500 dark:hover:bg-health-900/30;
+        @apply flex w-full cursor-pointer items-start gap-3 rounded border border-slate-300 bg-white p-4 text-left no-underline shadow-none
+            focus:outline-none
+            dark:border-white/10 dark:bg-night-elevated;
+        margin: 0;
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease,
+            border-color 180ms ease,
+            background-color 180ms ease,
+            opacity 180ms ease;
+    }
+
+    /* One-shot mount animation only (CSS animation; not tied to Alpine state). */
+    .guest-role-card--enter {
+        animation: guest-role-card-enter 250ms ease-out both;
+        animation-delay: var(--guest-role-enter-delay, 0ms);
+    }
+
+    /* Hover: light teal border only — “you can click this” */
+    .guest-role-card:hover:not(.guest-role-card--selected) {
+        @apply border-health-500 bg-white;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px -4px rgba(15, 118, 110, 0.22);
+    }
+
+    .dark .guest-role-card:hover:not(.guest-role-card--selected) {
+        @apply border-health-500 bg-night-elevated;
+    }
+
+    /* Selected: teal border + tint + check — driven by Alpine, not :hover */
+    .guest-role-card--selected {
+        @apply border-health-600 bg-health-50;
+        box-shadow:
+            0 8px 18px -8px rgba(15, 118, 110, 0.28),
+            0 2px 6px -2px rgba(15, 23, 42, 0.08);
+    }
+
+    .dark .guest-role-card--selected {
+        @apply border-health-500 bg-health-900/30;
+    }
+
+    /* Focus-visible: outline ring on top of hover or selected */
+    .guest-role-card:focus-visible {
+        @apply outline outline-2 outline-offset-2 outline-[#132f4f];
+    }
+
+    .dark .guest-role-card:focus-visible {
+        @apply outline-health-300;
     }
 
     .guest-role-card-icon {
@@ -620,37 +762,129 @@
     }
 
     .guest-role-card-body {
-        @apply flex min-w-0 flex-col gap-0.5;
+        @apply flex min-w-0 flex-1 flex-col gap-0.5;
     }
 
     .guest-role-card-label {
         @apply font-display text-sm font-bold text-[#132f4f] dark:text-zinc-50;
     }
 
+    /* Reserve ~3 lines so row heights stay even; shorter copy stays top-aligned */
     .guest-role-card-subtitle {
-        @apply text-xs leading-relaxed text-slate-600 dark:text-zinc-400;
+        @apply self-start text-xs leading-relaxed text-slate-600 dark:text-zinc-400;
+        min-height: 3.75rem;
+    }
+
+    .guest-role-card-chevron {
+        @apply ml-auto shrink-0 self-center text-slate-600;
+        transition:
+            transform 150ms ease,
+            color 150ms ease;
+    }
+
+    .dark .guest-role-card-chevron {
+        @apply text-zinc-400;
+    }
+
+    .guest-role-card:hover:not(.guest-role-card--selected) .guest-role-card-chevron,
+    .guest-role-card:focus-visible:not(.guest-role-card--selected) .guest-role-card-chevron {
+        @apply text-health-700;
+        transform: translateX(3px);
+    }
+
+    .dark .guest-role-card:hover:not(.guest-role-card--selected) .guest-role-card-chevron,
+    .dark .guest-role-card:focus-visible:not(.guest-role-card--selected) .guest-role-card-chevron {
+        @apply text-health-300;
+    }
+
+    .guest-role-card-check {
+        @apply ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center self-center rounded-full bg-health-700 text-white;
+    }
+
+    .dark .guest-role-card-check {
+        @apply bg-health-600 text-white;
+    }
+
+    .guest-role-continue {
+        @apply mt-6 flex flex-col items-start gap-2;
+    }
+
+    .guest-role-validation {
+        @apply min-h-[1.25rem] w-full;
+    }
+
+    .guest-role-validation-text {
+        @apply m-0 text-sm font-medium text-[#ce1126] dark:text-rose-400;
+        opacity: 0;
+    }
+
+    .guest-role-validation-text.is-visible {
+        opacity: 1;
+    }
+
+    .guest-role-continue-btn {
+        @apply inline-flex h-11 min-w-[11rem] items-center justify-center gap-2 rounded border border-transparent
+            px-6 text-sm font-bold text-white
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-health-600/30 focus-visible:ring-offset-2
+            dark:focus-visible:ring-offset-night;
+        background-color: #94a3b8;
+        opacity: 0.55;
+        cursor: not-allowed;
+        transition:
+            background-color 180ms ease,
+            opacity 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .guest-role-continue-btn:hover,
+    .guest-role-continue-btn:focus-visible {
+        background-color: #94a3b8;
+    }
+
+    .guest-role-continue-btn.is-enabled {
+        @apply bg-health-700;
+        opacity: 1;
+        cursor: pointer;
+    }
+
+    .guest-role-continue-btn.is-enabled:hover {
+        @apply bg-health-800;
+    }
+
+    .guest-role-continue-btn.is-enabled:focus-visible {
+        @apply bg-health-700;
+    }
+
+    .guest-role-continue-btn.is-shaking {
+        animation: guest-role-btn-shake 420ms ease;
+    }
+
+    .dark .guest-role-continue-btn:not(.is-enabled) {
+        background-color: #64748b;
+        opacity: 0.45;
     }
 
     .guest-facility-stats {
-        @apply mt-10 w-full rounded px-4 py-8 text-white sm:px-6 sm:py-10;
+        @apply mt-10 w-full overflow-x-hidden rounded px-4 py-8 text-white sm:px-6 sm:py-10;
         background-color: #373a45;
     }
 
+    /* Mobile: 2x2. sm+: single row of 4 */
     .guest-facility-stats-grid {
-        @apply m-0 grid list-none grid-cols-2 gap-8 p-0 sm:grid-cols-4 sm:gap-4;
+        @apply m-0 grid list-none grid-cols-2 gap-x-4 gap-y-10 p-0 sm:grid-cols-4 sm:gap-4;
     }
 
     .guest-facility-stats-item {
-        @apply flex flex-col items-center text-center;
+        @apply flex min-w-0 flex-col items-center px-2 text-center;
     }
 
     .guest-facility-stats-value {
-        @apply m-0 font-sans text-3xl font-bold tracking-tight sm:text-4xl;
+        @apply m-0 font-sans text-[1.75rem] font-bold tracking-tight sm:text-4xl;
         color: #ffffff;
     }
 
     .guest-facility-stats-rule {
-        @apply relative my-3 block h-px w-16;
+        @apply relative my-3 block h-px w-16 max-w-full;
         background-color: #e64b50;
     }
 
@@ -661,8 +895,20 @@
     }
 
     .guest-facility-stats-label {
-        @apply m-0 font-display text-[11px] font-semibold uppercase tracking-[0.12em] sm:text-xs;
+        @apply m-0 max-w-[10rem] font-display text-[11px] font-semibold uppercase leading-snug tracking-[0.12em] sm:max-w-none sm:text-xs;
         color: #ffffff;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .guest-role-card--enter {
+            animation: none;
+            opacity: 1;
+            transform: none;
+        }
+
+        .guest-role-continue-btn.is-shaking {
+            animation: none;
+        }
     }
 
     .guest-auth-m365 {
@@ -686,12 +932,21 @@
         @apply relative z-10 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:bg-night dark:text-zinc-400;
     }
 
+    /* Primary CTA — matches Continue on role selection (DICT 11.9 / 10.4) */
     .guest-auth-submit {
-        @apply mt-2 inline-flex h-11 min-w-[9rem] items-center justify-center rounded border border-transparent bg-health-700 px-6 text-sm font-bold text-white transition hover:bg-health-800 focus:outline-none focus:ring-2 focus:ring-health-600/30 focus:ring-offset-2 dark:focus:ring-offset-night;
+        @apply mt-2 flex h-11 w-full cursor-pointer items-center justify-center rounded border border-transparent
+            bg-health-700 px-6 text-sm font-bold text-white
+            hover:bg-health-800 active:bg-health-900
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-health-600/30 focus-visible:ring-offset-2
+            dark:focus-visible:ring-offset-night;
+        transition:
+            background-color 180ms ease,
+            box-shadow 180ms ease;
     }
 
     .guest-auth-submit-outline {
-        @apply border-health-700 bg-white text-health-800 hover:bg-health-50 dark:border-health-500 dark:bg-night-elevated dark:text-health-200 dark:hover:bg-health-900/40;
+        @apply w-auto border-health-700 bg-white text-health-800 hover:bg-health-50 active:bg-health-100
+            dark:border-health-500 dark:bg-night-elevated dark:text-health-200 dark:hover:bg-health-900/40;
     }
 
     .guest-portal-footer-bar {

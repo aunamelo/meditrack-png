@@ -49,8 +49,8 @@
                         <thead>
                             <tr>
                                 <th>Transfer #</th>
-                                <th>Drug</th>
-                                <th>Batch #</th>
+                                <th>Medicines</th>
+                                <th>Batches</th>
                                 <th>Qty Shipped</th>
                                 <th>Date Shipped</th>
                                 <th>Status</th>
@@ -61,8 +61,8 @@
                             @foreach($transfers as $transfer)
                                 <tr>
                                     <td class="whitespace-nowrap font-semibold text-ink dark:text-zinc-100">{{ $transfer->transfer_number }}</td>
-                                    <td class="whitespace-nowrap">{{ $transfer->drug->drug_name ?? 'N/A' }}</td>
-                                    <td class="whitespace-nowrap">{{ $transfer->batch_number }}</td>
+                                    <td>{{ $transfer->medicinesLabel() }}</td>
+                                    <td class="whitespace-nowrap">{{ $transfer->lineCount() }}</td>
                                     <td class="whitespace-nowrap">{{ number_format($transfer->quantity_sent) }}</td>
                                     <td class="whitespace-nowrap">{{ $transfer->formatSentDate() }}</td>
                                     <td class="whitespace-nowrap">

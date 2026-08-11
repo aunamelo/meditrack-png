@@ -56,8 +56,8 @@
                         @forelse($orders as $order)
                             <tr>
                                 <td class="font-semibold text-ink dark:text-zinc-100">{{ $order->order_number }}</td>
-                                <td>{{ $order->drug_name }} ({{ $order->dosage }})</td>
-                                <td>{{ number_format($order->quantity_requested) }}</td>
+                                <td>{{ $order->medicinesLabel() }}</td>
+                                <td>{{ number_format($order->totalQuantityRequested()) }}</td>
                                 <td>
                                     <x-module.status-badge :variant="$order->status" :label="hospitalOrderStatusLabel($order->status)" />
                                 </td>

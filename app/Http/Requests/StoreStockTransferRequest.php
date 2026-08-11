@@ -23,44 +23,89 @@ class StoreStockTransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'drug_id' => 'required|exists:drugs,id',
-            'quantity_sent' => 'required|integer|min:1|max:999999',
             'sent_date' => 'required|date|before_or_equal:today',
             'notes' => 'nullable|string|max:1000',
+            'items' => 'required|array|min:1|max:30',
+            'items.*.drug_id' => 'required|exists:drugs,id',
+            'items.*.quantity_sent' => 'required|integer|min:1|max:999999',
         ];
     }
 
     /**
-     * Ensure the drug is at NDoH level with sufficient stock.
+     * Ensure each line is NDoH stock with enough on hand (including totals across lines).
      */
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $drug = Drug::find($this->input('drug_id'));
-
-            if (! $drug) {
+            if ($validator->errors()->isNotEmpty()) {
                 return;
             }
 
-            if ($drug->level !== 'ndoh') {
-                $validator->errors()->add('drug_id', 'Only NDoH level drugs can be shipped to Lae AMS.');
-            }
+            $items = $this->input('items', []);
+            $qtyByDrug = [];
+            $seenDrugIds = [];
 
-            if ($drug->status === 'written_off') {
-                $validator->errors()->add('drug_id', 'This drug has been written off and cannot be transferred.');
-            }
+            foreach ($items as $index => $item) {
+                $drugId = (int) ($item['drug_id'] ?? 0);
+                $quantitySent = (int) ($item['quantity_sent'] ?? 0);
+                $drug = Drug::find($drugId);
 
-            if ($drug->is_expired) {
-                $validator->errors()->add('drug_id', 'Expired drugs cannot be shipped.');
-            }
+                if (! $drug) {
+                    continue;
+                }
 
-            $quantitySent = (int) $this->input('quantity_sent');
-            if ($quantitySent > $drug->quantity_on_hand) {
-                $validator->errors()->add(
-                    'quantity_sent',
-                    "Insufficient stock. Only {$drug->quantity_on_hand} units available."
-                );
+                if (isset($seenDrugIds[$drugId])) {
+                    $validator->errors()->add(
+                        "items.{$index}.drug_id",
+                        'This batch is already on another line. Combine quantities on one line.'
+                    );
+                }
+                $seenDrugIds[$drugId] = true;
+
+                if ($drug->level !== 'ndoh') {
+                    $validator->errors()->add(
+                        "items.{$index}.drug_id",
+                        'Only NDoH level drugs can be shipped to Lae AMS.'
+                    );
+                }
+
+                if ($drug->status === 'written_off') {
+                    $validator->errors()->add(
+                        "items.{$index}.drug_id",
+                        'This drug has been written off and cannot be transferred.'
+                    );
+                }
+
+                if ($drug->is_expired) {
+                    $validator->errors()->add(
+                        "items.{$index}.drug_id",
+                        'Expired drugs cannot be shipped.'
+                    );
+                }
+
+                $qtyByDrug[$drugId] = ($qtyByDrug[$drugId] ?? 0) + $quantitySent;
+
+                if ($qtyByDrug[$drugId] > $drug->quantity_on_hand) {
+                    $validator->errors()->add(
+                        "items.{$index}.quantity_sent",
+                        "Insufficient stock. Only {$drug->quantity_on_hand} units available for this batch."
+                    );
+                }
             }
         });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'items.required' => 'Add at least one batch to this delivery.',
+            'items.min' => 'Add at least one batch to this delivery.',
+            'items.*.drug_id.required' => 'Select a drug for each batch line.',
+            'items.*.quantity_sent.required' => 'Enter a quantity for each batch line.',
+            'items.*.quantity_sent.min' => 'Quantity must be at least 1.',
+        ];
     }
 }

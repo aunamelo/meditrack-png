@@ -44,13 +44,13 @@
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
                         <label for="name" class="form-label">Medicine name <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" id="name" x-model="name" value="{{ old('name') }}" required class="input-field" placeholder="e.g., Paracetamol">
+                        <input type="text" name="name" id="name" x-model="name" value="{{ old('name') }}" required class="input-field" placeholder="e.g., Artemether/Lumefantrine">
                         @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="dosage" class="form-label">Dosage <span class="text-red-500">*</span></label>
-                        <input type="text" name="dosage" id="dosage" x-model="dosage" value="{{ old('dosage') }}" required class="input-field" placeholder="e.g., 500mg">
+                        <input type="text" name="dosage" id="dosage" x-model="dosage" value="{{ old('dosage') }}" required class="input-field" placeholder="e.g., 20/120 mg">
                         @error('dosage')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
 

@@ -15,7 +15,7 @@
             <div class="module-panel mb-6 p-6">
                 <x-service-pipeline
                     title="Hospital supply request"
-                    subtitle="{{ $hospitalOrder->order_number }} · {{ $hospitalOrder->drug_name }} ({{ $hospitalOrder->dosage }})"
+                    subtitle="{{ $hospitalOrder->order_number }} · {{ $hospitalOrder->medicinesLabel() }}"
                     :status-label="hospitalOrderStatusLabel($hospitalOrder->status)"
                     :progress="$hospitalOrder->pipelineProgressPercentage()"
                     :stages="$hospitalOrder->pipelineStages()"
@@ -24,14 +24,44 @@
         @endif
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <x-module.detail-card title="{{ $hospitalOrder->drug_name }}" subtitle="{{ $hospitalOrder->dosage }}" class="lg:col-span-2">
+            <x-module.detail-card title="{{ $hospitalOrder->medicinesLabel() }}" subtitle="{{ $hospitalOrder->items->count() }} medicine line(s) · one road delivery when shipped" class="lg:col-span-2">
                 <div class="mb-4">
                     <x-module.status-badge :variant="$hospitalOrder->status" :label="hospitalOrderStatusLabel($hospitalOrder->status)" />
                 </div>
+
+                <div class="mb-4 overflow-x-auto">
+                    <table class="module-table text-sm">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Requested</th>
+                                <th>Approved</th>
+                                <th>Lae AMS batch</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($hospitalOrder->items as $item)
+                                <tr>
+                                    <td class="font-medium">{{ $item->displayLabel() }}</td>
+                                    <td class="tabular-nums">{{ number_format($item->quantity_requested) }}</td>
+                                    <td class="tabular-nums">{{ $item->quantity_approved !== null ? number_format($item->quantity_approved) : '—' }}</td>
+                                    <td>
+                                        @if($item->sourceDrug)
+                                            Batch {{ $item->sourceDrug->batch_number }}
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
                 <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <x-module.detail-field label="Requested" :value="number_format($hospitalOrder->quantity_requested) . ' units'" />
-                    @if($hospitalOrder->quantity_approved)
-                        <x-module.detail-field label="Approved" :value="number_format($hospitalOrder->quantity_approved) . ' units'" />
+                    <x-module.detail-field label="Total requested" :value="number_format($hospitalOrder->totalQuantityRequested()) . ' units'" />
+                    @if($hospitalOrder->totalQuantityApproved() > 0)
+                        <x-module.detail-field label="Total approved" :value="number_format($hospitalOrder->totalQuantityApproved()) . ' units'" />
                     @endif
                     <x-module.detail-field label="Requested by" :value="$hospitalOrder->requester->name ?? 'N/A'" />
                     @if($hospitalOrder->reviewer)
@@ -46,7 +76,7 @@
                         <span class="font-semibold">Rejection reason:</span> {{ $hospitalOrder->rejection_reason }}
                     </p>
                 @endif
-                    @if($hospitalOrder->stockTransfer)
+                @if($hospitalOrder->stockTransfer)
                     <a href="{{ getDashboardHospitalShipmentRoute('show', $hospitalOrder->stockTransfer) }}" class="module-table-link mt-4 inline-flex text-sm">
                         View road delivery {{ $hospitalOrder->stockTransfer->transfer_number }} →
                     </a>
@@ -69,24 +99,54 @@
             <div class="space-y-6">
                 @if(auth()->user()->hasRole('store_manager') && $hospitalOrder->canApprove())
                     <x-module.detail-card title="Approve order">
-                        <form action="{{ getDashboardHospitalOrderRoute('approve', $hospitalOrder) }}" method="POST" class="space-y-3">
+                        <p class="mb-3 text-sm text-muted">Assign a Lae AMS batch for every medicine (FEFO: earliest expiry listed first). All lines ship together in one vehicle.</p>
+                        <form action="{{ getDashboardHospitalOrderRoute('approve', $hospitalOrder) }}" method="POST" class="space-y-4">
                             @csrf
-                            <div>
-                                <x-form-label for="source_drug_id" required>Lae AMS batch</x-form-label>
-                                <select name="source_drug_id" id="source_drug_id" required class="input-field">
-                                    <option value="">Select available stock</option>
-                                    @forelse($availableDrugs as $drug)
-                                        <option value="{{ $drug->id }}">{{ $drug->drug_name }} · Batch {{ $drug->batch_number }} · {{ $drug->quantity_on_hand }} on hand</option>
-                                    @empty
-                                        <option value="" disabled>No matching Lae AMS stock found</option>
-                                    @endforelse
-                                </select>
-                            </div>
-                            <div>
-                                <x-form-label for="quantity_approved" required>Quantity approved</x-form-label>
-                                <input type="number" name="quantity_approved" id="quantity_approved" min="1" max="{{ $hospitalOrder->quantity_requested }}" value="{{ old('quantity_approved', $hospitalOrder->quantity_requested) }}" required class="input-field">
-                            </div>
-                            <button type="submit" class="btn-brand w-full text-xs uppercase">Approve</button>
+                            @foreach($hospitalOrder->items as $index => $item)
+                                @php
+                                    $options = $availableDrugsByItem[$item->id] ?? collect();
+                                    $defaultBatchId = old("items.$index.source_drug_id", $options->first()?->id);
+                                @endphp
+                                <div class="rounded-lg border border-line p-3">
+                                    <p class="mb-2 text-sm font-semibold text-ink">{{ $item->displayLabel() }}</p>
+                                    <input type="hidden" name="items[{{ $index }}][id]" value="{{ $item->id }}">
+                                    <div class="space-y-2">
+                                        <div>
+                                            <x-form-label :for="'source_drug_'.$item->id" required>Lae AMS batch (FEFO)</x-form-label>
+                                            <select name="items[{{ $index }}][source_drug_id]" id="source_drug_{{ $item->id }}" required class="input-field">
+                                                <option value="">Select available stock</option>
+                                                @forelse($options as $drug)
+                                                    <option value="{{ $drug->id }}" @selected((string) $defaultBatchId === (string) $drug->id)>
+                                                        Batch {{ $drug->batch_number }}
+                                                        · Exp {{ optional($drug->expiry_date)->format('d M Y') ?? '—' }}
+                                                        · {{ number_format($drug->quantity_on_hand) }} on hand
+                                                        @if($loop->first) · FEFO @endif
+                                                    </option>
+                                                @empty
+                                                    <option value="" disabled>No matching Lae AMS stock found</option>
+                                                @endforelse
+                                            </select>
+                                            @error("items.$index.source_drug_id")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                        </div>
+                                        <div>
+                                            <x-form-label :for="'qty_approved_'.$item->id" required>Quantity approved</x-form-label>
+                                            <input
+                                                type="number"
+                                                name="items[{{ $index }}][quantity_approved]"
+                                                id="qty_approved_{{ $item->id }}"
+                                                min="1"
+                                                max="{{ $item->quantity_requested }}"
+                                                value="{{ old("items.$index.quantity_approved", $item->quantity_requested) }}"
+                                                required
+                                                class="input-field"
+                                            >
+                                            @error("items.$index.quantity_approved")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                            @error('items')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+                            <button type="submit" class="btn-brand w-full text-xs uppercase">Approve all lines</button>
                         </form>
                     </x-module.detail-card>
                     <x-module.detail-card title="Reject order">
@@ -98,9 +158,28 @@
                     </x-module.detail-card>
                 @endif
 
+                @if(auth()->user()->hasRole('store_manager') && in_array($hospitalOrder->status, ['approved', 'shipped', 'received'], true))
+                    <x-module.detail-card title="Warehouse pick list">
+                        <p class="mb-3 text-sm text-muted">
+                            Print a FEFO pick sheet for the warehouse floor before (or after) dispatch.
+                        </p>
+                        <a
+                            href="{{ getDashboardHospitalOrderRoute('pick-list', $hospitalOrder) }}"
+                            target="_blank"
+                            rel="noopener"
+                            class="btn-module-secondary inline-flex w-full justify-center text-xs uppercase tracking-wider"
+                        >
+                            Print pick list
+                        </a>
+                    </x-module.detail-card>
+                @endif
+
                 @if(auth()->user()->hasRole('store_manager') && $hospitalOrder->canShip())
                     <x-module.detail-card title="Dispatch to Modilon Hospital">
-                        <p class="mb-3 text-sm text-muted">Assign a vehicle and dispatch. Stock is deducted from Lae AMS; Modilon inventory updates when the pharmacy confirms receipt.</p>
+                        <p class="mb-3 text-sm text-muted">
+                            One vehicle carries all {{ $hospitalOrder->items->count() }} medicine(s) as a single road delivery.
+                            Lae AMS stock is deducted now; Modilon inventory updates when pharmacy confirms receipt.
+                        </p>
                         <form action="{{ getDashboardHospitalOrderRoute('ship', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
                             <div>
@@ -114,7 +193,6 @@
                                     @endforeach
                                 </select>
                                 @error('vehicle_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                                <p class="mt-1 text-xs text-muted">Vehicle registration is stored for future delivery tracking.</p>
                             </div>
                             <div>
                                 <x-form-label for="expected_arrival_at" required>Estimated arrival at Modilon</x-form-label>
@@ -128,40 +206,55 @@
                                     class="input-field"
                                 >
                                 @error('expected_arrival_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                                <p class="mt-1 text-xs text-muted">Shown on the live map and hospital shipment page so staff can track ETA.</p>
                             </div>
                             <div>
                                 <x-form-label for="ship_notes" optional>Road delivery notes</x-form-label>
                                 <textarea name="notes" id="ship_notes" rows="2" placeholder="Road delivery notes" class="input-field">{{ old('notes') }}</textarea>
-                                @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
-                            <button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-brand-700">Dispatch by road to hospital</button>
+                            <button type="submit" class="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-brand-700">Dispatch all medicines by road</button>
                         </form>
                     </x-module.detail-card>
                 @endif
 
                 @if(auth()->user()->hasRole('pharmacy_manager') && $hospitalOrder->canReceive())
                     @php
-                        $expectedQty = (int) ($hospitalOrder->quantity_approved ?? $hospitalOrder->quantity_requested);
-                        $sourceBatch = $hospitalOrder->stockTransfer?->batch_number;
-                        $sourceExpiry = $hospitalOrder->stockTransfer?->drug?->expiry_date;
+                        $transferLines = $hospitalOrder->stockTransfer?->items ?? collect();
                     @endphp
                     <x-module.detail-card title="Verify &amp; receive delivery">
                         <p class="mb-3 text-sm text-muted">
-                            Physically check quantity, batch, and expiry against the Lae AMS dispatch before adding stock to Modilon inventory.
+                            Check each medicine on this single delivery against the Lae AMS dispatch, then confirm receipt.
                         </p>
-                        <dl class="mb-4 space-y-1 rounded-lg border border-line bg-canvas p-3 text-sm">
-                            <div class="flex justify-between gap-3"><dt class="text-muted">Expected qty</dt><dd class="font-semibold tabular-nums">{{ number_format($expectedQty) }}</dd></div>
-                            <div class="flex justify-between gap-3"><dt class="text-muted">Batch on dispatch</dt><dd class="font-semibold">{{ $sourceBatch ?: '—' }}</dd></div>
-                            <div class="flex justify-between gap-3"><dt class="text-muted">Expiry on dispatch</dt><dd class="font-semibold">{{ $sourceExpiry ? formatDate($sourceExpiry) : '—' }}</dd></div>
-                        </dl>
                         <form action="{{ getDashboardHospitalOrderRoute('receive', $hospitalOrder) }}" method="POST" class="space-y-3">
                             @csrf
-                            <div>
-                                <x-form-label for="quantity_received" required>Quantity received</x-form-label>
-                                <input type="number" name="quantity_received" id="quantity_received" min="0" max="{{ $expectedQty }}" value="{{ old('quantity_received', $expectedQty) }}" required class="input-field">
-                                @error('quantity_received')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
-                            </div>
+                            @forelse($transferLines as $index => $line)
+                                <div class="rounded-lg border border-line bg-canvas p-3 text-sm">
+                                    <p class="font-semibold text-ink">{{ $line->drug?->drug_name ?? 'Medicine' }}</p>
+                                    <p class="text-xs text-muted">Batch {{ $line->batch_number }} · Exp {{ $line->drug?->expiry_date ? formatDate($line->drug->expiry_date) : '—' }}</p>
+                                    <input type="hidden" name="items[{{ $index }}][id]" value="{{ $line->id }}">
+                                    <div class="mt-2">
+                                        <x-form-label :for="'qty_recv_'.$line->id" required>Quantity received (expected {{ number_format($line->quantity_sent) }})</x-form-label>
+                                        <input
+                                            type="number"
+                                            name="items[{{ $index }}][quantity_received]"
+                                            id="qty_recv_{{ $line->id }}"
+                                            min="0"
+                                            max="{{ $line->quantity_sent }}"
+                                            value="{{ old("items.$index.quantity_received", $line->quantity_sent) }}"
+                                            required
+                                            class="input-field"
+                                        >
+                                        @error("items.$index.quantity_received")<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+                                    </div>
+                                </div>
+                            @empty
+                                {{-- Legacy single-drug transfer without item rows --}}
+                                <input type="hidden" name="items[0][id]" value="0">
+                                <div>
+                                    <x-form-label for="quantity_received" required>Quantity received</x-form-label>
+                                    <input type="number" name="items[0][quantity_received]" id="quantity_received" min="0" value="{{ old('items.0.quantity_received', $hospitalOrder->stockTransfer?->quantity_sent) }}" required class="input-field">
+                                </div>
+                            @endforelse
+
                             <div>
                                 <x-form-label for="condition" required>Delivery condition</x-form-label>
                                 <select name="condition" id="condition" required class="input-field">
@@ -180,14 +273,12 @@
                             </div>
                             <label class="flex items-start gap-2 text-sm text-ink">
                                 <input type="checkbox" name="batch_verified" value="1" @checked(old('batch_verified')) required class="mt-1 rounded border-gray-300 text-brand-600 focus:ring-brand-600">
-                                <span>I verified the batch number matches the dispatch paperwork.</span>
+                                <span>I verified batch numbers match the dispatch paperwork.</span>
                             </label>
-                            @error('batch_verified')<p class="text-sm text-rose-600">{{ $message }}</p>@enderror
                             <label class="flex items-start gap-2 text-sm text-ink">
                                 <input type="checkbox" name="expiry_verified" value="1" @checked(old('expiry_verified')) required class="mt-1 rounded border-gray-300 text-brand-600 focus:ring-brand-600">
-                                <span>I verified the expiry date matches the dispatch paperwork.</span>
+                                <span>I verified expiry dates match the dispatch paperwork.</span>
                             </label>
-                            @error('expiry_verified')<p class="text-sm text-rose-600">{{ $message }}</p>@enderror
                             <textarea name="notes" rows="2" placeholder="Receipt / verification notes (optional)" class="input-field">{{ old('notes') }}</textarea>
                             <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-emerald-700">Verify &amp; confirm received</button>
                         </form>
