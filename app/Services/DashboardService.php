@@ -60,7 +60,9 @@ class DashboardService
                 'atRisk' => null,
                 'expiry' => null,
                 'dispenseTrend' => null,
+                'shipments' => null,
             ],
+            'supplyOverview' => null,
         ];
     }
 
@@ -116,12 +118,12 @@ class DashboardService
         return [
             'roleMeta' => $meta,
             'pipelineCounts' => $pipelineCounts,
-            'stats' => [
-                self::stat('Pending approvals', (string) ($pendingCount + $pendingShipments), 'Orders & shipments', 'amber', getDashboardOrderRoute('index').'?status=pending', 'bell'),
-                self::stat('In import pipeline', (string) $pipelineCounts['total'], 'Manufacturing to FX cleared', 'blue', getDashboardOrderRoute('index'), 'clipboard'),
-                self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'NDoH inventory', 'teal', getDashboardDrugRoute('index'), 'cube'),
-                self::stat('In transit', (string) StockTransfer::sent()->toLevel('lae_ams')->whereNull('hospital_order_id')->count(), 'Shipments to Lae AMS', 'blue', getDashboardTransferRoute('index').'?status=sent', 'truck'),
-            ],
+            'stats' => self::stockKpis(
+                $level,
+                $pendingShipments + StockTransfer::sent()->toLevel('lae_ams')->whereNull('hospital_order_id')->count(),
+                'NDoH → Lae AMS unfinished',
+                getDashboardTransferRoute('index'),
+            ),
             'alerts' => $alerts,
             'quickActionGroups' => [
                 self::actionGroup('Procurement', [
@@ -143,6 +145,7 @@ class DashboardService
             'recentTitle' => 'Recent procurement orders',
             'charts' => DashboardChartService::forRole('admin'),
             'insights' => DashboardInsightService::forRole('admin', $level),
+            'supplyOverview' => DashboardChartService::supplyOverview('admin', $level),
         ];
     }
 
@@ -152,8 +155,6 @@ class DashboardService
      */
     protected static function procurementPayload(User $user, array $meta): array
     {
-        $myPending = Order::pending()->where('created_by', $user->id)->count();
-        $myOrders = Order::where('created_by', $user->id)->count();
         $pipelineCounts = Order::pipelineCounts($user->id);
         $procurementNeeds = LmisService::procurementSuggestions()
             ->filter(fn (array $row) => $row['suggested_quantity'] > 0 && in_array($row['status'], ['stock_out', 'critical', 'low'], true))
@@ -175,12 +176,12 @@ class DashboardService
         return [
             'roleMeta' => $meta,
             'pipelineCounts' => $pipelineCounts,
-            'stats' => [
-                self::stat('Pending', (string) $myPending, 'Awaiting approval', 'amber', getDashboardOrderRoute('index').'?status=pending', 'bell'),
-                self::stat('In pipeline', (string) $pipelineCounts['total'], 'Awaiting delivery stages', 'blue', getDashboardOrderRoute('index'), 'truck'),
-                self::stat('My orders', (string) $myOrders, 'Total submitted', 'teal', getDashboardOrderRoute('index'), 'clipboard'),
-                self::stat('In transit', (string) StockTransfer::sent()->fromLevel('ndoh')->whereNull('hospital_order_id')->count(), 'Sent to Lae AMS', 'blue', getDashboardTransferRoute('index'), 'truck'),
-            ],
+            'stats' => self::stockKpis(
+                $meta['inventory_level'],
+                StockTransfer::query()->fromLevel('ndoh')->toLevel('lae_ams')->whereNull('hospital_order_id')->whereIn('status', ['pending', 'sent'])->count(),
+                'NDoH → Lae AMS unfinished',
+                getDashboardTransferRoute('index'),
+            ),
             'alerts' => $alerts,
             'quickActionGroups' => [
                 self::actionGroup('Procurement', [
@@ -199,6 +200,7 @@ class DashboardService
             'recentTitle' => 'My recent orders',
             'charts' => DashboardChartService::forRole('procurement_officer', $user->id),
             'insights' => DashboardInsightService::forRole('procurement_officer', $meta['inventory_level'], $user->id),
+            'supplyOverview' => DashboardChartService::supplyOverview('procurement_officer', $meta['inventory_level'], $user->id),
         ];
     }
 
@@ -285,12 +287,12 @@ class DashboardService
 
         return [
             'roleMeta' => $meta,
-            'stats' => [
-                self::stat('Hospital orders', (string) $pendingHospitalOrders, 'Awaiting approval', 'amber', getDashboardHospitalOrderRoute('index').'?status=pending', 'hospital'),
-                self::stat('Awaiting receipt', (string) $pendingShipments, 'NDoH → Lae AMS', 'blue', getDashboardTransferRoute('index').'?status=sent', 'truck'),
-                self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'On hand at Lae AMS', 'teal', getDashboardDrugRoute('index'), 'cube'),
-                self::stat('Open discrepancies', (string) $openDiscrepancies, 'Hospital receipt issues', 'amber', getDashboardDiscrepancyRoute('index'), 'clipboard'),
-            ],
+            'stats' => self::stockKpis(
+                $level,
+                HospitalOrder::query()->whereIn('status', ['pending', 'approved', 'shipped'])->count(),
+                'Hospital orders not yet received',
+                getDashboardHospitalOrderRoute('index'),
+            ),
             'alerts' => $alerts,
             'quickActionGroups' => [
                 self::actionGroup('Warehouse ops', [
@@ -317,6 +319,7 @@ class DashboardService
             'recentTitle' => 'Recent hospital orders',
             'charts' => DashboardChartService::forRole('store_manager', null, $level),
             'insights' => DashboardInsightService::forRole('store_manager', $level),
+            'supplyOverview' => DashboardChartService::supplyOverview('store_manager', $level),
         ];
     }
 
@@ -406,12 +409,12 @@ class DashboardService
 
         return [
             'roleMeta' => $meta,
-            'stats' => [
-                self::stat('Open requests', (string) $pendingRequests, 'Awaiting Lae AMS', 'blue', getDashboardHospitalOrderRoute('index').'?status=pending', 'clipboard'),
-                self::stat('To receive', (string) $incomingShipments, 'Road deliveries in transit', 'amber', getDashboardHospitalShipmentRoute('index'), 'truck'),
-                self::stat('Stock batches', (string) Drug::atLevel($level)->inInventory()->count(), 'Hospital inventory', 'teal', getDashboardDrugRoute('index'), 'cube'),
-                self::stat('Expiring soon', (string) $expiring, 'Within 6 months', 'red', getDashboardDrugRoute('index').'?status=expiring_soon', 'shield'),
-            ],
+            'stats' => self::stockKpis(
+                $level,
+                $incomingShipments,
+                'Road deliveries in transit',
+                getDashboardHospitalShipmentRoute('index'),
+            ),
             'alerts' => $alerts,
             'quickActionGroups' => [
                 self::actionGroup('Supply', [
@@ -439,7 +442,8 @@ class DashboardService
             ])->all(),
             'recentTitle' => 'My recent requests',
             'charts' => DashboardChartService::forRole('pharmacy_manager', null, $level),
-            'insights' => DashboardInsightService::forRole('pharmacy_manager', $level),
+            'insights' => DashboardInsightService::forRole('pharmacy_manager', $level, $user->id),
+            'supplyOverview' => DashboardChartService::supplyOverview('pharmacy_manager', $level, $user->id),
         ];
     }
 
@@ -452,10 +456,6 @@ class DashboardService
         $level = $meta['inventory_level'];
         $lowStock = Drug::atLevel($level)->lowStock()->count();
         $expiring = Drug::atLevel($level)->expiring()->count();
-        $myDispensesToday = DispensingRecord::query()
-            ->where('dispensed_by', $user->id)
-            ->whereDate('dispensed_at', today())
-            ->count();
 
         $alerts = [];
 
@@ -485,12 +485,12 @@ class DashboardService
 
         return [
             'roleMeta' => $meta,
-            'stats' => [
-                self::stat('My dispenses today', (string) $myDispensesToday, 'Your audit trail', 'blue', getDashboardDispensingRoute('index'), 'pill'),
-                self::stat('Available stock', (string) Drug::atLevel($level)->inInventory()->count(), 'Ready to dispense', 'teal', getDashboardDrugRoute('index'), 'cube'),
-                self::stat('Expiring soon', (string) $expiring, 'Within 6 months', 'red', getDashboardDrugRoute('index').'?status=expiring_soon', 'shield'),
-                self::stat('Low stock', (string) $lowStock, 'Review with manager', 'amber', getDashboardDrugRoute('index').'?status=low_stock', 'bell'),
-            ],
+            'stats' => self::stockKpis(
+                $level,
+                HospitalOrder::query()->where('status', 'shipped')->count(),
+                'Road deliveries inbound',
+                getDashboardDrugRoute('index'),
+            ),
             'alerts' => $alerts,
             'quickActionGroups' => [
                 self::actionGroup('Dispensing', [
@@ -518,6 +518,22 @@ class DashboardService
             'recentTitle' => 'My recent dispenses',
             'charts' => DashboardChartService::forRole('pharmacist', null, $level),
             'insights' => DashboardInsightService::forRole('pharmacist', $level, $user->id),
+            'supplyOverview' => DashboardChartService::supplyOverview('pharmacist', $level, $user->id),
+        ];
+    }
+
+    /**
+     * Shared KPI row: batches, low stock, expiring, pending shipments.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected static function stockKpis(string $level, int $pendingShipments, string $pendingHint, string $pendingUrl): array
+    {
+        return [
+            self::stat('Drugs tracked', (string) Drug::atLevel($level)->inInventory()->count(), 'Active batches', 'teal', getDashboardDrugRoute('index'), 'cube'),
+            self::stat('Low stock', (string) Drug::atLevel($level)->inInventory()->lowStock()->count(), 'At or below reorder point', 'amber', getDashboardDrugRoute('index').'?status=low_stock', 'bell'),
+            self::stat('Expiring soon', (string) Drug::atLevel($level)->inInventory()->expiring()->count(), 'Within 6 months', 'red', getDashboardDrugRoute('index').'?status=expiring_soon', 'shield'),
+            self::stat('Pending shipments', (string) $pendingShipments, $pendingHint, 'blue', $pendingUrl, 'truck'),
         ];
     }
 

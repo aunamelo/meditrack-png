@@ -7,7 +7,6 @@ use App\Services\PortalNavigationService;
 use App\Services\ProfileService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -58,32 +57,5 @@ class ProfileController extends Controller
         $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
-
-        $user = $request->user();
-
-        if ($user->profile_photo_path) {
-            Storage::disk('public')->delete($user->profile_photo_path);
-        }
-
-        Auth::logout();
-
-        // Soft-deletes the account so audit FKs stay intact.
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::route('login')
-            ->with('status', 'Your account has been deactivated. Historical audit records are retained. Contact an administrator if you need access restored.');
     }
 }

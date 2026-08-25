@@ -34,7 +34,8 @@
     }
 
     :focus-visible {
-        @apply outline-2 outline-offset-2 outline-health-600;
+        outline: 2px solid #0f766e;
+        outline-offset: 2px;
     }
 
     .skip-link {
@@ -427,11 +428,39 @@
 
     /* Guest portals — DLPP-style full-page wireframe (MediTrack navy/teal) */
     .guest-portal-body {
-        @apply m-0 min-h-dvh bg-white font-sans antialiased text-ink dark:bg-night dark:text-zinc-100;
+        @apply m-0 min-h-dvh bg-slate-50 font-sans antialiased text-ink dark:bg-night dark:text-zinc-100;
     }
 
     .guest-portal-page {
-        @apply flex min-h-dvh flex-col bg-white dark:bg-night;
+        @apply relative flex min-h-dvh flex-col dark:bg-night;
+        background-color: #f8fafc;
+        background-image: linear-gradient(to bottom right, #f8fafc, #ffffff 46%, #f0fdfa);
+    }
+
+    .guest-portal-page::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image: radial-gradient(circle, rgb(15 23 42 / 0.16) 1.15px, transparent 1.45px);
+        background-size: 18px 18px;
+    }
+
+    .dark .guest-portal-page {
+        background-color: #090e18;
+        background-image: linear-gradient(to bottom right, #090e18, #0f172a 48%, #042f2e);
+    }
+
+    .dark .guest-portal-page::after {
+        background-image: radial-gradient(circle, rgb(255 255 255 / 0.14) 1.15px, transparent 1.45px);
+    }
+
+    .guest-portal-topbar,
+    .guest-portal-main,
+    .guest-portal-footer-bar {
+        position: relative;
+        z-index: 1;
     }
 
     /* Keep guest header white in both themes — logos stay crisp on light chrome */
@@ -467,76 +496,491 @@
     }
 
     .guest-portal-topnav {
-        @apply flex flex-wrap items-center gap-1 sm:gap-2;
+        @apply flex flex-wrap items-center gap-2;
     }
 
-    .guest-portal-topnav-link {
-        @apply rounded-md px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1e3a5f] no-underline transition hover:text-health-700;
-        color: #1e3a5f !important;
-        background: transparent !important;
+    /*
+     * Shared header chip: Home, language, and Request Access use the same
+     * box (height, padding, radius, 1px border) so the row lines up.
+     */
+    .guest-portal-topnav-link,
+    .guest-portal-lang-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        appearance: none;
+        margin: 0;
+        box-sizing: border-box;
+        height: 2.25rem;
+        min-height: 2.25rem;
+        padding: 0 0.875rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.375rem;
+        background: #fff;
+        font-family: inherit;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: #1e3a5f;
+        white-space: nowrap;
+        cursor: pointer;
+        transition:
+            color 200ms ease,
+            background-color 200ms ease,
+            border-color 200ms ease;
     }
 
-    .guest-portal-topnav-link.is-active {
-        color: #0f766e !important;
-        box-shadow: inset 0 -2px 0 #0f766e;
+    .guest-portal-topnav-link.is-active,
+    .guest-portal-lang-btn[aria-expanded='true'] {
+        border-color: #0f766e;
+        background: #f0fdfa;
+        color: #0f766e;
+    }
+
+    .guest-portal-topnav-link:hover:not(.is-cta),
+    .guest-portal-lang-btn:hover {
+        border-color: #0f766e;
+        color: #0f766e;
     }
 
     .guest-portal-topnav-link.is-cta {
-        @apply bg-health-700 text-white hover:bg-health-800 hover:text-white;
-        color: #ffffff !important;
-        background: #0f766e !important;
-        box-shadow: none !important;
+        border-color: #0f766e;
+        background: #0f766e;
+        color: #fff;
     }
 
-    .guest-portal-topnav-link.is-cta:hover {
-        background: #115e59 !important;
-    }
-
-    .guest-portal-topnav-link.is-cta.is-active {
-        background: #115e59 !important;
-        color: #ffffff !important;
-        box-shadow: none !important;
+    .guest-portal-topnav-link.is-cta:hover,
+    .guest-portal-topnav-link.is-cta[aria-expanded='true'] {
+        border-color: #115e59;
+        background: #115e59;
+        color: #fff;
     }
 
     .guest-portal-signup {
         @apply relative;
     }
 
-    .guest-portal-signup .is-cta {
-        @apply cursor-pointer border-0;
+    .guest-portal-signup-backdrop {
+        display: none;
     }
 
     .guest-portal-signup-panel {
-        @apply absolute right-0 z-50 mt-2 w-72 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-lg dark:border-white/10 dark:bg-night-elevated;
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        z-index: 70;
+        width: min(20.5rem, calc(100vw - 1.5rem));
+        max-width: calc(100vw - 1.5rem);
+        border: 1px solid #d6dee8;
+        border-radius: 0.75rem;
+        background: #fff;
+        padding: 1rem 1.1rem 1.1rem;
+        text-align: left;
+        box-shadow:
+            0 10px 15px -3px rgb(15 23 42 / 0.12),
+            0 4px 6px -4px rgb(15 23 42 / 0.08);
+    }
+
+    .guest-portal-signup-handle {
+        display: none;
+    }
+
+    .guest-portal-signup-heading {
+        @apply flex items-start gap-2;
+    }
+
+    .guest-portal-signup-icon {
+        @apply mt-0.5 inline-flex h-5 w-5 shrink-0 text-health-700;
+    }
+
+    .guest-portal-signup-icon svg {
+        @apply h-5 w-5;
     }
 
     .guest-portal-signup-title {
-        @apply m-0 font-display text-sm font-bold text-[#132f4f] dark:text-zinc-50;
+        @apply m-0 min-w-0 flex-1 font-display text-base font-bold leading-snug text-[#132f4f];
+    }
+
+    .guest-portal-signup-close {
+        @apply -mr-1 -mt-1 hidden shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-100 hover:text-health-800;
     }
 
     .guest-portal-signup-text {
-        @apply m-0 mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-zinc-300;
+        @apply m-0 mt-2 text-sm leading-relaxed text-slate-600;
     }
 
-    .guest-portal-topnav-theme {
-        @apply ms-1 flex items-center border-s border-slate-200 ps-2;
+    .guest-portal-sheet--from {
+        transform: translateY(0.35rem);
     }
 
-    /* Theme toggle sits on white header even when page is dark */
-    .guest-portal-topnav-theme button {
-        @apply border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-health-700 dark:border-slate-300 dark:bg-white dark:text-slate-600 dark:hover:bg-slate-50 dark:hover:text-health-700;
+    .guest-portal-sheet--to {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 1023px) {
+        .guest-portal-sheet--from {
+            transform: translateY(100%);
+        }
+
+        .guest-portal-signup-backdrop {
+            display: block;
+            position: fixed;
+            inset: 0;
+            z-index: 65;
+            background: transparent;
+        }
+
+        .guest-portal-page--sheet-open .guest-portal-topbar {
+            z-index: 70;
+        }
+
+        .guest-portal-signup-panel {
+            position: fixed;
+            top: auto;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1;
+            width: 100%;
+            max-width: none;
+            border-radius: 1rem 1rem 0 0;
+            padding: 0.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+            box-shadow: 0 -8px 24px rgb(15 23 42 / 0.18);
+        }
+
+        .guest-portal-signup-handle {
+            display: block;
+            width: 2.5rem;
+            height: 0.25rem;
+            margin: 0.15rem auto 0.85rem;
+            border-radius: 9999px;
+            background: #cbd5e1;
+        }
+
+        .guest-portal-signup-close {
+            display: inline-flex;
+        }
+
+        .guest-portal-signup-title {
+            @apply text-lg;
+        }
+    }
+
+    .guest-portal-lang {
+        @apply relative;
+    }
+
+    .guest-portal-lang-btn {
+        gap: 0.25rem;
+        min-width: 2.25rem;
+    }
+
+    .guest-portal-lang-caret {
+        @apply h-3.5 w-3.5 shrink-0;
+    }
+
+    .guest-portal-lang-menu {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        z-index: 70;
+        width: min(16.5rem, calc(100vw - 1.5rem));
+        border: 1px solid #d6dee8;
+        border-radius: 0.75rem;
+        background: #fff;
+        padding: 0.65rem;
+        box-shadow:
+            0 10px 15px -3px rgb(15 23 42 / 0.12),
+            0 4px 6px -4px rgb(15 23 42 / 0.08);
+    }
+
+    .guest-portal-lang-handle {
+        display: none;
+    }
+
+    .guest-portal-lang-heading {
+        display: none;
+    }
+
+    .guest-portal-lang-title {
+        @apply m-0 font-display text-sm font-bold text-[#132f4f];
+    }
+
+    .guest-portal-lang-close {
+        @apply hidden rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-100 hover:text-health-800;
+    }
+
+    .guest-portal-lang-list {
+        @apply m-0 list-none p-0;
+    }
+
+    .guest-portal-lang-option {
+        @apply flex w-full cursor-pointer items-center gap-2 rounded-lg border-0 bg-transparent px-3 py-2.5 text-left text-sm font-medium text-[#132f4f] transition hover:bg-health-50;
+    }
+
+    .guest-portal-lang-option.is-active {
+        @apply bg-health-50 text-health-800;
+    }
+
+    .guest-portal-lang-code {
+        @apply inline-flex w-7 text-[11px] font-bold uppercase tracking-wide text-health-800;
+    }
+
+    @media (max-width: 1023px) {
+        .guest-portal-lang-menu {
+            position: fixed;
+            top: auto;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            max-width: none;
+            border-radius: 1rem 1rem 0 0;
+            padding: 0.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+            box-shadow: 0 -8px 24px rgb(15 23 42 / 0.18);
+        }
+
+        .guest-portal-lang-handle {
+            display: block;
+            width: 2.5rem;
+            height: 0.25rem;
+            margin: 0.15rem auto 0.85rem;
+            border-radius: 9999px;
+            background: #cbd5e1;
+        }
+
+        .guest-portal-lang-heading {
+            display: flex;
+            @apply mb-3 items-center justify-between gap-2;
+        }
+
+        .guest-portal-lang-title {
+            @apply text-lg;
+        }
+
+        .guest-portal-lang-close {
+            display: inline-flex;
+        }
+
+        .guest-portal-lang-option {
+            @apply py-3 text-base;
+        }
+    }
+
+    .guest-portal-toast {
+        @apply fixed right-4 top-24 z-[80] rounded-lg bg-[#132f4f] px-3.5 py-2.5 text-sm font-semibold text-white shadow-lg sm:right-6;
     }
 
     .guest-portal-main {
-        @apply flex flex-1 flex-col;
+        @apply relative isolate flex flex-1 flex-col;
+    }
+
+    .guest-portal-main::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background:
+            radial-gradient(ellipse 70% 48% at 100% -8%, rgb(13 148 136 / 0.12), transparent 58%),
+            radial-gradient(ellipse 55% 40% at -8% 108%, rgb(15 23 42 / 0.05), transparent 52%);
+    }
+
+    .dark .guest-portal-main::before {
+        background:
+            radial-gradient(ellipse 70% 48% at 100% -8%, rgb(13 148 136 / 0.16), transparent 58%),
+            radial-gradient(ellipse 55% 40% at -8% 108%, rgb(15 23 42 / 0.35), transparent 52%);
     }
 
     .guest-portal-main-inner {
-        @apply mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12;
+        @apply relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12;
+    }
+
+    .guest-portal-main-inner:has(.guest-home) {
+        @apply flex flex-1 flex-col justify-center py-4 sm:py-5;
+    }
+
+    .guest-portal-boot {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        overflow-y: auto;
+        background: #f8fafc;
+    }
+
+    .dark .guest-portal-boot {
+        background: #090e18;
+    }
+
+    .guest-portal-boot-panel {
+        width: 100%;
+        max-width: 56rem;
+        margin-top: 0;
+    }
+
+    .guest-portal-boot-spinner {
+        margin: 4.5rem auto 0;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 9999px;
+        border: 2px solid rgb(15 118 110 / 0.2);
+        border-top-color: #0f766e;
+        animation: guest-auth-spin 700ms linear infinite;
+    }
+
+    .guest-portal-boot-cards {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-top: 2rem;
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+        .guest-portal-boot-cards {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .guest-portal-boot-cards > .guest-portal-boot-card:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            width: calc((100% - 0.75rem) / 2);
+            justify-self: center;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .guest-portal-boot-cards {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .guest-portal-boot-cards > .guest-portal-boot-card {
+            grid-column: span 2;
+        }
+
+        .guest-portal-boot-cards > .guest-portal-boot-card:nth-child(4) {
+            grid-column: 2 / span 2;
+        }
+
+        .guest-portal-boot-cards > .guest-portal-boot-card:nth-child(5) {
+            grid-column: 4 / span 2;
+        }
+    }
+
+    .guest-portal-boot-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+        border: 1px solid rgb(203 213 225);
+        border-radius: 0.25rem;
+        background: #fff;
+    }
+
+    .dark .guest-portal-boot-card {
+        border-color: rgb(255 255 255 / 0.1);
+        background: rgb(15 23 42 / 0.55);
+    }
+
+    .guest-portal-boot-card-lines {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding-top: 0.15rem;
+    }
+
+    .guest-portal-boot-bone {
+        display: block;
+        background: #d7e8e4;
+        border-radius: 0.25rem;
+        animation: guest-boot-pulse 1.2s ease-in-out infinite;
+    }
+
+    .dark .guest-portal-boot-bone {
+        background: rgb(51 65 85 / 0.85);
+    }
+
+    .guest-portal-boot-bone--title {
+        width: min(22rem, 78%);
+        height: 2.1rem;
+    }
+
+    .guest-portal-boot-bone--lead {
+        width: min(36rem, 92%);
+        height: 0.7rem;
+        margin-top: 0.85rem;
+    }
+
+    .guest-portal-boot-bone--lead-short {
+        width: min(24rem, 70%);
+        height: 0.7rem;
+        margin-top: 0.45rem;
+    }
+
+    .guest-portal-boot-bone--icon {
+        width: 2.75rem;
+        height: 2.75rem;
+        flex-shrink: 0;
+        border-radius: 0.25rem;
+    }
+
+    .guest-portal-boot-bone--label {
+        width: 55%;
+        height: 0.75rem;
+    }
+
+    .guest-portal-boot-bone--sub {
+        width: 88%;
+        height: 2.4rem;
+    }
+
+    .guest-portal-boot-bone--btn {
+        width: 11rem;
+        height: 2.75rem;
+        margin: 2rem 0 0;
+        border-radius: 0.25rem;
+    }
+
+    @keyframes guest-boot-pulse {
+        0%,
+        100% {
+            opacity: 0.55;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
+
+    .guest-home {
+        @apply flex w-full flex-1 flex-col items-center justify-center min-h-[calc(100vh-200px)];
+    }
+
+    .guest-home--reopen-login .guest-role-picker {
+        display: none !important;
+    }
+
+    .guest-home--reopen-login .guest-login-modal {
+        display: flex;
     }
 
     .guest-auth {
         @apply w-full max-w-4xl;
+    }
+
+    .guest-role-picker {
+        @apply flex w-full flex-col;
+        gap: 2rem;
+    }
+
+    .guest-role-intro {
+        @apply w-full;
     }
 
     .guest-auth-back {
@@ -547,8 +991,28 @@
         @apply m-0 font-display text-2xl font-bold tracking-tight text-[#132f4f] dark:text-zinc-50 sm:text-3xl;
     }
 
+    .guest-auth-heading--portal {
+        @apply text-[1.75rem] font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem];
+        color: #0b1f33;
+        text-shadow: none;
+    }
+
+    .dark .guest-auth-heading--portal {
+        color: #f8fafc;
+        text-shadow: 0 1px 2px rgb(0 0 0 / 0.45);
+    }
+
     .guest-auth-lead {
         @apply mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-zinc-400;
+    }
+
+    .guest-auth-lead--portal {
+        @apply mt-3 mb-0 max-w-3xl text-base font-medium leading-7 sm:text-lg sm:leading-8;
+        color: #1e293b;
+    }
+
+    .dark .guest-auth-lead--portal {
+        color: #e2e8f0;
     }
 
     .guest-auth-lead strong {
@@ -580,16 +1044,46 @@
     }
 
     .guest-auth-input {
-        @apply h-11 w-full rounded border border-slate-300 bg-white px-3.5 text-[15px] text-slate-900 shadow-none transition placeholder:text-slate-400 focus:border-health-600 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-100 dark:placeholder:text-zinc-500;
+        @apply h-11 w-full rounded border border-slate-300 bg-white px-3.5 text-[15px] text-slate-900 shadow-none placeholder:text-slate-500 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-100 dark:placeholder:text-zinc-400;
+        transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+    }
+
+    .guest-auth-input:focus,
+    .guest-auth-input:focus-visible {
+        outline: none;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-ring-offset-shadow: 0 0 #0000;
+        border-color: #0d9488;
+        box-shadow: 0 0 0 2px rgb(13 148 136 / 0.2);
     }
 
     .guest-auth-input.is-invalid {
-        @apply border-[#ce1126] focus:border-[#ce1126] focus:ring-[#ce1126]/20;
+        @apply border-[#ce1126];
+    }
+
+    .guest-auth-input.is-invalid:focus,
+    .guest-auth-input.is-invalid:focus-visible {
+        border-color: #ce1126;
+        box-shadow: 0 0 0 2px rgb(206 17 38 / 0.2);
     }
 
     .guest-auth-form-error {
         @apply rounded-md border border-[#ce1126]/40 bg-[#ce1126]/5 px-3 py-2 text-sm font-medium text-[#ce1126]
             dark:border-rose-500/40 dark:bg-rose-950/30 dark:text-rose-300;
+    }
+
+    .guest-auth-banner {
+        @apply mt-4 flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700
+            dark:border-rose-500/40 dark:bg-rose-950/40 dark:text-rose-200;
+    }
+
+    .guest-auth-banner-text {
+        @apply m-0 flex-1 leading-snug;
+    }
+
+    .guest-auth-banner-dismiss {
+        @apply -mr-1 -mt-0.5 inline-flex shrink-0 rounded-full p-1 text-red-700 transition-colors hover:bg-red-100
+            dark:text-rose-200 dark:hover:bg-rose-900/60;
     }
 
     .guest-auth-select {
@@ -613,7 +1107,7 @@
     }
 
     .guest-auth-link {
-        @apply inline-block text-sm font-semibold text-health-600 no-underline underline-offset-2 transition hover:text-health-800 hover:underline dark:text-health-300 dark:hover:text-health-200;
+        @apply inline-block text-sm font-semibold text-health-800 no-underline underline-offset-2 transition hover:text-health-900 hover:underline dark:text-health-300 dark:hover:text-health-200;
     }
 
     .guest-auth-check {
@@ -622,12 +1116,12 @@
 
     /*
      * Equal row-gap and column-gap so the 5 cards read as one grid.
-     * 6-column track on large screens lets the last pair span/center cleanly.
+     * Single column below 768px; 2 columns from 768–1023px; 3+2 from 1024px.
      */
     .guest-role-grid {
-        @apply mt-6 grid grid-cols-1 rounded-md;
-        column-gap: 0.75rem;
-        row-gap: 0.75rem;
+        @apply m-0 grid grid-cols-1 rounded-md;
+        column-gap: 1rem;
+        row-gap: 1rem;
         transition: box-shadow 180ms ease, outline-color 180ms ease;
         outline: 2px solid transparent;
         outline-offset: 4px;
@@ -638,7 +1132,7 @@
         box-shadow: 0 0 0 3px rgba(206, 17, 38, 0.12);
     }
 
-    @media (min-width: 640px) and (max-width: 1023px) {
+    @media (min-width: 768px) and (max-width: 1023px) {
         .guest-role-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -646,7 +1140,7 @@
         /* Solo fifth card on the last row — center under the pair above */
         .guest-role-grid > .guest-role-card:last-child:nth-child(odd) {
             grid-column: 1 / -1;
-            width: calc((100% - 0.75rem) / 2);
+            width: calc((100% - 1rem) / 2);
             justify-self: center;
         }
     }
@@ -673,7 +1167,7 @@
     @keyframes guest-role-card-enter {
         from {
             opacity: 0;
-            transform: translateY(8px);
+            transform: translateY(10px);
         }
 
         to {
@@ -706,29 +1200,28 @@
     }
 
     .guest-role-card {
-        @apply flex w-full cursor-pointer items-start gap-3 rounded border border-slate-300 bg-white p-4 text-left no-underline shadow-none
+        @apply relative flex w-full cursor-pointer items-start gap-3 rounded border bg-white p-4 pr-11 text-left no-underline
             focus:outline-none
             dark:border-white/10 dark:bg-night-elevated;
         margin: 0;
-        transition:
-            transform 180ms ease,
-            box-shadow 180ms ease,
-            border-color 180ms ease,
-            background-color 180ms ease,
-            opacity 180ms ease;
+        border-color: #cbd5e1;
+        padding-left: calc(1rem + 3px);
+        box-shadow:
+            0 4px 6px -1px rgb(0 0 0 / 0.1),
+            0 2px 4px -1px rgb(0 0 0 / 0.06);
+        transition: all 200ms ease;
     }
 
     /* One-shot mount animation only (CSS animation; not tied to Alpine state). */
     .guest-role-card--enter {
-        animation: guest-role-card-enter 250ms ease-out both;
+        animation: guest-role-card-enter 320ms ease-out both;
         animation-delay: var(--guest-role-enter-delay, 0ms);
     }
 
-    /* Hover: light teal border only — “you can click this” */
+    /* Hover: teal border + lift — “you can click this” */
     .guest-role-card:hover:not(.guest-role-card--selected) {
-        @apply border-health-500 bg-white;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px -4px rgba(15, 118, 110, 0.22);
+        border-color: #2dd4bf;
+        @apply bg-white shadow-lg;
     }
 
     .dark .guest-role-card:hover:not(.guest-role-card--selected) {
@@ -737,19 +1230,26 @@
 
     /* Selected: teal border + tint + check — driven by Alpine, not :hover */
     .guest-role-card--selected {
-        @apply border-health-600 bg-health-50;
+        border-color: #0d9488;
+        border-left-width: 4px;
+        border-left-color: #0d9488;
+        padding-left: 1rem;
+        background-color: #f0fdfa;
         box-shadow:
-            0 8px 18px -8px rgba(15, 118, 110, 0.28),
-            0 2px 6px -2px rgba(15, 23, 42, 0.08);
+            0 10px 15px -3px rgb(13 148 136 / 0.18),
+            0 4px 6px -2px rgb(15 23 42 / 0.08);
     }
 
     .dark .guest-role-card--selected {
-        @apply border-health-500 bg-health-900/30;
+        border-color: #14b8a6;
+        border-left-color: #14b8a6;
+        background-color: rgb(13 148 136 / 0.18);
     }
 
     /* Focus-visible: outline ring on top of hover or selected */
     .guest-role-card:focus-visible {
-        @apply outline outline-2 outline-offset-2 outline-[#132f4f];
+        outline: 2px solid #0d9488;
+        outline-offset: 2px;
     }
 
     .dark .guest-role-card:focus-visible {
@@ -757,8 +1257,22 @@
     }
 
     .guest-role-card-icon {
-        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded border border-slate-200 bg-health-50 text-health-700
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded border border-slate-200 bg-teal-50 text-teal-700
             dark:border-white/10 dark:bg-health-900/40 dark:text-health-300;
+        transition:
+            border-color 200ms ease,
+            background-color 200ms ease,
+            color 200ms ease;
+    }
+
+    .guest-role-card:hover:not(.guest-role-card--selected) .guest-role-card-icon {
+        @apply border-teal-300 bg-teal-100;
+    }
+
+    .guest-role-card--selected .guest-role-card-icon {
+        border-color: #99f6e4;
+        background-color: #ccfbf1;
+        color: #0d9488;
     }
 
     .guest-role-card-body {
@@ -775,88 +1289,86 @@
         min-height: 3.75rem;
     }
 
-    .guest-role-card-chevron {
-        @apply ml-auto shrink-0 self-center text-slate-600;
-        transition:
-            transform 150ms ease,
-            color 150ms ease;
-    }
-
-    .dark .guest-role-card-chevron {
-        @apply text-zinc-400;
-    }
-
-    .guest-role-card:hover:not(.guest-role-card--selected) .guest-role-card-chevron,
-    .guest-role-card:focus-visible:not(.guest-role-card--selected) .guest-role-card-chevron {
-        @apply text-health-700;
-        transform: translateX(3px);
-    }
-
-    .dark .guest-role-card:hover:not(.guest-role-card--selected) .guest-role-card-chevron,
-    .dark .guest-role-card:focus-visible:not(.guest-role-card--selected) .guest-role-card-chevron {
-        @apply text-health-300;
-    }
-
     .guest-role-card-check {
-        @apply ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center self-center rounded-full bg-health-700 text-white;
+        @apply absolute right-3 top-3 inline-flex text-teal-600;
+        background: transparent;
     }
 
     .dark .guest-role-card-check {
-        @apply bg-health-600 text-white;
+        @apply text-teal-300;
+        background: transparent;
     }
 
     .guest-role-continue {
-        @apply mt-6 flex flex-col items-start gap-2;
+        @apply m-0 flex flex-col items-start;
+        gap: 0;
     }
 
     .guest-role-validation {
-        @apply min-h-[1.25rem] w-full;
+        @apply w-full;
+        min-height: 0;
     }
 
     .guest-role-validation-text {
         @apply m-0 text-sm font-medium text-[#ce1126] dark:text-rose-400;
         opacity: 0;
+        max-height: 0;
+        overflow: hidden;
     }
 
     .guest-role-validation-text.is-visible {
         opacity: 1;
+        max-height: 2rem;
+        margin-bottom: 0.5rem;
     }
 
     .guest-role-continue-btn {
         @apply inline-flex h-11 min-w-[11rem] items-center justify-center gap-2 rounded border border-transparent
             px-6 text-sm font-bold text-white
-            focus:outline-none focus-visible:ring-2 focus-visible:ring-health-600/30 focus-visible:ring-offset-2
+            focus:outline-none
             dark:focus-visible:ring-offset-night;
         background-color: #94a3b8;
-        opacity: 0.55;
+        opacity: 0.6;
         cursor: not-allowed;
-        transition:
-            background-color 180ms ease,
-            opacity 180ms ease,
-            box-shadow 180ms ease;
+        transition: background-color 200ms ease, opacity 200ms ease, box-shadow 200ms ease;
     }
 
-    .guest-role-continue-btn:hover,
-    .guest-role-continue-btn:focus-visible {
+    .guest-role-continue-btn:disabled,
+    .guest-role-continue-btn:disabled:hover,
+    .guest-role-continue-btn:disabled:focus-visible {
         background-color: #94a3b8;
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
     }
 
-    .guest-role-continue-btn.is-enabled {
-        @apply bg-health-700;
+    .guest-role-continue-btn.is-enabled,
+    .guest-role-continue-btn:not(:disabled).is-enabled {
+        background-color: #0d9488;
         opacity: 1;
         cursor: pointer;
     }
 
-    .guest-role-continue-btn.is-enabled:hover {
-        @apply bg-health-800;
+    .guest-role-continue-btn.is-enabled:hover:not(:disabled) {
+        background-color: #0f766e;
     }
 
-    .guest-role-continue-btn.is-enabled:focus-visible {
-        @apply bg-health-700;
+    .guest-role-continue-btn.is-enabled:focus-visible:not(:disabled) {
+        outline: 2px solid #0d9488;
+        outline-offset: 2px;
+        background-color: #0d9488;
+    }
+
+    .guest-role-continue-btn.is-enabled:active:not(:disabled) {
+        background-color: #0f766e;
     }
 
     .guest-role-continue-btn.is-shaking {
         animation: guest-role-btn-shake 420ms ease;
+        transition:
+            background-color 200ms ease,
+            opacity 200ms ease,
+            box-shadow 200ms ease;
     }
 
     .dark .guest-role-continue-btn:not(.is-enabled) {
@@ -864,39 +1376,251 @@
         opacity: 0.45;
     }
 
-    .guest-facility-stats {
-        @apply mt-10 w-full overflow-x-hidden rounded px-4 py-8 text-white sm:px-6 sm:py-10;
-        background-color: #373a45;
+    .guest-role-continue-arrow {
+        @apply h-4 w-4 shrink-0;
     }
 
-    /* Mobile: 2x2. sm+: single row of 4 */
-    .guest-facility-stats-grid {
-        @apply m-0 grid list-none grid-cols-2 gap-x-4 gap-y-10 p-0 sm:grid-cols-4 sm:gap-4;
+    .guest-role-secure {
+        @apply mt-4 flex max-w-xl items-center gap-1 text-xs text-gray-500 dark:text-zinc-400;
     }
 
-    .guest-facility-stats-item {
-        @apply flex min-w-0 flex-col items-center px-2 text-center;
+    .guest-role-secure-icon {
+        @apply h-3.5 w-3.5 shrink-0 text-gray-500 dark:text-zinc-400;
     }
 
-    .guest-facility-stats-value {
-        @apply m-0 font-sans text-[1.75rem] font-bold tracking-tight sm:text-4xl;
-        color: #ffffff;
+    .guest-login-modal {
+        @apply fixed inset-0 z-[70] flex items-end justify-center overflow-hidden sm:items-center sm:overflow-y-auto;
+        padding: 0;
     }
 
-    .guest-facility-stats-rule {
-        @apply relative my-3 block h-px w-16 max-w-full;
-        background-color: #e64b50;
+    @media (min-width: 640px) {
+        .guest-login-modal {
+            align-items: center;
+            padding: 2rem 1.5rem 3.5rem;
+        }
     }
 
-    .guest-facility-stats-rule::after {
-        content: '';
-        @apply absolute left-1/2 top-1/2 h-1.5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full;
-        background-color: #e64b50;
+    .guest-login-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background-color: transparent;
+        transition: opacity 200ms ease;
     }
 
-    .guest-facility-stats-label {
-        @apply m-0 max-w-[10rem] font-display text-[11px] font-semibold uppercase leading-snug tracking-[0.12em] sm:max-w-none sm:text-xs;
-        color: #ffffff;
+    .dark .guest-login-modal-backdrop {
+        background-color: transparent;
+    }
+
+    .guest-login-modal-panel {
+        @apply relative z-10 w-full overflow-y-auto border border-slate-200 bg-white p-5 pb-7 shadow-xl
+            dark:border-white/10 dark:bg-night-elevated;
+        max-width: none;
+        max-height: min(92dvh, 100%);
+        margin: 0;
+        border-radius: 1rem 1rem 0 0;
+        padding-bottom: max(1.75rem, env(safe-area-inset-bottom));
+        box-shadow:
+            0 10px 15px -3px rgb(15 23 42 / 0.12),
+            0 25px 50px -12px rgb(15 23 42 / 0.35),
+            0 0 0 1px rgb(15 23 42 / 0.06);
+    }
+
+    .guest-login-modal-panel--from {
+        transform: translateY(100%);
+    }
+
+    .guest-login-modal-panel--to {
+        transform: translateY(0);
+    }
+
+    @media (min-width: 640px) {
+        .guest-login-modal-panel {
+            @apply overflow-visible rounded-xl p-6 pb-8;
+            max-width: 480px;
+            max-height: none;
+            margin-top: 1.5rem;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+        }
+
+        .guest-login-modal-panel--from {
+            transform: translateY(1rem);
+        }
+    }
+
+    .guest-login-sheet-chrome {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        margin: -1.25rem -1.25rem 0.35rem;
+        padding: 0.7rem 1.25rem 0.35rem;
+        background: #fff;
+    }
+
+    .dark .guest-login-sheet-chrome {
+        @apply bg-night-elevated;
+    }
+
+    .guest-login-sheet-handle {
+        display: block;
+        width: 2.5rem;
+        height: 0.25rem;
+        margin: 0.15rem auto 0;
+        border-radius: 9999px;
+        background: #cbd5e1;
+    }
+
+    .dark .guest-login-sheet-handle {
+        background: rgb(148 163 184 / 0.45);
+    }
+
+    @media (min-width: 640px) {
+        .guest-login-sheet-handle {
+            display: none;
+        }
+
+        .guest-login-sheet-chrome {
+            position: static;
+            z-index: auto;
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+        }
+
+        .dark .guest-login-sheet-chrome {
+            background: transparent;
+        }
+    }
+
+    .guest-login-modal-panel.is-shaking,
+    .guest-auth.is-shaking {
+        animation: guest-role-btn-shake 500ms ease;
+    }
+
+    .guest-login-modal-close {
+        @apply absolute right-3 top-3 inline-flex items-center justify-center gap-1 rounded-full p-2 pr-2.5 text-slate-600
+            transition-colors hover:bg-gray-100 hover:text-slate-900
+            dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-zinc-100;
+    }
+
+    @media (max-width: 639px) {
+        .guest-login-modal-close {
+            @apply top-2 rounded-full bg-slate-100 px-3 py-1.5;
+        }
+
+        .dark .guest-login-modal-close {
+            background: rgb(255 255 255 / 0.08);
+        }
+    }
+
+    .guest-login-modal-close-icon {
+        @apply h-5 w-5;
+    }
+
+    .guest-login-modal-close-label {
+        @apply text-xs font-semibold tracking-wide;
+    }
+
+    @media (min-width: 640px) {
+        .guest-login-modal-close-label {
+            @apply sr-only;
+        }
+
+        .guest-login-modal-close {
+            @apply pr-2;
+        }
+    }
+
+    /* Hover tooltip only on fine pointers — hidden on touch so it cannot clip or flash-and-dismiss. */
+    .guest-login-modal-close::after {
+        content: none;
+    }
+
+    @media (hover: hover) and (pointer: fine) and (min-width: 640px) {
+        .guest-login-modal-close::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: calc(100% + 0.4rem);
+            right: 0;
+            left: auto;
+            z-index: 5;
+            max-width: min(14rem, calc(100vw - 2rem));
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            border-radius: 0.25rem;
+            background: #132f4f;
+            padding: 0.3rem 0.55rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            color: #fff;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-2px);
+            transition: opacity 120ms ease, transform 120ms ease;
+        }
+
+        .guest-login-modal-close:hover::after,
+        .guest-login-modal-close:focus-visible::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .guest-login-modal-panel .guest-auth-heading {
+        @apply pr-4 text-xl sm:pr-14 sm:text-2xl;
+    }
+
+    .guest-login-modal-panel .guest-auth-m365 {
+        @apply mt-4 max-w-none;
+    }
+
+    .guest-login-modal-panel .guest-auth-or {
+        @apply max-w-none;
+    }
+
+    .guest-login-modal-panel .guest-auth-or span {
+        @apply bg-white dark:bg-night-elevated;
+    }
+
+    .guest-login-modal-panel :focus-visible:not(.guest-auth-input) {
+        outline: 2px solid #0f766e;
+        outline-offset: 2px;
+    }
+
+    .guest-login-modal-panel .guest-auth-input:focus,
+    .guest-login-modal-panel .guest-auth-input:focus-visible {
+        outline: none;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-ring-offset-shadow: 0 0 #0000;
+        border-color: #0d9488;
+        box-shadow: 0 0 0 2px rgb(13 148 136 / 0.2);
+    }
+
+    .guest-login-modal-panel .guest-auth-input.is-invalid:focus,
+    .guest-login-modal-panel .guest-auth-input.is-invalid:focus-visible {
+        border-color: #ce1126;
+        box-shadow: 0 0 0 2px rgb(206 17 38 / 0.2);
+    }
+
+    .guest-login-modal-panel .guest-auth-m365:focus,
+    .guest-login-modal-panel .guest-auth-m365:focus-visible,
+    .guest-login-modal-panel .guest-auth-submit:focus,
+    .guest-login-modal-panel .guest-auth-submit:focus-visible {
+        outline: 2px solid #0f766e;
+        outline-offset: 2px;
+    }
+
+    .guest-login-secure {
+        @apply mt-8 flex items-start gap-1.5 border-t border-slate-200 pt-4 text-sm leading-snug text-slate-600
+            dark:border-white/10 dark:text-zinc-300;
+    }
+
+    .guest-login-secure-icon {
+        @apply mt-0.5 h-4 w-4 shrink-0 text-health-700 dark:text-health-300;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -906,13 +1630,58 @@
             transform: none;
         }
 
-        .guest-role-continue-btn.is-shaking {
+        .guest-role-continue-btn.is-shaking,
+        .guest-login-modal-panel.is-shaking,
+        .guest-auth.is-shaking {
             animation: none;
+        }
+
+        .guest-auth-spinner,
+        .guest-portal-boot-spinner {
+            animation: none;
+            border-top-color: rgb(255 255 255 / 0.35);
+        }
+
+        .guest-portal-boot-spinner {
+            border-top-color: #0f766e;
+        }
+
+        .guest-portal-boot-bone {
+            animation: none;
+            opacity: 0.7;
+        }
+
+        .guest-role-card:hover:not(.guest-role-card--selected),
+        .guest-role-continue-btn.is-enabled:hover,
+        .guest-auth-m365:hover,
+        .guest-auth-submit:hover {
+            transform: none;
+        }
+
+        .guest-login-modal-panel--from,
+        .guest-login-modal-panel--to,
+        .guest-portal-sheet--from,
+        .guest-portal-sheet--to {
+            transform: none;
         }
     }
 
     .guest-auth-m365 {
-        @apply mt-6 flex h-11 w-full max-w-md items-center justify-center gap-3 rounded border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 no-underline transition hover:border-health-300 hover:bg-health-50 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-200 dark:hover:border-health-700 dark:hover:bg-health-900/30;
+        @apply mt-6 flex h-11 w-full max-w-md items-center justify-center gap-3 rounded border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 no-underline hover:border-health-300 hover:bg-health-50 focus:outline-none focus:ring-2 focus:ring-health-600/15 dark:border-white/10 dark:bg-night-elevated dark:text-zinc-200 dark:hover:border-health-700 dark:hover:bg-health-900/30;
+        transition:
+            background-color 200ms ease,
+            border-color 200ms ease,
+            color 200ms ease,
+            transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 200ms ease;
+    }
+
+    .guest-auth-m365:hover {
+        transform: translateY(-1px);
+    }
+
+    .guest-auth-m365:active {
+        transform: translateY(0);
     }
 
     .guest-auth-m365-icon {
@@ -934,14 +1703,54 @@
 
     /* Primary CTA — matches Continue on role selection (DICT 11.9 / 10.4) */
     .guest-auth-submit {
-        @apply mt-2 flex h-11 w-full cursor-pointer items-center justify-center rounded border border-transparent
+        @apply mt-2 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded border border-transparent
             bg-health-700 px-6 text-sm font-bold text-white
             hover:bg-health-800 active:bg-health-900
             focus:outline-none focus-visible:ring-2 focus-visible:ring-health-600/30 focus-visible:ring-offset-2
             dark:focus-visible:ring-offset-night;
         transition:
-            background-color 180ms ease,
-            box-shadow 180ms ease;
+            background-color 200ms ease,
+            box-shadow 200ms ease,
+            transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+            opacity 200ms ease;
+    }
+
+    .guest-auth-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px -8px rgba(15, 118, 110, 0.55);
+    }
+
+    .guest-auth-submit:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+
+    .guest-auth-submit:disabled,
+    .guest-auth-submit.is-loading {
+        @apply cursor-wait bg-health-800 hover:bg-health-800;
+        opacity: 0.92;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .guest-auth-spinner {
+        display: none;
+        height: 1rem;
+        width: 1rem;
+        border-radius: 9999px;
+        border: 2px solid rgb(255 255 255 / 0.35);
+        border-top-color: #fff;
+        animation: guest-auth-spin 700ms linear infinite;
+    }
+
+    .guest-auth-submit.is-loading .guest-auth-spinner {
+        display: inline-block;
+    }
+
+    @keyframes guest-auth-spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     .guest-auth-submit-outline {
@@ -950,39 +1759,27 @@
     }
 
     .guest-portal-footer-bar {
-        @apply mt-auto shrink-0 bg-[#2d2f3b] text-[#8e9196] dark:bg-night-elevated;
+        @apply mt-auto shrink-0 border-t border-gray-200 bg-transparent py-6 text-gray-500 dark:border-white/10 dark:text-zinc-400;
     }
 
     .guest-portal-footer-inner {
-        @apply mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:px-8;
-    }
-
-    .guest-portal-footer-copy-block {
-        @apply min-w-0 flex-1;
+        @apply mx-auto flex max-w-6xl flex-col items-center justify-center gap-2 px-4 text-center sm:px-6 lg:px-8;
     }
 
     .guest-portal-footer-legal {
-        @apply mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs;
+        @apply m-0 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs;
     }
 
     .guest-portal-footer-sep {
-        @apply text-[#8e9196]/70;
+        @apply text-gray-300 dark:text-zinc-600;
     }
 
     .guest-portal-footer-copy {
-        @apply m-0 text-xs leading-snug text-[#8e9196] sm:text-sm;
+        @apply m-0 text-xs leading-snug text-gray-500 dark:text-zinc-400;
     }
 
     .guest-portal-footer-link {
-        @apply font-semibold text-[#b8bbc2] no-underline underline-offset-2 transition hover:text-white hover:underline;
-    }
-
-    .guest-portal-footer-help {
-        @apply m-0 mt-1 text-[11px] leading-snug text-[#8e9196]/90 sm:text-xs;
-    }
-
-    .guest-portal-footer-note {
-        @apply m-0 text-[11px] font-semibold uppercase tracking-wide text-[#8e9196]/80;
+        @apply font-medium text-gray-500 no-underline underline-offset-2 transition hover:text-teal-700 hover:underline dark:text-zinc-400 dark:hover:text-teal-300;
     }
 
     .guest-legal {

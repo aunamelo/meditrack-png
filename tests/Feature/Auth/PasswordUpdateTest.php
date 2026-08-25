@@ -20,15 +20,33 @@ class PasswordUpdateTest extends TestCase
             ->from('/profile')
             ->put('/password', [
                 'current_password' => 'password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPass1!ok',
+                'password_confirmation' => 'NewPass1!ok',
             ]);
 
         $response
             ->assertSessionHasNoErrors()
             ->assertRedirect('/profile');
 
-        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->assertTrue(Hash::check('NewPass1!ok', $user->refresh()->password));
+    }
+
+    public function test_password_must_meet_complexity_rules(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->put('/password', [
+                'current_password' => 'password',
+                'password' => 'weakpass',
+                'password_confirmation' => 'weakpass',
+            ]);
+
+        $response
+            ->assertSessionHasErrorsIn('updatePassword', 'password')
+            ->assertRedirect('/profile');
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void
@@ -40,8 +58,8 @@ class PasswordUpdateTest extends TestCase
             ->from('/profile')
             ->put('/password', [
                 'current_password' => 'wrong-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPass1!ok',
+                'password_confirmation' => 'NewPass1!ok',
             ]);
 
         $response

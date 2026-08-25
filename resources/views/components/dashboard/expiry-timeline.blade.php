@@ -53,6 +53,11 @@
                 </li>
             @endforeach
         </ul>
+        <div class="flex flex-wrap gap-3 border-t border-line/70 px-5 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted">
+            <span><span class="mr-1 inline-block h-2 w-2 rounded-full bg-rose-500"></span> Red &lt; 30 days</span>
+            <span><span class="mr-1 inline-block h-2 w-2 rounded-full bg-amber-500"></span> Yellow 30–90 days</span>
+            <span><span class="mr-1 inline-block h-2 w-2 rounded-full bg-brand-500"></span> Green &gt; 90 days</span>
+        </div>
     @else
         <div class="px-5 py-10 text-center text-sm text-muted">
             No batches expiring in the next 6 months.

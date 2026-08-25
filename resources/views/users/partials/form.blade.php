@@ -45,7 +45,9 @@
                 Password @if(!$isEdit)<span class="text-red-500">*</span>@else<span class="text-gray-500">(leave blank to keep current)</span>@endif
             </label>
             <input type="password" name="password" id="password" {{ $isEdit ? '' : 'required' }}
+                autocomplete="new-password" minlength="10"
                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-600 focus:ring focus:ring-brand-600 focus:ring-opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
+            <x-password-requirements class="mt-1 text-xs text-gray-500 dark:text-zinc-400" />
             @error('password')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror

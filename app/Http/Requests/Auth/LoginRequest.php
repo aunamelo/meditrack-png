@@ -72,7 +72,7 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'credentials' => 'Incorrect username or password. Please try again.',
+                'credentials' => 'Invalid username or password. Please try again.',
             ]);
         }
 

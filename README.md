@@ -128,11 +128,11 @@ sudo apt update && sudo apt install -y git docker.io docker-compose-v2
 git clone https://github.com/aunamelo/meditrack-png.git
 cd meditrack-png
 cp .env.docker.example .env
-nano .env   # set APP_URL, DB_PASSWORD, DB_ROOT_PASSWORD, RUN_SEED=true
+nano .env   # set APP_URL, DB_PASSWORD, DB_ROOT_PASSWORD (RUN_SEED=true by default)
 docker compose up -d --build
 ```
 
-After a successful first login, set `RUN_SEED=false` in `.env`.
+Fresh Oracle starts with foundation seeds (demo users, suppliers, vehicles, medicine catalog). To wipe and reseed later, set `FRESH_DB=true` once in `.env`, restart, then set it back to `false`.
 
 Everyday update:
 

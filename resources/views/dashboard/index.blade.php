@@ -60,39 +60,20 @@
 
             @php
                 $insights = $insights ?? [];
-                $hasInsights = ($insights['stockHealth'] ?? null)
-                    || ($insights['atRisk'] ?? null)
-                    || ($insights['expiry'] ?? null)
-                    || ($insights['dispenseTrend'] ?? null);
+                $overview = $supplyOverview ?? null;
+                $hasInsights = ($insights['stockHealth'] ?? null) || ($insights['atRisk'] ?? null);
             @endphp
             @if($hasInsights)
                 <section class="mb-5 space-y-3">
                     <h3 class="heading-section">Stock status</h3>
-
-                    @if(($insights['stockHealth'] ?? null) || ($insights['atRisk'] ?? null))
-                        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
-                            @if($insights['stockHealth'] ?? null)
-                                <x-dashboard.stock-health-panel :panel="$insights['stockHealth']" />
-                            @endif
-                            @if($insights['atRisk'] ?? null)
-                                <x-dashboard.at-risk-panel :panel="$insights['atRisk']" />
-                            @endif
-                        </div>
-                    @endif
-
-                    @if(($insights['expiry'] ?? null) || ($insights['dispenseTrend'] ?? null))
-                        <div @class([
-                            'grid grid-cols-1 gap-3',
-                            'xl:grid-cols-2' => ($insights['expiry'] ?? null) && ($insights['dispenseTrend'] ?? null),
-                        ])>
-                            @if($insights['expiry'] ?? null)
-                                <x-dashboard.expiry-timeline :panel="$insights['expiry']" />
-                            @endif
-                            @if($insights['dispenseTrend'] ?? null)
-                                <x-dashboard.dispense-trend :panel="$insights['dispenseTrend']" />
-                            @endif
-                        </div>
-                    @endif
+                    <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                        @if($insights['stockHealth'] ?? null)
+                            <x-dashboard.stock-health-panel :panel="$insights['stockHealth']" />
+                        @endif
+                        @if($insights['atRisk'] ?? null)
+                            <x-dashboard.at-risk-panel :panel="$insights['atRisk']" />
+                        @endif
+                    </div>
                 </section>
             @endif
 
@@ -127,6 +108,55 @@
                             </div>
                         @endif
                     @endforeach
+                </section>
+            @endif
+
+            @if($overview)
+                <section class="mb-5 space-y-3">
+                    <h3 class="heading-section">Supply overview</h3>
+
+                    <div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
+                        @if($overview['stockChart'] ?? null)
+                            <div class="xl:col-span-2">
+                                <x-dashboard.chart :config="$overview['stockChart']" />
+                            </div>
+                        @endif
+                        @if($overview['statusDonut'] ?? null)
+                            <x-dashboard.chart :config="$overview['statusDonut']" />
+                        @endif
+                    </div>
+
+                    @if($overview['flow'] ?? null)
+                        <x-dashboard.supply-flow :panel="$overview['flow']" />
+                    @endif
+
+                    <div @class([
+                        'grid grid-cols-1 gap-3',
+                        'xl:grid-cols-2' => ($overview['dispensing'] ?? null) || ($insights['shipments'] ?? null),
+                    ])>
+                        @if($overview['dispensing'] ?? null)
+                            <x-dashboard.dispensing-chart
+                                :config="$overview['dispensing']"
+                                :url="$overview['dispensingUrl'] ?? null"
+                                :drugs="$overview['dispensingDrugs'] ?? []"
+                            />
+                        @endif
+                        @if($insights['shipments'] ?? null)
+                            <x-dashboard.shipment-timeline :panel="$insights['shipments']" />
+                        @endif
+                    </div>
+
+                    <div @class([
+                        'grid grid-cols-1 gap-3',
+                        'xl:grid-cols-2' => ($overview['activityChart'] ?? null) && ($insights['expiry'] ?? null),
+                    ])>
+                        @if($overview['activityChart'] ?? null)
+                            <x-dashboard.chart :config="$overview['activityChart']" />
+                        @endif
+                        @if($insights['expiry'] ?? null)
+                            <x-dashboard.expiry-timeline :panel="$insights['expiry']" />
+                        @endif
+                    </div>
                 </section>
             @endif
 

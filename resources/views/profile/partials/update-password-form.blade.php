@@ -16,7 +16,8 @@
 
         <div>
             <label for="update_password_password" class="form-label">New password</label>
-            <input type="password" id="update_password_password" name="password" autocomplete="new-password" class="input-field">
+            <input type="password" id="update_password_password" name="password" autocomplete="new-password" class="input-field" minlength="10">
+            <x-password-requirements />
             <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
         </div>
 

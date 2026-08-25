@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardChartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscrepancyReportController;
 use App\Http\Controllers\DispensingRecordController;
@@ -35,6 +36,7 @@ Route::get('/', function () {
 Route::view('/privacy', 'guest.privacy')->name('guest.privacy');
 Route::view('/terms', 'guest.terms')->name('guest.terms');
 Route::view('/accessibility', 'guest.accessibility')->name('guest.accessibility');
+Route::view('/support', 'guest.support')->name('guest.support');
 
 // Fallback dashboard — only reached if a logged-in user has none of the
 // 5 portal roles assigned. Keeps things safe rather than erroring out.
@@ -69,7 +71,6 @@ Route::middleware(['auth', 'verified', 'role:store_manager'])->group(function ()
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
@@ -90,6 +91,7 @@ Route::middleware(['signed'])->prefix('track')->name('driver-track.')->group(fun
 // Drug Inventory & Procurement Orders — scoped under each role's portal prefix.
 // Dashboard home stays at /{role}/dashboard; modules live at /{role}/drugs and /{role}/orders.
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.dashboard.')->group(function () {
+    Route::get('charts/dispensing', [DashboardChartController::class, 'dispensing'])->name('charts.dispensing');
     Route::post('medicines/{medicine}/deactivate', [MedicineController::class, 'deactivate'])->name('medicines.deactivate');
     Route::post('medicines/{medicine}/activate', [MedicineController::class, 'activate'])->name('medicines.activate');
     Route::resource('medicines', MedicineController::class);
@@ -112,6 +114,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 });
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {
+    Route::get('charts/dispensing', [DashboardChartController::class, 'dispensing'])->name('charts.dispensing');
     Route::post('medicines/{medicine}/deactivate', [MedicineController::class, 'deactivate'])->name('medicines.deactivate');
     Route::post('medicines/{medicine}/activate', [MedicineController::class, 'activate'])->name('medicines.activate');
     Route::resource('medicines', MedicineController::class)->except(['destroy']);
@@ -151,6 +154,7 @@ Route::middleware(['auth', 'verified', 'role:store_manager'])->prefix('store-man
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharmacy-manager')->name('pharmacy-manager.dashboard.')->group(function () {
+    Route::get('charts/dispensing', [DashboardChartController::class, 'dispensing'])->name('charts.dispensing');
     Route::resource('drugs', DrugController::class);
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
@@ -173,6 +177,7 @@ Route::middleware(['auth', 'verified', 'role:pharmacy_manager'])->prefix('pharma
 });
 
 Route::middleware(['auth', 'verified', 'role:pharmacist'])->prefix('pharmacist')->name('pharmacist.dashboard.')->group(function () {
+    Route::get('charts/dispensing', [DashboardChartController::class, 'dispensing'])->name('charts.dispensing');
     Route::resource('drugs', DrugController::class)->only(['index', 'show']);
     Route::resource('patients', PatientController::class)->except(['destroy']);
     Route::resource('dispensing', DispensingRecordController::class)->only(['index', 'create', 'store', 'show'])->parameters(['dispensing' => 'dispensing']);

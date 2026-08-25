@@ -12,60 +12,50 @@
         'pharmacy_manager' => 'hospital',
         'pharmacist' => 'pill',
     ];
-    $facilityStats = [
-        ['value' => '21', 'label' => 'Provincial Hospitals'],
-        ['value' => '18', 'label' => 'District Hospitals'],
-        ['value' => '737', 'label' => 'Health Centres'],
-        ['value' => '49', 'label' => 'Community Health Posts'],
-    ];
     $roleLoginUrls = [];
     $roleLabels = [];
+    $microsoftUrls = [];
     foreach ($roleOrder as $roleKey) {
         if (! isset($portalRoles[$roleKey])) {
             continue;
         }
-        $roleLoginUrls[$roleKey] = route('login', ['role' => str_replace('_', '-', $roleKey)]);
+        $roleSlug = str_replace('_', '-', $roleKey);
+        $roleLoginUrls[$roleKey] = route('login', ['role' => $roleSlug]);
         $roleLabels[$roleKey] = $portalRoles[$roleKey]['label'];
+        $microsoftUrls[$roleKey] = route('auth.microsoft.redirect', ['role' => $roleSlug]);
     }
+    $oldRoleSlug = old('role');
+    $oldRoleKey = $oldRoleSlug ? str_replace('-', '_', (string) $oldRoleSlug) : null;
+    if ($oldRoleKey && ! isset($portalRoles[$oldRoleKey])) {
+        $oldRoleKey = null;
+    }
+    $openLoginModal = $errors->any() && filled($oldRoleKey);
+    $microsoftEnabled = \App\Services\PortalLoginService::microsoftConfigured();
 @endphp
 
 @section('content')
     <div
-        class="guest-auth"
-        x-data="{
-            selectedRole: null,
-            urls: @js($roleLoginUrls),
+        class="guest-home flex min-h-[calc(100vh-200px)] flex-col items-center justify-center"
+        @class(['guest-home--reopen-login' => $openLoginModal])
+        x-data="guestRolePicker({
+            selectedRole: @js($oldRoleKey),
+            loginOpen: @js($openLoginModal),
             labels: @js($roleLabels),
-            showValidation: false,
-            highlightGrid: false,
-            shakeButton: false,
-            select(role) {
-                this.selectedRole = role;
-                this.showValidation = false;
-                this.highlightGrid = false;
-            },
-            continueToLogin() {
-                if (! this.selectedRole) {
-                    this.showValidation = true;
-                    this.highlightGrid = true;
-                    this.shakeButton = false;
-                    this.$nextTick(() => {
-                        this.shakeButton = true;
-                        setTimeout(() => { this.shakeButton = false; }, 450);
-                    });
-                    return;
-                }
-
-                this.showValidation = false;
-                this.highlightGrid = false;
-                window.location.href = this.urls[this.selectedRole];
-            },
-        }"
+            microsoftUrls: @js($microsoftUrls),
+            email: @js(old('email', '')),
+            emailError: @js($errors->first('email') ?: ''),
+            passwordError: @js($errors->first('password') ?: ''),
+            credentialsError: @js($errors->first('credentials') ?: ''),
+        })"
     >
-        <h2 id="guest-role-heading" class="guest-auth-heading">Choose your portal role</h2>
-        <p class="guest-auth-lead">
-            Select your MediTrack role to continue. If you do not have an account, contact your NDoH or facility administrator.
-        </p>
+    <div class="guest-auth">
+        <div class="guest-role-picker" x-show="! loginOpen" @if($openLoginModal) x-cloak @endif>
+        <div class="guest-role-intro">
+            <h2 id="guest-role-heading" class="guest-auth-heading guest-auth-heading--portal">Choose your portal role</h2>
+            <p class="guest-auth-lead guest-auth-lead--portal">
+                Select your MediTrack role to continue. If you do not have an account, contact your NDoH or facility administrator.
+            </p>
+        </div>
 
         <div
             class="guest-role-grid"
@@ -78,14 +68,15 @@
                 @if(isset($portalRoles[$roleKey]))
                     <a
                         href="{{ $roleLoginUrls[$roleKey] }}"
+                        id="guest-role-card-{{ $roleKey }}"
                         class="guest-role-card guest-role-card--enter"
                         style="--guest-role-enter-delay: {{ ($loop->index) * 70 }}ms"
                         role="radio"
                         :aria-checked="selectedRole === @js($roleKey)"
                         :class="{ 'guest-role-card--selected': selectedRole === @js($roleKey) }"
-                        @click.prevent="select(@js($roleKey))"
-                        @keydown.enter.prevent="select(@js($roleKey))"
-                        @keydown.space.prevent="select(@js($roleKey))"
+                        @click.prevent="select(@js($roleKey), $event)"
+                        @keydown.enter.prevent="select(@js($roleKey), $event)"
+                        @keydown.space.prevent="select(@js($roleKey), $event)"
                     >
                         <span class="guest-role-card-icon" aria-hidden="true">
                             <x-dashboard.icon :name="$roleIcons[$roleKey]" class="h-6 w-6" />
@@ -100,14 +91,7 @@
                             x-cloak
                             aria-hidden="true"
                         >
-                            <x-dashboard.icon name="check" class="h-5 w-5" />
-                        </span>
-                        <span
-                            class="guest-role-card-chevron"
-                            x-show="selectedRole !== @js($roleKey)"
-                            aria-hidden="true"
-                        >
-                            <x-dashboard.icon name="chevron-right" class="h-5 w-5" />
+                            <x-dashboard.icon name="check-circle" class="h-5 w-5" />
                         </span>
                     </a>
                 @endif
@@ -133,28 +117,102 @@
             <button
                 type="button"
                 class="guest-role-continue-btn"
+                x-ref="continueBtn"
                 :class="{
                     'is-enabled': selectedRole,
                     'is-shaking': shakeButton,
                 }"
+                :disabled="! selectedRole"
                 :aria-disabled="(! selectedRole).toString()"
                 :aria-describedby="showValidation ? 'guest-role-validation' : null"
                 @click="continueToLogin()"
             >
                 <span x-text="selectedRole ? ('Continue as ' + labels[selectedRole]) : 'Continue'"></span>
+                <x-dashboard.icon name="arrow-right" class="guest-role-continue-arrow" />
             </button>
+
+            <p class="guest-role-secure">
+                <x-dashboard.icon name="lock" class="guest-role-secure-icon" />
+                Secured connection — National Department of Health, Papua New Guinea
+            </p>
+        </div>
+        </div>
+
+        <div
+            class="guest-login-modal"
+            x-show="loginOpen"
+            @unless($openLoginModal) x-cloak @endunless
+            role="presentation"
+            @click.self="closeLogin()"
+            @keydown.escape.window="closeLogin()"
+            @keydown.tab.window="trapFocus($event)"
+        >
+            <div
+                class="guest-login-modal-backdrop"
+                x-show="loginOpen"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                @click="closeLogin()"
+                aria-hidden="true"
+            ></div>
+
+            <div
+                class="guest-login-modal-panel transform"
+                x-show="loginOpen"
+                x-transition:enter="transition ease-out duration-250"
+                x-transition:enter-start="opacity-0 guest-login-modal-panel--from"
+                x-transition:enter-end="opacity-100 guest-login-modal-panel--to"
+                x-transition:leave="transition ease-in duration-180"
+                x-transition:leave-start="opacity-100 guest-login-modal-panel--to"
+                x-transition:leave-end="opacity-0 guest-login-modal-panel--from"
+                x-ref="loginPanel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-title"
+                :aria-describedby="credentialsError ? 'modal-description guest-auth-credentials-error' : 'modal-description'"
+                tabindex="-1"
+                :class="{ 'is-shaking': panelShaking }"
+                @click.stop
+            >
+                <div class="guest-login-sheet-chrome">
+                    <div class="guest-login-sheet-handle" aria-hidden="true"></div>
+                    <button
+                        type="button"
+                        class="guest-login-modal-close"
+                        @click="closeLogin()"
+                        aria-label="Close modal"
+                        data-tooltip="Close modal"
+                    >
+                        <x-dashboard.icon name="x" class="guest-login-modal-close-icon" />
+                        <span class="guest-login-modal-close-label" aria-hidden="true">Close</span>
+                    </button>
+                </div>
+
+                <h2 id="modal-title" class="guest-auth-heading">Log in to an existing account</h2>
+                @include('auth.partials.login-error-banner')
+                <p id="modal-description" class="guest-auth-lead">
+                    Signing in as <strong x-text="labels[selectedRole]"></strong>.
+                    If you do not have an account, please contact your NDoH or facility administrator.
+                </p>
+
+                @include('auth.partials.login-panel', [
+                    'microsoftEnabled' => $microsoftEnabled,
+                    'bindRole' => true,
+                    'autofocusEmail' => false,
+                ])
+
+                <p class="guest-login-secure">
+                    <svg class="guest-login-secure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    Secured connection — National Department of Health, Papua New Guinea
+                </p>
+            </div>
         </div>
     </div>
-
-    <aside class="guest-facility-stats" aria-label="Papua New Guinea health facility network">
-        <ul class="guest-facility-stats-grid">
-            @foreach($facilityStats as $stat)
-                <li class="guest-facility-stats-item">
-                    <p class="guest-facility-stats-value">{{ $stat['value'] }}</p>
-                    <span class="guest-facility-stats-rule" aria-hidden="true"></span>
-                    <p class="guest-facility-stats-label">{{ $stat['label'] }}</p>
-                </li>
-            @endforeach
-        </ul>
-    </aside>
+    </div>
 @endsection

@@ -2,9 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\DispensingRecord;
 use App\Models\Drug;
+use App\Models\HospitalOrder;
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\StockAdjustment;
 use App\Models\StockTransfer;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class DashboardChartService
@@ -26,14 +31,9 @@ class DashboardChartService
                 $userId ? self::procurementSpendChart($userId) : null,
             ])),
             'store_manager' => [
-                self::inventoryHealthChart($inventoryLevel ?? 'lae_ams'),
                 self::shipmentStatusChart('lae_ams'),
-                self::topStockChart($inventoryLevel ?? 'lae_ams'),
             ],
-            'pharmacy_manager', 'pharmacist' => [
-                self::inventoryHealthChart($inventoryLevel ?? 'modilon_hospital'),
-                self::topStockChart($inventoryLevel ?? 'modilon_hospital'),
-            ],
+            'pharmacy_manager', 'pharmacist' => [],
             default => [],
         };
     }
@@ -265,5 +265,333 @@ class DashboardChartService
             ]],
             'horizontal' => true,
         ];
+    }
+
+    /**
+     * Role-aware Supply overview payload (stock, donut, flow, activity, dispensing).
+     *
+     * @return array<string, mixed>
+     */
+    public static function supplyOverview(string $roleKey, ?string $inventoryLevel = null, ?int $userId = null): array
+    {
+        $level = $inventoryLevel ?? match ($roleKey) {
+            'store_manager' => 'lae_ams',
+            'pharmacy_manager', 'pharmacist' => 'modilon_hospital',
+            default => 'ndoh',
+        };
+
+        $showFlow = in_array($roleKey, ['admin', 'procurement_officer', 'store_manager'], true);
+        $showDispensing = in_array($roleKey, ['admin', 'procurement_officer', 'pharmacy_manager', 'pharmacist'], true);
+        $showActivity = in_array($roleKey, ['admin', 'procurement_officer'], true);
+        $dispensingRoute = getDashboardRoutePrefix().'charts.dispensing';
+        $dispensingUrl = $showDispensing && \Illuminate\Support\Facades\Route::has($dispensingRoute)
+            ? route($dispensingRoute)
+            : null;
+
+        return [
+            'stockChart' => self::stockVsReorderChart($level),
+            'statusDonut' => self::stockStatusDonut($level),
+            'activityChart' => $showActivity ? self::roleActivityChart() : null,
+            'flow' => $showFlow ? self::supplyFlow($roleKey) : null,
+            'dispensing' => $showDispensing ? self::dispensingTrendChart(null, 30) : null,
+            'dispensingUrl' => $dispensingUrl,
+            'dispensingDrugs' => $showDispensing ? self::dispensingDrugOptions() : [],
+        ];
+    }
+
+    /**
+     * On-hand vs reorder point, grouped by medicine at a facility.
+     *
+     * @return array<string, mixed>
+     */
+    public static function stockVsReorderChart(string $level, int $limit = 12): array
+    {
+        $rows = Drug::query()
+            ->atLevel($level)
+            ->inInventory()
+            ->selectRaw('drug_name, dosage, SUM(quantity_on_hand) as qty, MIN(reorder_point) as reorder_point')
+            ->groupBy('drug_name', 'dosage')
+            ->orderByDesc('qty')
+            ->limit($limit)
+            ->get();
+
+        $levelLabel = match ($level) {
+            'ndoh' => 'NDoH Central Store',
+            'lae_ams' => 'Lae AMS',
+            'modilon_hospital' => 'Modilon',
+            default => 'Facility',
+        };
+
+        if ($rows->isEmpty()) {
+            return [
+                'id' => 'stock-reorder-'.$level,
+                'type' => 'bar',
+                'title' => 'Stock levels',
+                'subtitle' => $levelLabel.' · on hand vs reorder point',
+                'labels' => ['No stock yet'],
+                'datasets' => [
+                    [
+                        'type' => 'bar',
+                        'label' => 'On hand',
+                        'data' => [0],
+                        'backgroundColor' => '#94a3b8',
+                        'borderRadius' => 6,
+                        'order' => 2,
+                    ],
+                    [
+                        'type' => 'line',
+                        'label' => 'Reorder point',
+                        'data' => [0],
+                        'borderColor' => '#f59e0b',
+                        'backgroundColor' => '#f59e0b',
+                        'borderWidth' => 2,
+                        'pointRadius' => 3,
+                        'tension' => 0,
+                        'order' => 1,
+                    ],
+                ],
+            ];
+        }
+
+        return [
+            'id' => 'stock-reorder-'.$level,
+            'type' => 'bar',
+            'title' => 'Stock levels',
+            'subtitle' => $levelLabel.' · on hand vs reorder threshold',
+            'labels' => $rows->map(fn ($row) => trim($row->drug_name.($row->dosage ? ' ('.$row->dosage.')' : '')))->all(),
+            'datasets' => [
+                [
+                    'type' => 'bar',
+                    'label' => 'On hand',
+                    'data' => $rows->map(fn ($row) => (int) $row->qty)->all(),
+                    'backgroundColor' => '#0f766e',
+                    'borderRadius' => 6,
+                    'order' => 2,
+                ],
+                [
+                    'type' => 'line',
+                    'label' => 'Reorder point',
+                    'data' => $rows->map(fn ($row) => (int) $row->reorder_point)->all(),
+                    'borderColor' => '#f59e0b',
+                    'backgroundColor' => '#f59e0b',
+                    'borderWidth' => 2,
+                    'pointRadius' => 4,
+                    'tension' => 0,
+                    'order' => 1,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Adequate / low / critical / expired donut using LMIS + expired batches.
+     *
+     * @return array<string, mixed>
+     */
+    public static function stockStatusDonut(string $level): array
+    {
+        $counts = LmisService::statusCountsForLevel($level);
+        $expired = Drug::query()->atLevel($level)->inInventory()->expired()->count();
+        $adequate = (int) ($counts['adequate'] ?? 0);
+        $low = (int) ($counts['low'] ?? 0);
+        $critical = (int) ($counts['critical'] ?? 0) + (int) ($counts['stock_out'] ?? 0);
+
+        return [
+            'id' => 'stock-status-'.$level,
+            'type' => 'doughnut',
+            'title' => 'Stock status',
+            'subtitle' => 'Adequate / low / critical / expired',
+            'labels' => ['Adequate', 'Low', 'Critical', 'Expired'],
+            'datasets' => [[
+                'data' => [$adequate, $low, $critical, $expired],
+                'backgroundColor' => ['#0f766e', '#f59e0b', '#ea580c', '#ef4444'],
+            ]],
+        ];
+    }
+
+    /**
+     * Corridor volume for the last 90 days.
+     *
+     * @return array<string, mixed>
+     */
+    public static function supplyFlow(string $roleKey = 'admin'): array
+    {
+        $from = now()->subDays(90)->startOfDay();
+
+        $intoNdoh = (int) OrderItem::query()
+            ->where('quantity_received', '>', 0)
+            ->whereHas('order', fn ($query) => $query->where('updated_at', '>=', $from))
+            ->sum('quantity_received');
+
+        $toLae = (int) StockTransfer::query()
+            ->fromLevel('ndoh')
+            ->toLevel('lae_ams')
+            ->whereNull('hospital_order_id')
+            ->whereIn('status', ['sent', 'received'])
+            ->where(function ($query) use ($from) {
+                $query->whereDate('sent_date', '>=', $from)
+                    ->orWhere('created_at', '>=', $from);
+            })
+            ->sum('quantity_sent');
+
+        $toModilon = (int) StockTransfer::query()
+            ->toLevel('modilon_hospital')
+            ->whereIn('status', ['sent', 'received'])
+            ->where(function ($query) use ($from) {
+                $query->whereDate('sent_date', '>=', $from)
+                    ->orWhere('created_at', '>=', $from);
+            })
+            ->sum('quantity_sent');
+
+        $dispensed = (int) DispensingRecord::query()
+            ->where('dispensed_at', '>=', $from)
+            ->sum('quantity_dispensed');
+
+        $nodes = [
+            ['key' => 'ndoh', 'label' => 'NDoH', 'detail' => 'Central store', 'value' => $intoNdoh],
+            ['key' => 'lae', 'label' => 'Lae AMS', 'detail' => 'Regional warehouse', 'value' => $toLae],
+            ['key' => 'modilon', 'label' => 'Modilon', 'detail' => 'Hospital pharmacy', 'value' => $toModilon],
+            ['key' => 'dispense', 'label' => 'Dispensed', 'detail' => 'Patients', 'value' => $dispensed],
+        ];
+
+        $max = max(1, $intoNdoh, $toLae, $toModilon, $dispensed);
+
+        return [
+            'title' => 'Supply chain flow',
+            'subtitle' => $roleKey === 'store_manager'
+                ? 'Units moving through Lae AMS · last 90 days'
+                : 'NDoH → Lae AMS → Modilon → dispensing · last 90 days',
+            'nodes' => $nodes,
+            'max' => $max,
+            'empty' => $intoNdoh + $toLae + $toModilon + $dispensed === 0,
+        ];
+    }
+
+    /**
+     * Actions in the last 14 days grouped by portal role.
+     *
+     * @return array<string, mixed>
+     */
+    public static function roleActivityChart(): array
+    {
+        $from = now()->subDays(14)->startOfDay();
+
+        $events = collect()
+            ->concat(Order::query()->where('created_at', '>=', $from)->pluck('created_by'))
+            ->concat(StockTransfer::query()->where('created_at', '>=', $from)->pluck('sent_by'))
+            ->concat(HospitalOrder::query()->where('created_at', '>=', $from)->pluck('requested_by'))
+            ->concat(HospitalOrder::query()->where('reviewed_at', '>=', $from)->pluck('reviewed_by'))
+            ->concat(DispensingRecord::query()->where('dispensed_at', '>=', $from)->pluck('dispensed_by'))
+            ->concat(StockAdjustment::query()->where('adjusted_at', '>=', $from)->pluck('adjusted_by'))
+            ->filter()
+            ->map(fn ($id) => (int) $id);
+
+        $roleCounts = [
+            'admin' => 0,
+            'procurement_officer' => 0,
+            'store_manager' => 0,
+            'pharmacy_manager' => 0,
+            'pharmacist' => 0,
+        ];
+
+        if ($events->isNotEmpty()) {
+            $users = User::query()
+                ->with('roles')
+                ->whereIn('id', $events->unique()->values())
+                ->get()
+                ->keyBy('id');
+
+            foreach ($events as $userId) {
+                $key = $users->get($userId)?->portalRoleKey();
+                if ($key && isset($roleCounts[$key])) {
+                    $roleCounts[$key]++;
+                }
+            }
+        }
+
+        return [
+            'id' => 'role-activity',
+            'type' => 'bar',
+            'title' => 'Activity by role',
+            'subtitle' => 'Orders, shipments, stock takes and dispenses · last 14 days',
+            'labels' => ['NDoH Admin', 'Procurement', 'Store Manager', 'Pharmacy Mgr', 'Pharmacist'],
+            'datasets' => [[
+                'label' => 'Actions',
+                'data' => array_values($roleCounts),
+                'backgroundColor' => ['#0f766e', '#14b8a6', '#3b82f6', '#8b5cf6', '#f59e0b'],
+                'borderRadius' => 8,
+            ]],
+        ];
+    }
+
+    /**
+     * Daily dispensed quantity, optional medicine name filter.
+     *
+     * @return array<string, mixed>
+     */
+    public static function dispensingTrendChart(?string $drugName = null, int $days = 30): array
+    {
+        $start = now()->subDays($days - 1)->startOfDay();
+
+        $query = DispensingRecord::query()
+            ->where('dispensed_at', '>=', $start)
+            ->with('drug:id,drug_name,dosage');
+
+        if (filled($drugName)) {
+            $query->whereHas('drug', function ($drugQuery) use ($drugName) {
+                $drugQuery->where('drug_name', $drugName);
+            });
+        }
+
+        $rows = $query->get(['dispensed_at', 'quantity_dispensed', 'drug_id'])
+            ->groupBy(fn (DispensingRecord $record) => $record->dispensed_at->format('Y-m-d'))
+            ->map(fn ($day) => (int) $day->sum('quantity_dispensed'));
+
+        $labels = [];
+        $data = [];
+        for ($i = 0; $i < $days; $i++) {
+            $day = $start->copy()->addDays($i);
+            $key = $day->format('Y-m-d');
+            $labels[] = $day->format('j M');
+            $data[] = (int) ($rows[$key] ?? 0);
+        }
+
+        $subtitle = filled($drugName)
+            ? $drugName.' · last '.$days.' days'
+            : 'All medicines · last '.$days.' days';
+
+        return [
+            'id' => 'dispensing-trend',
+            'type' => 'line',
+            'title' => 'Dispensing trends',
+            'subtitle' => $subtitle,
+            'labels' => $labels,
+            'datasets' => [[
+                'label' => 'Units dispensed',
+                'data' => $data,
+                'borderColor' => '#0f766e',
+                'backgroundColor' => 'rgba(15, 118, 110, 0.12)',
+                'fill' => true,
+                'tension' => 0.35,
+            ]],
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function dispensingDrugOptions(): array
+    {
+        return DispensingRecord::query()
+            ->with('drug:id,drug_name')
+            ->latest('dispensed_at')
+            ->limit(200)
+            ->get()
+            ->pluck('drug.drug_name')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 }

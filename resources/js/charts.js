@@ -14,6 +14,7 @@ function themeColors() {
 
 function buildOptions(config, colors) {
     const horizontal = config.horizontal === true;
+    const isDonut = config.type === 'doughnut';
 
     return {
         responsive: true,
@@ -21,7 +22,7 @@ function buildOptions(config, colors) {
         indexAxis: horizontal ? 'y' : 'x',
         plugins: {
             legend: {
-                display: config.type === 'doughnut' || (config.datasets?.length ?? 0) > 1,
+                display: isDonut || (config.datasets?.length ?? 0) > 1,
                 labels: {
                     color: colors.text,
                     font: { family: '"Plus Jakarta Sans", sans-serif', size: 12, weight: '600' },
@@ -37,7 +38,7 @@ function buildOptions(config, colors) {
                 cornerRadius: 10,
             },
         },
-        scales: config.type === 'doughnut'
+        scales: isDonut
             ? {}
             : {
                 x: {
@@ -55,11 +56,25 @@ function buildOptions(config, colors) {
     };
 }
 
+function createChart(canvas, config) {
+    const colors = themeColors();
+
+    return new Chart(canvas, {
+        type: config.type,
+        data: {
+            labels: config.labels,
+            datasets: config.datasets,
+        },
+        options: buildOptions(config, colors),
+    });
+}
+
 function registerDashboardCharts() {
     document.addEventListener('alpine:init', () => {
         Alpine.data('dashboardChart', (config) => ({
             chart: null,
             observer: null,
+            config,
 
             init() {
                 this.renderChart();
@@ -77,20 +92,66 @@ function registerDashboardCharts() {
                     return;
                 }
 
-                const colors = themeColors();
+                if (this.chart) {
+                    this.chart.destroy();
+                }
+
+                this.chart = createChart(canvas, this.config);
+            },
+
+            destroy() {
+                this.chart?.destroy();
+                this.observer?.disconnect();
+            },
+        }));
+
+        Alpine.data('dashboardDispensingChart', (payload) => ({
+            chart: null,
+            observer: null,
+            config: payload.config,
+            url: payload.url,
+            drug: '',
+            loading: false,
+
+            init() {
+                this.renderChart();
+                this.observer = new MutationObserver(() => this.renderChart());
+                this.observer.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['class'],
+                });
+            },
+
+            renderChart() {
+                const canvas = this.$refs.canvas;
+
+                if (! canvas || ! this.config) {
+                    return;
+                }
 
                 if (this.chart) {
                     this.chart.destroy();
                 }
 
-                this.chart = new Chart(canvas, {
-                    type: config.type,
-                    data: {
-                        labels: config.labels,
-                        datasets: config.datasets,
-                    },
-                    options: buildOptions(config, colors),
-                });
+                this.chart = createChart(canvas, this.config);
+            },
+
+            async reload() {
+                if (! this.url) {
+                    return;
+                }
+
+                this.loading = true;
+
+                try {
+                    const { data } = await window.axios.get(this.url, {
+                        params: { drug: this.drug || undefined },
+                    });
+                    this.config = data;
+                    this.renderChart();
+                } finally {
+                    this.loading = false;
+                }
             },
 
             destroy() {

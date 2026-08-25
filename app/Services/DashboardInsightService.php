@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DispensingRecord;
 use App\Models\Drug;
+use App\Models\HospitalOrder;
 use Illuminate\Support\Collection;
 
 /**
@@ -22,32 +23,37 @@ class DashboardInsightService
             'admin', 'procurement_officer' => [
                 'stockHealth' => self::corridorStockHealth(8),
                 'atRisk' => self::corridorAtRisk(8),
-                'expiry' => null,
+                'expiry' => self::expiryTimeline($inventoryLevel ?? 'ndoh', 8),
                 'dispenseTrend' => null,
+                'shipments' => self::roadShipmentTimeline(),
             ],
             'store_manager' => [
                 'stockHealth' => self::levelStockHealth($inventoryLevel ?? 'lae_ams', 8),
                 'atRisk' => self::levelAtRisk($inventoryLevel ?? 'lae_ams', 8),
                 'expiry' => self::expiryTimeline($inventoryLevel ?? 'lae_ams', 8),
                 'dispenseTrend' => null,
+                'shipments' => self::roadShipmentTimeline(),
             ],
             'pharmacy_manager' => [
                 'stockHealth' => self::levelStockHealth($inventoryLevel ?? 'modilon_hospital', 8),
                 'atRisk' => self::levelAtRisk($inventoryLevel ?? 'modilon_hospital', 8),
                 'expiry' => self::expiryTimeline($inventoryLevel ?? 'modilon_hospital', 8),
                 'dispenseTrend' => null,
+                'shipments' => self::roadShipmentTimeline($userId),
             ],
             'pharmacist' => [
                 'stockHealth' => self::levelStockHealth($inventoryLevel ?? 'modilon_hospital', 6),
                 'atRisk' => self::levelAtRisk($inventoryLevel ?? 'modilon_hospital', 6),
                 'expiry' => self::expiryTimeline($inventoryLevel ?? 'modilon_hospital', 6),
                 'dispenseTrend' => $userId ? self::dispenseTrend($userId, 14) : null,
+                'shipments' => self::roadShipmentTimeline(),
             ],
             default => [
                 'stockHealth' => null,
                 'atRisk' => null,
                 'expiry' => null,
                 'dispenseTrend' => null,
+                'shipments' => null,
             ],
         };
     }
@@ -233,6 +239,62 @@ class DashboardInsightService
             'subtitle' => "Last {$days} days · {$total} dispenses",
             'points' => $points,
             'more_url' => getDashboardDispensingRoute('index'),
+        ];
+    }
+
+    /**
+     * Lae AMS → Modilon road deliveries (ordered / in transit / received).
+     *
+     * @return array<string, mixed>
+     */
+    public static function roadShipmentTimeline(?int $requesterId = null, int $limit = 8): array
+    {
+        $query = HospitalOrder::query()
+            ->with(['stockTransfer.vehicle', 'requester'])
+            ->whereIn('status', ['pending', 'approved', 'shipped', 'received'])
+            ->latest();
+
+        if ($requesterId) {
+            $query->where('requested_by', $requesterId);
+        }
+
+        $canOpenOrder = auth()->user()?->hasAnyRole(['store_manager', 'pharmacy_manager']) ?? false;
+
+        $items = $query->limit($limit)->get()->map(function (HospitalOrder $order) use ($canOpenOrder) {
+            $stage = match ($order->status) {
+                'shipped' => 'in_transit',
+                'received' => 'received',
+                default => 'ordered',
+            };
+
+            $transfer = $order->stockTransfer;
+
+            return [
+                'title' => $order->order_number,
+                'subtitle' => $order->medicinesLabel(),
+                'meta' => match ($stage) {
+                    'in_transit' => 'In transit',
+                    'received' => 'Received',
+                    default => 'Ordered',
+                },
+                'stage' => $stage,
+                'when' => optional($transfer?->sent_date ?? $order->created_at)->format('d M Y'),
+                'vehicle' => $transfer?->vehicle?->displayLabel(),
+                'url' => $canOpenOrder ? getDashboardHospitalOrderRoute('show', $order) : null,
+            ];
+        })->all();
+
+        $moreUrl = null;
+        if (auth()->user()?->hasAnyRole(['store_manager', 'pharmacy_manager'])) {
+            $moreUrl = getDashboardHospitalShipmentRoute('index');
+        }
+
+        return [
+            'title' => 'Lae AMS → Modilon shipments',
+            'subtitle' => 'Ordered · in transit · received',
+            'items' => $items,
+            'more_url' => $moreUrl,
+            'empty' => $items === [],
         ];
     }
 

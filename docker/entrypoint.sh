@@ -96,12 +96,43 @@ until php -r "
 done
 echo "==> MySQL is ready"
 
+# Foundation seeds (DatabaseSeeder): portal users, suppliers, Lae AMS vehicles,
+# and NDoH medicine catalog. Idempotent — safe to re-run. No inventory/orders.
 echo "==> Running migrations"
-php artisan migrate --force --no-interaction
+if [ "${FRESH_DB:-false}" = "true" ]; then
+    echo "==> FRESH_DB=true — wiping MySQL and reseeding foundation data"
+    php artisan migrate:fresh --force --seed --no-interaction
+    echo "==> Fresh start complete. Set FRESH_DB=false in .env before the next restart."
+else
+    php artisan migrate --force --no-interaction
 
-if [ "${RUN_SEED:-false}" = "true" ]; then
-    echo "==> Seeding database"
-    php artisan db:seed --force --no-interaction || echo "==> Seed skipped or already applied"
+    SHOULD_SEED=false
+    if [ "${RUN_SEED:-true}" = "true" ]; then
+        SHOULD_SEED=true
+    else
+        # Fresh volume / empty DB: still apply foundation seeds once
+        if php -r "
+          try {
+              \$pdo = new PDO(
+                  'mysql:host=' . (getenv('DB_HOST') ?: 'mysql') . ';port=' . (getenv('DB_PORT') ?: '3306') . ';dbname=' . (getenv('DB_DATABASE') ?: 'meditrack_png'),
+                  getenv('DB_USERNAME') ?: '',
+                  getenv('DB_PASSWORD') ?: ''
+              );
+              \$n = (int) \$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+              exit(\$n === 0 ? 0 : 1);
+          } catch (Throwable \$e) {
+              exit(0);
+          }
+        "; then
+            SHOULD_SEED=true
+            echo "==> Empty database detected — applying foundation seeds"
+        fi
+    fi
+
+    if [ "$SHOULD_SEED" = "true" ]; then
+        echo "==> Seeding foundation data (users, suppliers, vehicles, medicine catalog)"
+        php artisan db:seed --force --no-interaction || echo "==> Seed skipped or already applied"
+    fi
 fi
 
 echo "==> Caching configuration"

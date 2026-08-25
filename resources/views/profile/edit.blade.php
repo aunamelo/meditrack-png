@@ -22,10 +22,6 @@
                 <div class="module-form-shell">
                     @include('profile.partials.update-password-form')
                 </div>
-
-                <div class="module-form-shell">
-                    @include('profile.partials.delete-user-form')
-                </div>
             </div>
         </div>
     </x-page-container>

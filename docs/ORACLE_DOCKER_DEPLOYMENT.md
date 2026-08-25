@@ -75,10 +75,21 @@ On container start, `entrypoint.sh` automatically:
 1. Ensures `.env` exists  
 2. Generates `APP_KEY` if missing  
 3. Waits for MySQL  
-4. Runs `php artisan migrate --force`  
-5. Seeds if `RUN_SEED=true`  
+4. Runs migrations (`migrate`, or `migrate:fresh --seed` when `FRESH_DB=true`)  
+5. Applies **foundation seeds** when `RUN_SEED=true` (default) or the database has no users  
 6. Caches config/routes/views  
 7. Starts Nginx + PHP-FPM  
+
+**Fresh Oracle start includes** (from `DatabaseSeeder` — same as local `php artisan db:seed`):
+
+| Seeded | Purpose |
+|--------|---------|
+| Portal users + roles | Demo logins (`password`) |
+| Suppliers | Medicine catalog foreign keys |
+| Lae AMS vehicles | Road delivery fleet |
+| Medicine catalog | NDoH procurement reference (not stock) |
+
+Not seeded: inventory batches, procurement orders, hospital orders, patients, transfers.
 
 ---
 
@@ -200,7 +211,8 @@ nano .env
 | `APP_URL` | `http://149.118.69.130` | Your public IP or domain. No trailing slash. |
 | `DB_PASSWORD` | strong password | App DB user password |
 | `DB_ROOT_PASSWORD` | strong root password | MySQL root password |
-| `RUN_SEED` | `true` | First deploy only |
+| `RUN_SEED` | `true` | Foundation seeds on start (idempotent; recommended) |
+| `FRESH_DB` | `false` | Set `true` once to wipe DB + reseed, then set `false` |
 | `HTTP_PORT` | `80` | Host HTTP port (Caddy; redirects to HTTPS) |
 | `HTTPS_PORT` | `443` | Host HTTPS port (Caddy / Let's Encrypt) |
 | `DOMAIN` | `meditrackpng.duckdns.org` | Public hostname for TLS certificates |
@@ -238,10 +250,13 @@ DB_PASSWORD=MyStrongDbPass123!
 DB_ROOT_PASSWORD=MyStrongRootPass456!
 
 RUN_SEED=true
+FRESH_DB=false
 HTTP_PORT=80
 ```
 
 Save in nano: **Ctrl+O**, Enter, **Ctrl+X**.
+
+A fresh MySQL volume always gets foundation seeds (even if `RUN_SEED` was left false), so you can sign in with the demo accounts immediately.
 
 ### Important: `.env` must be a file
 
@@ -344,22 +359,26 @@ Password for all accounts: **`password`**
 
 ## 11. After first deploy
 
-Turn seeding off so restarts do not re-seed:
+Foundation seeders are idempotent, so leaving `RUN_SEED=true` is fine.
+
+To **wipe Oracle and start fresh** from seeds again (destructive):
 
 ```bash
 nano .env
+# set FRESH_DB=true
+docker compose up -d
+# watch logs until "Fresh start complete"
+nano .env
+# set FRESH_DB=false
+docker compose up -d
 ```
 
-Change:
-
-```env
-RUN_SEED=false
-```
-
-Apply:
+Or volume wipe (same foundation seeds on next start):
 
 ```bash
-docker compose up -d
+docker compose down -v
+# ensure RUN_SEED=true and FRESH_DB=false in .env
+docker compose up -d --build
 ```
 
 ---
@@ -453,16 +472,18 @@ For most updates, prefer `git pull` + `docker compose up -d --build`.
 | Shell into web | `docker compose exec web bash` |
 | Run migrations | `docker compose exec web php artisan migrate --force` |
 | Clear caches | `docker compose exec web php artisan optimize:clear` |
+| Seed foundation data | `docker compose exec web php artisan db:seed --force` |
 | Seed users only | `docker compose exec web php artisan db:seed --class=UserSeeder --force` |
+| Wipe DB + reseed (in place) | Set `FRESH_DB=true` in `.env`, `docker compose up -d`, then set `FRESH_DB=false` |
 
 ### Full reset (destructive)
 
-Deletes database and uploaded files:
+Deletes database and uploaded files, then starts from foundation seeds:
 
 ```bash
 docker compose down -v
 cp .env.docker.example .env
-nano .env   # set APP_URL, passwords, RUN_SEED=true
+nano .env   # set APP_URL, passwords; keep RUN_SEED=true, FRESH_DB=false
 docker compose up -d --build
 ```
 
@@ -649,7 +670,7 @@ git clone https://github.com/aunamelo/meditrack-png.git
 cd meditrack-png
 cp .env.docker.example .env
 nano .env
-# set APP_URL, DB_PASSWORD, DB_ROOT_PASSWORD, RUN_SEED=true
+# set APP_URL, DB_PASSWORD, DB_ROOT_PASSWORD (RUN_SEED=true is already set)
 
 docker compose up -d --build
 docker compose logs -f web
@@ -659,7 +680,7 @@ curl -I http://localhost
 
 Open `http://YOUR_PUBLIC_IP` → sign in with `admin@health.gov.pg` / `password`.
 
-Then set `RUN_SEED=false` and run `docker compose up -d`.
+Fresh start already includes users, suppliers, vehicles, and the medicine catalog.
 
 ### Everyday update from your PC
 
