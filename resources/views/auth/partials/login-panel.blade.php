@@ -142,8 +142,8 @@
     @endif
 
     <label class="guest-auth-check">
-        <input type="checkbox" name="remember" class="rounded border-slate-400 text-health-700 focus:ring-health-600" :disabled="isSubmitting">
-        Remember Me
+        <input type="checkbox" name="remember" class="h-4 w-4 shrink-0 rounded border-slate-400 text-health-700 focus:ring-health-600" :disabled="isSubmitting">
+        <span>Remember Me</span>
     </label>
 
     <button
@@ -152,8 +152,23 @@
         :class="{ 'is-loading': isSubmitting }"
         :disabled="isSubmitting"
         :aria-disabled="isSubmitting.toString()"
+        :aria-busy="isSubmitting.toString()"
     >
-        <span class="guest-auth-spinner" aria-hidden="true"></span>
+        <svg
+            x-show="isSubmitting"
+            x-cloak
+            class="guest-auth-spinner mr-2 h-4 w-4 animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+        </svg>
         <span x-text="isSubmitting ? 'Signing in...' : 'Sign In'">Sign In</span>
     </button>
 </form>

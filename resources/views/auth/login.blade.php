@@ -31,10 +31,9 @@
         @include('auth.partials.login-error-banner')
         <p class="guest-auth-lead">
             @if ($roleMeta)
-                Signing in as <strong>{{ $roleMeta['label'] }}</strong>.
-                If you do not have an account, please contact your NDoH or facility administrator.
+                Signing in as <strong>{{ $roleMeta['label'] }}</strong>. No account? Contact your NDoH administrator.
             @else
-                If you do not have an account, please contact your NDoH or facility administrator.
+                No account? Contact your NDoH administrator.
             @endif
         </p>
 

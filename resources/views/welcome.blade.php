@@ -138,81 +138,86 @@
         </div>
         </div>
 
-        <div
-            class="guest-login-modal"
-            x-show="loginOpen"
-            @unless($openLoginModal) x-cloak @endunless
-            role="presentation"
-            @click.self="closeLogin()"
-            @keydown.escape.window="closeLogin()"
-            @keydown.tab.window="trapFocus($event)"
-        >
+        <template x-teleport="body">
             <div
-                class="guest-login-modal-backdrop"
+                class="guest-login-modal"
                 x-show="loginOpen"
-                x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-150"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                @click="closeLogin()"
-                aria-hidden="true"
-            ></div>
-
-            <div
-                class="guest-login-modal-panel transform"
-                x-show="loginOpen"
-                x-transition:enter="transition ease-out duration-250"
-                x-transition:enter-start="opacity-0 guest-login-modal-panel--from"
-                x-transition:enter-end="opacity-100 guest-login-modal-panel--to"
-                x-transition:leave="transition ease-in duration-180"
-                x-transition:leave-start="opacity-100 guest-login-modal-panel--to"
-                x-transition:leave-end="opacity-0 guest-login-modal-panel--from"
-                x-ref="loginPanel"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="modal-title"
-                :aria-describedby="credentialsError ? 'modal-description guest-auth-credentials-error' : 'modal-description'"
-                tabindex="-1"
-                :class="{ 'is-shaking': panelShaking }"
-                @click.stop
+                @unless($openLoginModal) x-cloak @endunless
+                role="presentation"
+                @keydown.escape.window="closeLogin()"
+                @keydown.tab.window="trapFocus($event)"
             >
-                <div class="guest-login-sheet-chrome">
-                    <div class="guest-login-sheet-handle" aria-hidden="true"></div>
-                    <button
-                        type="button"
-                        class="guest-login-modal-close"
-                        @click="closeLogin()"
-                        aria-label="Close modal"
-                        data-tooltip="Close modal"
+                <div
+                    class="guest-login-modal-backdrop fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm"
+                    x-show="loginOpen"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    @click="closeLogin()"
+                    aria-hidden="true"
+                ></div>
+
+                <div
+                    class="guest-login-modal-positioner fixed top-1/2 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 px-4"
+                    x-show="loginOpen"
+                    x-transition:enter="transition ease-out duration-250"
+                    x-transition:enter-start="opacity-0 guest-login-modal-shell--from"
+                    x-transition:enter-end="opacity-100 guest-login-modal-shell--to"
+                    x-transition:leave="transition ease-in duration-180"
+                    x-transition:leave-start="opacity-100 guest-login-modal-shell--to"
+                    x-transition:leave-end="opacity-0 guest-login-modal-shell--from"
+                    @click.stop
+                >
+                    <div
+                        class="guest-login-modal-shell"
+                        x-ref="loginPanel"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="modal-title"
+                        :aria-describedby="credentialsError ? 'modal-description guest-auth-credentials-error' : 'modal-description'"
+                        tabindex="-1"
+                        :class="{ 'is-shaking': panelShaking }"
                     >
-                        <x-dashboard.icon name="x" class="guest-login-modal-close-icon" />
-                        <span class="guest-login-modal-close-label" aria-hidden="true">Close</span>
-                    </button>
+                        <button
+                            type="button"
+                            class="guest-login-modal-close"
+                            @click="closeLogin()"
+                            aria-label="Close modal"
+                            data-tooltip="Close modal"
+                        >
+                            <x-dashboard.icon name="x" class="guest-login-modal-close-icon" />
+                            <span class="guest-login-modal-close-label" aria-hidden="true">Close</span>
+                        </button>
+
+                        <div class="guest-login-modal-body">
+                            <h2 id="modal-title" class="guest-auth-heading">Log in to an existing account</h2>
+                            @include('auth.partials.login-error-banner')
+                            <p id="modal-description" class="guest-auth-lead">
+                                Signing in as <strong x-text="labels[selectedRole]"></strong>. No account? Contact your NDoH administrator.
+                            </p>
+
+                            @include('auth.partials.login-panel', [
+                                'microsoftEnabled' => $microsoftEnabled,
+                                'bindRole' => true,
+                                'autofocusEmail' => false,
+                            ])
+
+                            <div class="guest-login-secure-wrap">
+                                <p class="guest-login-secure">
+                                    <svg class="guest-login-secure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                    Secured connection — National Department of Health, Papua New Guinea
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <h2 id="modal-title" class="guest-auth-heading">Log in to an existing account</h2>
-                @include('auth.partials.login-error-banner')
-                <p id="modal-description" class="guest-auth-lead">
-                    Signing in as <strong x-text="labels[selectedRole]"></strong>.
-                    If you do not have an account, please contact your NDoH or facility administrator.
-                </p>
-
-                @include('auth.partials.login-panel', [
-                    'microsoftEnabled' => $microsoftEnabled,
-                    'bindRole' => true,
-                    'autofocusEmail' => false,
-                ])
-
-                <p class="guest-login-secure">
-                    <svg class="guest-login-secure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                    Secured connection — National Department of Health, Papua New Guinea
-                </p>
             </div>
-        </div>
+        </template>
     </div>
     </div>
 @endsection
