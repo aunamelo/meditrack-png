@@ -191,18 +191,31 @@
                 </section>
             @endif
 
-            @if(count($charts ?? []) || count($recentItems ?? []))
-                <section class="mb-5 grid grid-cols-1 gap-3 xl:grid-cols-3">
-                    @if(count($charts ?? []))
-                        <div @class(['space-y-3', 'xl:col-span-2' => count($recentItems ?? [])])>
-                            @foreach($charts as $chart)
-                                <x-dashboard.chart :config="$chart" />
+            @php
+                $dashboardCharts = $charts ?? [];
+                $dashboardRecent = $recentItems ?? [];
+                $showRecentPanel = ($recentTitle ?? null) !== null || count($dashboardRecent) > 0;
+                $showChartsPanel = count($dashboardCharts) > 0;
+            @endphp
+            @if($showChartsPanel || $showRecentPanel)
+                <section @class([
+                    'mb-5 grid grid-cols-1 gap-3',
+                    'xl:grid-cols-3' => $showChartsPanel && $showRecentPanel,
+                ])>
+                    @if($showChartsPanel)
+                        <div @class([
+                            'space-y-3',
+                            'xl:col-span-2' => $showRecentPanel,
+                            'w-full min-w-0' => ! $showRecentPanel,
+                        ])>
+                            @foreach($dashboardCharts as $chart)
+                                <x-dashboard.chart :config="$chart" class="w-full" />
                             @endforeach
                         </div>
                     @endif
 
-                    @if(count($recentItems ?? []))
-                        <x-dashboard.recent-list :items="$recentItems" :title="$recentTitle ?? 'Recent activity'" />
+                    @if($showRecentPanel)
+                        <x-dashboard.recent-list :items="$dashboardRecent" :title="$recentTitle ?? 'Recent activity'" />
                     @endif
                 </section>
             @endif

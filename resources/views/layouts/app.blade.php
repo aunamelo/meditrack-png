@@ -31,13 +31,13 @@
                     localStorage.setItem('meditrack-sidebar-collapsed', this.sidebarCollapsed ? '1' : '0');
                 },
             }"
-            class="flex h-screen min-h-screen overflow-hidden bg-canvas dark:bg-night"
+            class="flex h-dvh min-h-dvh overflow-hidden bg-canvas dark:bg-night"
         >
             @auth
                 @include('layouts.sidebar')
             @endauth
 
-            <div class="flex h-screen min-h-screen min-w-0 flex-1 flex-col overflow-hidden bg-canvas dark:bg-night">
+            <div class="flex h-dvh min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas dark:bg-night">
                 @auth
                     @include('layouts.topbar')
                 @else
@@ -49,7 +49,7 @@
                 </main>
 
                 @auth
-                    <footer class="app-portal-footer">
+                    <footer class="app-portal-footer mt-auto shrink-0">
                         <div class="app-portal-footer-inner">
                             <p class="app-portal-footer-copy">
                                 Copyright &copy; {{ date('Y') }} National Department of Health of Papua New Guinea · MediTrack PNG

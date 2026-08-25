@@ -58,13 +58,19 @@ class DashboardChartService
         $keys = ['pending', 'manufacturing', 'shipped', 'customs', 'fx_cleared', 'partial', 'received', 'cancelled'];
         $data = array_map(fn (string $key) => (int) ($counts[$key] ?? 0), $keys);
 
+        $empty = array_sum($data) === 0;
+
         return [
             'id' => 'order-status-'.($userId ?? 'all'),
             'type' => 'doughnut',
             'title' => $userId ? 'My orders by status' : 'Orders by status',
             'subtitle' => 'Import pipeline and receipt status',
-            'labels' => $labels,
-            'datasets' => [[
+            'empty' => $empty,
+            'empty_message' => $userId
+                ? 'Create a procurement order to populate this chart.'
+                : 'Orders will appear here once procurement activity starts.',
+            'labels' => $empty ? [] : $labels,
+            'datasets' => $empty ? [] : [[
                 'data' => $data,
                 'backgroundColor' => ['#f59e0b', '#3b82f6', '#8b5cf6', '#f97316', '#14b8a6', '#eab308', '#10b981', '#ef4444'],
             ]],
@@ -100,13 +106,19 @@ class DashboardChartService
             $data[] = (int) ($rows[$key] ?? 0);
         }
 
+        $empty = array_sum($data) === 0;
+
         return [
             'id' => 'orders-trend-'.($userId ?? 'all'),
             'type' => 'bar',
             'title' => $userId ? 'My order activity' : 'Order activity',
             'subtitle' => 'Last 6 months',
-            'labels' => $labels,
-            'datasets' => [[
+            'empty' => $empty,
+            'empty_message' => $userId
+                ? 'Create a procurement order to populate this chart.'
+                : 'Orders will appear here once procurement activity starts.',
+            'labels' => $empty ? [] : $labels,
+            'datasets' => $empty ? [] : [[
                 'label' => 'Orders',
                 'data' => $data,
                 'backgroundColor' => '#0f766e',
@@ -140,13 +152,17 @@ class DashboardChartService
             $data[] = round((float) ($rows[$key] ?? 0), 2);
         }
 
+        $empty = array_sum($data) === 0;
+
         return [
             'id' => 'procurement-spend-'.$userId,
             'type' => 'line',
             'title' => 'Procurement spend (PGK)',
             'subtitle' => 'Invoice totals from your orders',
-            'labels' => $labels,
-            'datasets' => [[
+            'empty' => $empty,
+            'empty_message' => 'Invoice amounts will appear here once orders are recorded.',
+            'labels' => $empty ? [] : $labels,
+            'datasets' => $empty ? [] : [[
                 'label' => 'Kina (PGK)',
                 'data' => $data,
                 'borderColor' => '#0f766e',
