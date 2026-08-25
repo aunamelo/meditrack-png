@@ -206,14 +206,19 @@ class DashboardChartService
             : ['In transit by road', 'Received', 'Cancelled'];
         $keys = ['sent', 'received', 'cancelled'];
         $data = array_map(fn (string $key) => (int) ($counts[$key] ?? 0), $keys);
+        $empty = array_sum($data) === 0;
 
         return [
             'id' => 'shipment-status-'.($toLevel ?? 'all'),
             'type' => 'bar',
             'title' => $toLevel === 'lae_ams' ? 'NDoH shipment status' : 'Road delivery status',
             'subtitle' => $toLevel === 'lae_ams' ? 'NDoH → Lae AMS logistics' : 'NDoH → Lae AMS shipments',
-            'labels' => $labels,
-            'datasets' => [[
+            'empty' => $empty,
+            'empty_message' => $toLevel === 'lae_ams'
+                ? 'Shipments from NDoH will appear here once they are sent.'
+                : 'Road deliveries will appear here once they are created.',
+            'labels' => $empty ? [] : $labels,
+            'datasets' => $empty ? [] : [[
                 'label' => $toLevel === 'lae_ams' ? 'Shipments' : 'Road deliveries',
                 'data' => $data,
                 'backgroundColor' => ['#3b82f6', '#10b981', '#ef4444'],
@@ -240,13 +245,10 @@ class DashboardChartService
                 'type' => 'bar',
                 'title' => 'Top stock levels',
                 'subtitle' => 'Highest quantity on hand',
-                'labels' => ['No stock data'],
-                'datasets' => [[
-                    'label' => 'Units',
-                    'data' => [0],
-                    'backgroundColor' => '#94a3b8',
-                    'borderRadius' => 8,
-                ]],
+                'empty' => true,
+                'empty_message' => 'Receive inventory to populate this chart.',
+                'labels' => [],
+                'datasets' => [],
                 'horizontal' => true,
             ];
         }
@@ -328,28 +330,10 @@ class DashboardChartService
                 'type' => 'bar',
                 'title' => 'Stock levels',
                 'subtitle' => $levelLabel.' · on hand vs reorder point',
-                'labels' => ['No stock yet'],
-                'datasets' => [
-                    [
-                        'type' => 'bar',
-                        'label' => 'On hand',
-                        'data' => [0],
-                        'backgroundColor' => '#94a3b8',
-                        'borderRadius' => 6,
-                        'order' => 2,
-                    ],
-                    [
-                        'type' => 'line',
-                        'label' => 'Reorder point',
-                        'data' => [0],
-                        'borderColor' => '#f59e0b',
-                        'backgroundColor' => '#f59e0b',
-                        'borderWidth' => 2,
-                        'pointRadius' => 3,
-                        'tension' => 0,
-                        'order' => 1,
-                    ],
-                ],
+                'empty' => true,
+                'empty_message' => 'Receive inventory to populate this chart.',
+                'labels' => [],
+                'datasets' => [],
             ];
         }
 
@@ -395,15 +379,19 @@ class DashboardChartService
         $adequate = (int) ($counts['adequate'] ?? 0);
         $low = (int) ($counts['low'] ?? 0);
         $critical = (int) ($counts['critical'] ?? 0) + (int) ($counts['stock_out'] ?? 0);
+        $data = [$adequate, $low, $critical, $expired];
+        $empty = array_sum($data) === 0;
 
         return [
             'id' => 'stock-status-'.$level,
             'type' => 'doughnut',
             'title' => 'Stock status',
             'subtitle' => 'Adequate / low / critical / expired',
-            'labels' => ['Adequate', 'Low', 'Critical', 'Expired'],
-            'datasets' => [[
-                'data' => [$adequate, $low, $critical, $expired],
+            'empty' => $empty,
+            'empty_message' => 'Receive inventory to populate this chart.',
+            'labels' => $empty ? [] : ['Adequate', 'Low', 'Critical', 'Expired'],
+            'datasets' => $empty ? [] : [[
+                'data' => $data,
                 'backgroundColor' => ['#0f766e', '#f59e0b', '#ea580c', '#ef4444'],
             ]],
         ];

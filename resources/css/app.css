@@ -64,6 +64,17 @@
         @apply text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted dark:text-zinc-400;
     }
 
+    .sidebar-nav {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
     .medcare-sidebar {
         @apply w-[248px] shrink-0 border-r border-transparent text-white shadow-sidebar transition-[width] duration-300 ease-in-out;
         background: #0a4b47;
@@ -207,11 +218,13 @@
     }
 
     .dashboard-module-card {
-        @apply flex h-full flex-col rounded border border-line bg-surface px-3.5 py-3 transition hover:border-health-600/50 dark:border-white/10 dark:bg-night-elevated;
+        @apply flex h-full items-start gap-3 rounded border border-line bg-surface px-3.5 py-3
+            transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-400 hover:shadow-md
+            dark:border-white/10 dark:bg-night-elevated dark:hover:border-teal-500;
     }
 
     .dashboard-module-card-primary {
-        @apply border-health-700 bg-health-700 text-white hover:bg-health-800 hover:border-health-800;
+        @apply border-health-700 bg-health-700 text-white hover:translate-y-0 hover:border-health-800 hover:bg-health-800 hover:shadow-none;
     }
 
     .dashboard-alert {
@@ -334,7 +347,7 @@
     }
 
     .module-empty-cell {
-        @apply px-4 py-12;
+        @apply px-4 py-16;
     }
 
     .module-empty {
@@ -342,7 +355,8 @@
     }
 
     .module-empty-icon {
-        @apply mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface-muted dark:bg-zinc-800;
+        @apply mb-3 flex h-20 w-20 items-center justify-center rounded-full border border-slate-200 bg-slate-100
+            dark:border-slate-700 dark:bg-slate-800;
     }
 
     .module-back-link {

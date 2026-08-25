@@ -112,7 +112,7 @@ class PortalNavigationService
             self::dashboardItem(),
             self::item('Warehouse ops', 'Hospital Orders', 'Approve & ship Modilon requests', getDashboardHospitalOrderRoute('index'), request()->routeIs('*.dashboard.hospital-orders.*'), 'clipboard', $pendingHospital > 0 ? $pendingHospital : null),
             self::item('Warehouse ops', 'NDoH Shipments', 'Confirm incoming national stock', getDashboardTransferRoute('index'), request()->routeIs('*.dashboard.transfers.*'), 'truck', self::shipmentNavBadge($user)),
-            self::item('Warehouse ops', 'Hospital Road Deliveries', 'Lae AMS → Modilon by car', getDashboardHospitalShipmentRoute('index'), request()->routeIs('*.dashboard.hospital-shipments.*'), 'truck'),
+            self::item('Warehouse ops', 'Road Deliveries', 'Lae AMS → Modilon by car (Hospital Road Deliveries)', getDashboardHospitalShipmentRoute('index'), request()->routeIs('*.dashboard.hospital-shipments.*'), 'truck'),
             self::item('Warehouse ops', 'Registered Vehicles', 'Lae AMS fleet for Modilon road deliveries', getDashboardVehicleRoute('index'), request()->routeIs('*.dashboard.vehicles.*'), 'truck'),
             self::item('Warehouse ops', 'Live Delivery Map', 'Real-time GPS for vehicles on the road', getDashboardLiveMapRoute('index'), request()->routeIs('*.dashboard.live-map.*'), 'truck'),
             self::item('Inventory', 'Drug Inventory', $meta['inventory_label'] ?? 'Lae AMS stock', getDashboardDrugRoute('index'), request()->routeIs('*.dashboard.drugs.*'), 'cube'),

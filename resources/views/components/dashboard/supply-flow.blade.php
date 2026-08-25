@@ -14,7 +14,11 @@
     </div>
 
     @if(! empty($panel['empty']))
-        <p class="px-3.5 py-8 text-center text-sm text-muted">No corridor movements in the last 90 days.</p>
+        <div class="flex flex-col items-center justify-center px-4 py-12 text-center">
+            <x-dashboard.icon name="package" class="mb-3 h-10 w-10 text-gray-400" />
+            <p class="text-sm font-medium text-gray-500">No data available yet.</p>
+            <p class="mt-1 text-xs text-gray-400">Receive inventory to populate this chart.</p>
+        </div>
     @else
         <div class="grid grid-cols-2 gap-3 px-3.5 py-4 sm:grid-cols-4">
             @foreach($nodes as $index => $node)

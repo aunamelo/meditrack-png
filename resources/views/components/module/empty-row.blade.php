@@ -4,7 +4,7 @@
     <td colspan="{{ $colspan }}" class="module-empty-cell">
         <div class="module-empty">
             <div class="module-empty-icon">
-                <x-dashboard.icon name="clipboard" class="h-6 w-6" />
+                <x-dashboard.icon name="clipboard" class="h-12 w-12 text-slate-400 dark:text-slate-500" />
             </div>
             <p class="text-sm font-semibold text-ink dark:text-zinc-200">{{ $title }}</p>
             <p class="mt-1 text-sm text-muted">{{ $description }}</p>

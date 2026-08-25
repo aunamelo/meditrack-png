@@ -12,7 +12,10 @@
                 <p class="mt-0.5 text-[11px] text-muted">{{ $panel['subtitle'] }}</p>
             </div>
             @if(! empty($panel['more_url']))
-                <a href="{{ $panel['more_url'] }}" class="shrink-0 text-xs font-semibold text-health-700 hover:underline dark:text-health-300">View all</a>
+                <a href="{{ $panel['more_url'] }}" class="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-health-700 hover:underline dark:text-health-300">
+                    View all
+                    <x-dashboard.icon name="arrow-right" class="h-3.5 w-3.5" />
+                </a>
             @endif
         </div>
     </div>

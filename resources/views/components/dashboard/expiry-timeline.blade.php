@@ -13,7 +13,10 @@
                 <p class="mt-0.5 text-xs text-muted">{{ $panel['subtitle'] }}</p>
             </div>
             @if(! empty($panel['more_url']))
-                <a href="{{ $panel['more_url'] }}" class="shrink-0 text-xs font-semibold text-brand-600 hover:underline">All expiring</a>
+                <a href="{{ $panel['more_url'] }}" class="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-600 hover:underline">
+                    View all
+                    <x-dashboard.icon name="arrow-right" class="h-3.5 w-3.5" />
+                </a>
             @endif
         </div>
     </div>

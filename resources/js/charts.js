@@ -15,6 +15,27 @@ function themeColors() {
 function buildOptions(config, colors) {
     const horizontal = config.horizontal === true;
     const isDonut = config.type === 'doughnut';
+    const values = (config.datasets ?? [])
+        .flatMap((dataset) => dataset.data ?? [])
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value));
+    const maxValue = values.length ? Math.max(...values) : 0;
+    const valueAxis = {
+        ticks: {
+            color: colors.muted,
+            font: { family: '"Plus Jakarta Sans", sans-serif', size: 11 },
+            precision: 0,
+        },
+        grid: { color: colors.grid, drawBorder: false },
+        border: { color: colors.border },
+        beginAtZero: true,
+        suggestedMax: maxValue > 0 ? Math.max(5, Math.ceil(maxValue * 1.15)) : 5,
+    };
+    const categoryAxis = {
+        ticks: { color: colors.muted, font: { family: '"Plus Jakarta Sans", sans-serif', size: 11 } },
+        grid: { color: colors.grid, drawBorder: false },
+        border: { color: colors.border },
+    };
 
     return {
         responsive: true,
@@ -41,17 +62,8 @@ function buildOptions(config, colors) {
         scales: isDonut
             ? {}
             : {
-                x: {
-                    ticks: { color: colors.muted, font: { family: '"Plus Jakarta Sans", sans-serif', size: 11 } },
-                    grid: { color: colors.grid, drawBorder: false },
-                    border: { color: colors.border },
-                },
-                y: {
-                    ticks: { color: colors.muted, font: { family: '"Plus Jakarta Sans", sans-serif', size: 11 } },
-                    grid: { color: colors.grid, drawBorder: false },
-                    border: { color: colors.border },
-                    beginAtZero: true,
-                },
+                x: horizontal ? valueAxis : categoryAxis,
+                y: horizontal ? categoryAxis : valueAxis,
             },
     };
 }

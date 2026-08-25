@@ -297,7 +297,7 @@ class DashboardService
             'quickActionGroups' => [
                 self::actionGroup('Warehouse ops', [
                     ['label' => 'Hospital orders', 'description' => 'Approve & ship Modilon requests', 'url' => getDashboardHospitalOrderRoute('index'), 'primary' => true, 'icon' => 'hospital'],
-                    ['label' => 'Confirm NDoH receipts', 'description' => 'Receive national shipments', 'url' => getDashboardTransferRoute('index'), 'icon' => 'truck'],
+                    ['label' => 'Confirm NDoH receipts', 'description' => 'Receive national shipments', 'url' => getDashboardTransferRoute('index'), 'icon' => 'check-circle'],
                     ['label' => 'Road deliveries', 'description' => 'Lae AMS → Modilon by car', 'url' => getDashboardHospitalShipmentRoute('index'), 'icon' => 'truck'],
                 ]),
                 self::actionGroup('Inventory', [

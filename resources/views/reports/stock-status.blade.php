@@ -15,24 +15,48 @@
         <div class="surface-panel p-6">
             <form method="GET" class="mb-8 flex flex-wrap items-end gap-4">
                 <div>
-                    <label class="mb-1 block text-sm font-medium">Facility</label>
-                    <select name="level" class="rounded-md border-gray-300 text-sm">
+                    <label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Facility</label>
+                    <select name="level" class="rounded-md border-gray-300 bg-white text-sm text-slate-900 placeholder:text-gray-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
                         @foreach($allowedLevels as $option)
                             <option value="{{ $option }}" @selected($level === $option)>{{ $levelLabels[$option] ?? $option }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="mb-1 block text-sm font-medium">From</label>
-                    <input type="date" name="date_from" value="{{ $from->toDateString() }}" class="rounded-md border-gray-300 text-sm">
+                    <label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Start date</label>
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-gray-400" aria-hidden="true">
+                            <x-dashboard.icon name="calendar" class="h-4 w-4" />
+                        </span>
+                        <input
+                            type="date"
+                            name="date_from"
+                            value="{{ $from->toDateString() }}"
+                            placeholder="Start date"
+                            aria-label="Start date"
+                            class="rounded-md border-gray-300 bg-white pl-9 text-sm text-slate-900 placeholder:text-gray-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                        >
+                    </div>
                 </div>
                 <div>
-                    <label class="mb-1 block text-sm font-medium">To</label>
-                    <input type="date" name="date_to" value="{{ $to->toDateString() }}" class="rounded-md border-gray-300 text-sm">
+                    <label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">End date</label>
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-gray-400" aria-hidden="true">
+                            <x-dashboard.icon name="calendar" class="h-4 w-4" />
+                        </span>
+                        <input
+                            type="date"
+                            name="date_to"
+                            value="{{ $to->toDateString() }}"
+                            placeholder="End date"
+                            aria-label="End date"
+                            class="rounded-md border-gray-300 bg-white pl-9 text-sm text-slate-900 placeholder:text-gray-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                        >
+                    </div>
                 </div>
                 <div>
-                    <label class="mb-1 block text-sm font-medium">Status</label>
-                    <select name="status" class="rounded-md border-gray-300 text-sm">
+                    <label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Status</label>
+                    <select name="status" class="rounded-md border-gray-300 bg-white text-sm text-slate-900 placeholder:text-gray-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
                         <option value="all" @selected($statusFilter === 'all')>All</option>
                         <option value="stock_out" @selected($statusFilter === 'stock_out')>Stock-out</option>
                         <option value="critical" @selected($statusFilter === 'critical')>Critical</option>
@@ -41,7 +65,13 @@
                         <option value="overstock" @selected($statusFilter === 'overstock')>Overstock</option>
                     </select>
                 </div>
-                <button type="submit" class="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Update</button>
+                <button
+                    type="submit"
+                    class="inline-flex items-center rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+                >
+                    <x-dashboard.icon name="refresh" class="mr-2 h-4 w-4" />
+                    Update
+                </button>
             </form>
 
             <div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -51,48 +81,59 @@
                     ['Low', $counts['low'], 'amber'],
                     ['Adequate+', $counts['adequate'], 'teal'],
                 ] as [$label, $value, $tone])
-                    <div class="rounded-xl border border-gray-200 p-4 dark:border-slate-700">
+                    <div @class([
+                        'rounded-xl border p-4',
+                        'border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900/40' => (int) $value > 0,
+                        'border-gray-200/80 bg-gray-50 dark:border-slate-800 dark:bg-slate-900/20' => (int) $value === 0,
+                    ])>
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ $label }}</p>
-                        <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ $value }}</p>
+                        <p @class([
+                            'mt-2 text-2xl font-bold',
+                            'text-gray-900 dark:text-white' => (int) $value > 0,
+                            'text-gray-400 dark:text-slate-500' => (int) $value === 0,
+                        ])>{{ $value }}</p>
+                        @if((int) $value === 0)
+                            <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">No items</p>
+                        @endif
                     </div>
                 @endforeach
             </div>
 
-            <p class="mb-4 text-sm text-gray-500">
-                Showing {{ $levelLabels[$level] ?? $level }} · consumption {{ $from->toDateString() }} — {{ $to->toDateString() }}
+            <p class="mb-4 text-sm text-gray-500 dark:text-slate-400">
+                Showing {{ $levelLabels[$level] ?? $level }} · consumption {{ $from->format('j M Y') }} — {{ $to->format('j M Y') }}
             </p>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-700">
                     <caption class="sr-only">Stock status by medicine for {{ $levelLabels[$level] ?? $level }}</caption>
                     <thead class="bg-gray-50 dark:bg-slate-800">
                         <tr>
-                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Medicine</th>
-                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">On hand</th>
-                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Consumed</th>
-                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">AMC</th>
-                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Days of stock</th>
-                            <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Status</th>
+                            <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-slate-300">Medicine</th>
+                            <th scope="col" class="px-4 py-3 text-right text-sm font-semibold text-gray-600 dark:text-slate-300">On hand</th>
+                            <th scope="col" class="px-4 py-3 text-right text-sm font-semibold text-gray-600 dark:text-slate-300">Consumed</th>
+                            <th scope="col" class="px-4 py-3 text-right text-sm font-semibold text-gray-600 dark:text-slate-300">AMC</th>
+                            <th scope="col" class="px-4 py-3 text-right text-sm font-semibold text-gray-600 dark:text-slate-300">Days of stock</th>
+                            <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-gray-600 dark:text-slate-300">Status</th>
                             @if($level === 'corridor')
-                                <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">On order</th>
+                                <th scope="col" class="px-4 py-3 text-right text-sm font-semibold text-gray-600 dark:text-slate-300">On order</th>
                             @endif
-                            <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Suggested qty</th>
+                            <th scope="col" class="px-4 py-3 text-right text-sm font-semibold text-gray-600 dark:text-slate-300">Suggested qty</th>
                             @if($canRequestFromLae)
-                                <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Action</th>
+                                <th scope="col" class="px-4 py-3 text-right text-sm font-semibold text-gray-600 dark:text-slate-300">Action</th>
                             @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
                         @forelse($rows as $row)
                             <tr>
-                                <td class="px-3 py-2.5 font-medium text-gray-900 dark:text-slate-100">{{ $row['label'] }}</td>
-                                <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['stock_on_hand']) }}</td>
-                                <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['consumed']) }}</td>
-                                <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['amc'], 1) }}</td>
-                                <td class="px-3 py-2.5 text-right tabular-nums">
+                                <td class="px-4 py-2.5 font-medium text-gray-900 dark:text-slate-100">{{ $row['label'] }}</td>
+                                <td class="px-4 py-2.5 text-right tabular-nums">{{ number_format($row['stock_on_hand']) }}</td>
+                                <td class="px-4 py-2.5 text-right tabular-nums">{{ number_format($row['consumed']) }}</td>
+                                <td class="px-4 py-2.5 text-right tabular-nums">{{ number_format($row['amc'], 1) }}</td>
+                                <td class="px-4 py-2.5 text-right tabular-nums">
                                     {{ $row['days_of_stock'] === null ? '—' : number_format($row['days_of_stock'], 1) }}
                                 </td>
-                                <td class="px-3 py-2.5">
+                                <td class="px-4 py-2.5">
                                     <span @class([
                                         'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold',
                                         'bg-rose-100 text-rose-800' => in_array($row['status'], ['stock_out', 'critical'], true),
@@ -102,13 +143,13 @@
                                     ])>{{ $row['status_label'] }}</span>
                                 </td>
                                 @if($level === 'corridor')
-                                    <td class="px-3 py-2.5 text-right tabular-nums">{{ number_format($row['pending_on_order'] ?? 0) }}</td>
+                                    <td class="px-4 py-2.5 text-right tabular-nums">{{ number_format($row['pending_on_order'] ?? 0) }}</td>
                                 @endif
-                                <td class="px-3 py-2.5 text-right font-semibold tabular-nums text-brand-700">
+                                <td class="px-4 py-2.5 text-right font-semibold tabular-nums text-brand-700">
                                     {{ number_format($row['suggested_quantity']) }}
                                 </td>
                                 @if($canRequestFromLae)
-                                    <td class="px-3 py-2.5 text-right">
+                                    <td class="px-4 py-2.5 text-right">
                                         @if($row['suggested_quantity'] > 0 || in_array($row['status'], ['stock_out', 'critical', 'low'], true))
                                             <form action="{{ getDashboardHospitalOrderRoute('store') }}" method="POST" class="inline">
                                                 @csrf
@@ -128,8 +169,16 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ ($level === 'corridor' ? 8 : 7) + ($canRequestFromLae ? 1 : 0) }}" class="px-3 py-8 text-center text-gray-500">
-                                    No stock or consumption data for this selection yet. Dispense medicines or receive inventory to populate the report.
+                                <td colspan="{{ ($level === 'corridor' ? 8 : 7) + ($canRequestFromLae ? 1 : 0) }}" class="px-4 py-12 text-center">
+                                    <div class="mx-auto flex max-w-md flex-col items-center">
+                                        <x-dashboard.icon name="package" class="mb-3 h-10 w-10 text-gray-500" />
+                                        <p class="text-sm font-medium text-gray-500 dark:text-slate-400">
+                                            No stock or consumption data for this selection yet.
+                                        </p>
+                                        <p class="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                                            Dispense medicines or receive inventory to populate the report.
+                                        </p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse

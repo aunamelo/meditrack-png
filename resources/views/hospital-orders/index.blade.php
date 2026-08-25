@@ -23,7 +23,19 @@
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div class="md:col-span-2">
                         <label for="search" class="form-label">Search</label>
-                        <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Order # or drug name..." class="input-field">
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500" aria-hidden="true">
+                                <x-dashboard.icon name="search" class="h-4 w-4" />
+                            </span>
+                            <input
+                                type="text"
+                                name="search"
+                                id="search"
+                                value="{{ request('search') }}"
+                                placeholder="Order # or drug name..."
+                                class="input-field w-full rounded-lg border-slate-300 bg-white py-2 pl-10 pr-4 placeholder:text-gray-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-teal-500 dark:focus:ring-teal-500"
+                            >
+                        </div>
                     </div>
                     <div>
                         <label for="status" class="form-label">Status</label>

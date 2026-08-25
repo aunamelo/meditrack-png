@@ -51,7 +51,7 @@
             </button>
         </div>
 
-        <nav class="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 py-4" aria-label="Primary">
+        <nav class="sidebar-nav flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 py-4" aria-label="Primary">
             @foreach($portalNav as $groupLabel => $groupItems)
                 @php
                     $groupHeadingId = 'nav-group-'.\Illuminate\Support\Str::slug($groupLabel);

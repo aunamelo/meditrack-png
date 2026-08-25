@@ -11,9 +11,9 @@
    title="{{ $label }}"
    @if($active) aria-current="page" @endif
    @class([
-       'sidebar-link group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
-       'bg-white/15 text-white' => $active,
-       'text-white/70 hover:bg-white/10 hover:text-white' => ! $active,
+       'sidebar-link group flex items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
+       'border-teal-400 bg-teal-700/50 text-white' => $active,
+       'border-transparent text-white/70 hover:bg-white/10 hover:text-white' => ! $active,
    ])>
     <span @class([
         'relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition',

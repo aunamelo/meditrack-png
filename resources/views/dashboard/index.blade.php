@@ -7,15 +7,53 @@
                 $greeting = portalGreeting();
                 $firstName = explode(' ', trim(auth()->user()->name))[0];
                 $topStats = collect($stats ?? [])->take(4);
+                $showWelcomeBanner = ($roleMeta['key'] ?? null) === 'store_manager'
+                    && $topStats->isNotEmpty()
+                    && $topStats->every(function ($stat) {
+                        $raw = str_replace(',', '', (string) ($stat['value'] ?? '0'));
+
+                        return is_numeric($raw) && (float) $raw === 0.0;
+                    });
             @endphp
 
-            <div class="dashboard-welcome flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h1 class="heading-display">{{ $greeting }}, {{ $firstName }}</h1>
-                    <p class="mt-1 text-sm text-ink-secondary dark:text-zinc-400">
-                        {{ formatDate(now()) }}
-                    </p>
+            <div
+                @if($showWelcomeBanner)
+                    x-data="{ welcomeOpen: localStorage.getItem('mt-sm-welcome-dismissed') !== '1' }"
+                @endif
+            >
+                <div class="dashboard-welcome flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <h1 class="heading-display">{{ $greeting }}, {{ $firstName }}</h1>
+                        <p class="mt-1 text-sm text-ink-secondary dark:text-zinc-400">
+                            {{ now()->timezone(config('app.timezone'))->format('l, j M Y') }}
+                        </p>
+                    </div>
                 </div>
+
+                @if($showWelcomeBanner)
+                    <div
+                        x-show="welcomeOpen"
+                        x-cloak
+                        class="mb-6 mt-4 flex items-start gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-teal-800 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-100"
+                        role="status"
+                    >
+                        <x-dashboard.icon name="info" class="mt-0.5 h-5 w-5 shrink-0" />
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium">Welcome to MediTrack PNG!</p>
+                            <p class="mt-1 text-xs text-teal-700 dark:text-teal-200/90">
+                                Your dashboard will populate automatically as you receive inventory, process hospital orders, and track shipments.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            class="rounded-md p-1 text-teal-700 transition hover:bg-teal-100 dark:text-teal-200 dark:hover:bg-teal-900/50"
+                            aria-label="Dismiss welcome message"
+                            @click="welcomeOpen = false; localStorage.setItem('mt-sm-welcome-dismissed', '1')"
+                        >
+                            <x-dashboard.icon name="x" class="h-4 w-4" />
+                        </button>
+                    </div>
+                @endif
             </div>
 
             @if($topStats->isNotEmpty())
@@ -82,32 +120,25 @@
                 if ($actionGroups === [] && count($quickActions ?? [])) {
                     $actionGroups = [['label' => 'Shortcuts', 'actions' => $quickActions]];
                 }
+                $flatActions = collect($actionGroups)->flatMap(fn ($group) => $group['actions'] ?? [])->values();
             @endphp
-            @if(count($actionGroups))
-                <section class="mb-5 space-y-4">
-                    @foreach($actionGroups as $group)
-                        @php $groupActions = $group['actions'] ?? []; @endphp
-                        @if(count($groupActions))
-                            <div>
-                                <p class="mb-2 text-section-label">{{ $group['label'] }}</p>
-                                <div @class([
-                                    'grid grid-cols-1 gap-2 sm:grid-cols-2',
-                                    'xl:grid-cols-2' => count($groupActions) <= 2,
-                                    'xl:grid-cols-3' => count($groupActions) >= 3,
-                                ])>
-                                    @foreach($groupActions as $action)
-                                        <x-dashboard.module-card
-                                            :label="$action['label']"
-                                            :description="$action['description']"
-                                            :url="$action['url']"
-                                            :primary="$action['primary'] ?? false"
-                                            :icon="$action['icon'] ?? 'cube'"
-                                        />
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                    @endforeach
+            @if($flatActions->isNotEmpty())
+                <section class="mb-5">
+                    <div @class([
+                        'grid grid-cols-1 gap-2 sm:grid-cols-2',
+                        'xl:grid-cols-2' => $flatActions->count() <= 2,
+                        'xl:grid-cols-3' => $flatActions->count() >= 3,
+                    ])>
+                        @foreach($flatActions as $action)
+                            <x-dashboard.module-card
+                                :label="$action['label']"
+                                :description="$action['description']"
+                                :url="$action['url']"
+                                :primary="$action['primary'] ?? false"
+                                :icon="$action['icon'] ?? 'cube'"
+                            />
+                        @endforeach
+                    </div>
                 </section>
             @endif
 
