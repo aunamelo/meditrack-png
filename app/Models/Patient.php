@@ -19,6 +19,7 @@ class Patient extends Model
         'gender',
         'phone',
         'facility',
+        'ward_clinic',
         'is_active',
         'created_by',
     ];

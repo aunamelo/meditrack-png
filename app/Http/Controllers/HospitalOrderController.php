@@ -179,21 +179,48 @@ class HospitalOrderController extends Controller
 
     public function approve(ApproveHospitalOrderRequest $request, HospitalOrder $hospitalOrder): RedirectResponse
     {
-        DB::transaction(function () use ($request, $hospitalOrder): void {
+        $fulfilledLabels = [];
+        $skippedLabels = [];
+
+        DB::transaction(function () use ($request, $hospitalOrder, &$fulfilledLabels, &$skippedLabels): void {
             foreach ($request->validated('items') as $row) {
-                HospitalOrderItem::query()
+                $item = HospitalOrderItem::query()
                     ->where('hospital_order_id', $hospitalOrder->id)
                     ->where('id', $row['id'])
-                    ->update([
+                    ->first();
+
+                if (! $item) {
+                    continue;
+                }
+
+                $fulfill = (bool) ($row['fulfill'] ?? false);
+
+                if ($fulfill) {
+                    $item->update([
                         'source_drug_id' => $row['source_drug_id'],
                         'quantity_approved' => $row['quantity_approved'],
                     ]);
+                    $fulfilledLabels[] = $item->displayLabel();
+                } else {
+                    $item->update([
+                        'source_drug_id' => null,
+                        'quantity_approved' => 0,
+                    ]);
+                    $skippedLabels[] = $item->displayLabel();
+                }
             }
 
             $hospitalOrder->refresh()->syncHeaderFromItems();
+
+            $notes = $request->validated('notes') ?? $hospitalOrder->notes;
+            if ($skippedLabels !== []) {
+                $skipNote = 'Not fulfilled (out of stock / skipped): '.implode(', ', $skippedLabels).'.';
+                $notes = trim(($notes ? rtrim((string) $notes, '.').'. ' : '').$skipNote);
+            }
+
             $hospitalOrder->update([
                 'status' => 'approved',
-                'notes' => $request->validated('notes') ?? $hospitalOrder->notes,
+                'notes' => $notes,
                 'reviewed_by' => auth()->id(),
                 'reviewed_at' => now(),
             ]);
@@ -202,9 +229,15 @@ class HospitalOrderController extends Controller
         $hospitalOrder->load('requester');
         HospitalOrderNotificationService::notifyRequesterOfDecision($hospitalOrder);
 
+        $message = count($skippedLabels)
+            ? 'Partial approval saved. Fulfilled: '.implode(', ', $fulfilledLabels)
+                .'. Skipped: '.implode(', ', $skippedLabels)
+                .'. You can dispatch the approved medicines in one road delivery.'
+            : 'Hospital order approved. You can now dispatch the medicines in one road delivery to Modilon.';
+
         return redirect()
             ->to(getDashboardHospitalOrderRoute('show', $hospitalOrder))
-            ->with('success', 'Hospital order approved. You can now dispatch all medicines in one road delivery to Modilon.');
+            ->with('success', $message);
     }
 
     public function reject(RejectHospitalOrderRequest $request, HospitalOrder $hospitalOrder): RedirectResponse

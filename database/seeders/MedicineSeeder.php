@@ -12,8 +12,9 @@ class MedicineSeeder extends Seeder
     /**
      * Seed the NDoH medicine catalog (procurement reference, not inventory).
      *
-     * Entries mirror common PNG essential-medicine procurement lines
-     * (malaria, maternal, antibiotics, fluids, NCDs) with realistic strengths.
+     * Thirty-three essential medicines aligned to common PNG disease programmes
+     * (malaria, TB, respiratory, diarrhoea, dengue, HIV, NCDs, anaemia, typhoid,
+     * worms, leprosy, and emergency care).
      */
     public function run(): void
     {
@@ -27,64 +28,78 @@ class MedicineSeeder extends Seeder
 
         $supplierIds = Supplier::query()->pluck('id', 'name');
 
-        // Retire vague / compact-dosage legacy rows from earlier seeds.
-        $legacyKeys = [
-            ['ORS', 'Standard', 'other'],
-            ['Normal Saline', '0.9%', 'injection'],
-            ['Paracetamol', '500mg', 'tablet'],
-            ['Amoxicillin', '250mg', 'tablet'],
-            ['Metformin', '500mg', 'tablet'],
-            ['Artemether/Lumefantrine', '20/120mg', 'tablet'],
-        ];
-
-        foreach ($legacyKeys as [$name, $dosage, $dosageForm]) {
-            Medicine::query()
-                ->where('name', $name)
-                ->where('dosage', $dosage)
-                ->where('dosage_form', $dosageForm)
-                ->update([
-                    'is_active' => false,
-                    'updated_by' => $user->id,
-                ]);
-        }
-
         $catalog = [
-            // Analgesics / antipyretics
+            // 1. Malaria
             [
-                'name' => 'Paracetamol',
+                'name' => 'Artemether',
+                'dosage' => '80 mg/mL (1 mL)',
+                'dosage_form' => 'injection',
+                'unit' => 'ampoules',
+                'reorder_point' => 600,
+                'supplier' => 'Zhejiang Huahai Pharmaceutical Co., Ltd',
+                'unit_cost' => 28.00,
+                'currency' => 'CNY',
+                'description' => 'Parenteral artemisinin derivative for severe malaria when oral ACT is not possible.',
+            ],
+            [
+                'name' => 'Artemisinin-based Combination',
+                'dosage' => '20/120 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 4000,
+                'supplier' => 'Aurobindo Pharma Ltd',
+                'unit_cost' => 18.50,
+                'currency' => 'INR',
+                'description' => 'Fixed-dose ACT (artemether/lumefantrine) for uncomplicated Plasmodium falciparum malaria.',
+            ],
+            [
+                'name' => 'Quinine',
+                'dosage' => '300 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 1500,
+                'supplier' => "Dr. Reddy's Laboratories Ltd",
+                'unit_cost' => 6.50,
+                'currency' => 'INR',
+                'description' => 'Oral quinine sulfate for malaria treatment when ACT is unavailable or contraindicated.',
+            ],
+
+            // 2. TB
+            [
+                'name' => 'Isoniazid',
+                'dosage' => '300 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 3000,
+                'supplier' => "Dr. Reddy's Laboratories Ltd",
+                'unit_cost' => 1.80,
+                'currency' => 'INR',
+                'description' => 'First-line anti-TB drug for active tuberculosis and latent TB infection.',
+            ],
+            [
+                'name' => 'Rifampicin',
+                'dosage' => '450 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'capsules',
+                'reorder_point' => 2500,
+                'supplier' => 'Aurobindo Pharma Ltd',
+                'unit_cost' => 4.20,
+                'currency' => 'INR',
+                'description' => 'Core bactericidal anti-TB drug used in standard first-line TB regimens.',
+            ],
+            [
+                'name' => 'Pyrazinamide',
                 'dosage' => '500 mg',
                 'dosage_form' => 'tablet',
                 'unit' => 'tablets',
-                'reorder_point' => 5000,
-                'supplier' => 'Cipla Ltd',
-                'unit_cost' => 0.85,
-                'currency' => 'INR',
-                'description' => 'Oral analgesic/antipyretic tablets for fever and mild–moderate pain (adult dosing).',
-            ],
-            [
-                'name' => 'Paracetamol',
-                'dosage' => '120 mg/5 mL',
-                'dosage_form' => 'syrup',
-                'unit' => 'bottles (100 mL)',
-                'reorder_point' => 1500,
-                'supplier' => 'Cipla Ltd',
-                'unit_cost' => 28.00,
-                'currency' => 'INR',
-                'description' => 'Paediatric oral suspension for fever and pain in children.',
-            ],
-            [
-                'name' => 'Ibuprofen',
-                'dosage' => '400 mg',
-                'dosage_form' => 'tablet',
-                'unit' => 'tablets',
                 'reorder_point' => 2500,
-                'supplier' => 'Sun Pharmaceutical Industries Ltd',
-                'unit_cost' => 1.40,
+                'supplier' => 'Aurobindo Pharma Ltd',
+                'unit_cost' => 2.40,
                 'currency' => 'INR',
-                'description' => 'NSAID tablets for pain, inflammation, and fever where not contraindicated.',
+                'description' => 'Sterilising-phase anti-TB drug for intensive-phase tuberculosis treatment.',
             ],
 
-            // Antibiotics
+            // 3. Respiratory
             [
                 'name' => 'Amoxicillin',
                 'dosage' => '500 mg',
@@ -94,18 +109,7 @@ class MedicineSeeder extends Seeder
                 'supplier' => 'Sun Pharmaceutical Industries Ltd',
                 'unit_cost' => 3.20,
                 'currency' => 'INR',
-                'description' => 'Broad-spectrum penicillin capsules for community-acquired infections.',
-            ],
-            [
-                'name' => 'Amoxicillin',
-                'dosage' => '250 mg/5 mL',
-                'dosage_form' => 'syrup',
-                'unit' => 'bottles (100 mL)',
-                'reorder_point' => 1200,
-                'supplier' => 'Sun Pharmaceutical Industries Ltd',
-                'unit_cost' => 45.00,
-                'currency' => 'INR',
-                'description' => 'Paediatric powder for oral suspension (reconstituted at facility).',
+                'description' => 'First-line antibiotic for community-acquired pneumonia and lower respiratory tract infection.',
             ],
             [
                 'name' => 'Ceftriaxone',
@@ -116,29 +120,42 @@ class MedicineSeeder extends Seeder
                 'supplier' => "Dr. Reddy's Laboratories Ltd",
                 'unit_cost' => 42.00,
                 'currency' => 'INR',
-                'description' => 'Third-generation cephalosporin powder for injection (IM/IV) for severe bacterial infection.',
+                'description' => 'Third-generation cephalosporin for severe pneumonia and hospitalised respiratory infection.',
             ],
             [
-                'name' => 'Benzylpenicillin',
-                'dosage' => '1.2 MIU',
-                'dosage_form' => 'injection',
-                'unit' => 'vials',
-                'reorder_point' => 1000,
-                'supplier' => 'Aurobindo Pharma Ltd',
-                'unit_cost' => 18.00,
+                'name' => 'Salbutamol',
+                'dosage' => '2 mg/5 mL',
+                'dosage_form' => 'syrup',
+                'unit' => 'bottles (100 mL)',
+                'reorder_point' => 1200,
+                'supplier' => 'Sun Pharmaceutical Industries Ltd',
+                'unit_cost' => 38.00,
                 'currency' => 'INR',
-                'description' => 'Penicillin G sodium powder for injection for serious streptococcal and related infections.',
+                'description' => 'Short-acting bronchodilator syrup for asthma and acute bronchospasm.',
+            ],
+
+            // 4. Diarrhoea
+            [
+                'name' => 'ORS',
+                'dosage' => '20.5 g sachet',
+                'dosage_form' => 'other',
+                'unit' => 'sachets',
+                'reorder_point' => 10000,
+                'supplier' => 'Sinopharm International Corporation',
+                'unit_cost' => 1.60,
+                'currency' => 'CNY',
+                'description' => 'WHO low-osmolarity oral rehydration salts for acute watery diarrhoea and dehydration.',
             ],
             [
-                'name' => 'Benzathine benzylpenicillin',
-                'dosage' => '2.4 MIU',
-                'dosage_form' => 'injection',
-                'unit' => 'vials',
-                'reorder_point' => 600,
-                'supplier' => 'Aurobindo Pharma Ltd',
-                'unit_cost' => 55.00,
+                'name' => 'Ciprofloxacin',
+                'dosage' => '500 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 2000,
+                'supplier' => 'Lupin Ltd',
+                'unit_cost' => 2.80,
                 'currency' => 'INR',
-                'description' => 'Long-acting IM penicillin for syphilis treatment and rheumatic fever prophylaxis.',
+                'description' => 'Fluoroquinolone for dysentery and selected severe bacterial diarrhoea.',
             ],
             [
                 'name' => 'Metronidazole',
@@ -149,113 +166,91 @@ class MedicineSeeder extends Seeder
                 'supplier' => 'Lupin Ltd',
                 'unit_cost' => 1.90,
                 'currency' => 'INR',
-                'description' => 'Antiprotozoal/anaerobic antibiotic tablets (e.g. amoebiasis, bacterial vaginosis, anaerobic infection).',
-            ],
-            [
-                'name' => 'Co-trimoxazole',
-                'dosage' => '400/80 mg',
-                'dosage_form' => 'tablet',
-                'unit' => 'tablets',
-                'reorder_point' => 2500,
-                'supplier' => 'Cipla Ltd',
-                'unit_cost' => 1.25,
-                'currency' => 'INR',
-                'description' => 'Sulfamethoxazole/trimethoprim tablets for UTI, PCP prophylaxis, and selected bacterial infections.',
-            ],
-            [
-                'name' => 'Doxycycline',
-                'dosage' => '100 mg',
-                'dosage_form' => 'tablet',
-                'unit' => 'capsules',
-                'reorder_point' => 1800,
-                'supplier' => 'Lupin Ltd',
-                'unit_cost' => 2.10,
-                'currency' => 'INR',
-                'description' => 'Tetracycline-class antibiotic; also used in malaria and sexually transmitted infection pathways.',
-            ],
-            [
-                'name' => 'Gentamicin',
-                'dosage' => '40 mg/mL (2 mL)',
-                'dosage_form' => 'injection',
-                'unit' => 'ampoules',
-                'reorder_point' => 900,
-                'supplier' => 'Zhejiang Huahai Pharmaceutical Co., Ltd',
-                'unit_cost' => 3.80,
-                'currency' => 'CNY',
-                'description' => 'Aminoglycoside injection for severe Gram-negative and neonatal sepsis regimens.',
+                'description' => 'Antiprotozoal for amoebiasis, giardiasis, and anaerobic causes of diarrhoea.',
             ],
 
-            // Malaria (high burden in PNG)
+            // 5. Dengue
             [
-                'name' => 'Artemether/Lumefantrine',
-                'dosage' => '20/120 mg',
-                'dosage_form' => 'tablet',
-                'unit' => 'tablets',
-                'reorder_point' => 4000,
-                'supplier' => 'Aurobindo Pharma Ltd',
-                'unit_cost' => 18.50,
-                'currency' => 'INR',
-                'description' => 'Fixed-dose ACT (Coartem-type) for uncomplicated Plasmodium falciparum malaria.',
-            ],
-            [
-                'name' => 'Primaquine',
-                'dosage' => '7.5 mg',
-                'dosage_form' => 'tablet',
-                'unit' => 'tablets',
-                'reorder_point' => 1500,
-                'supplier' => 'Cipla Ltd',
-                'unit_cost' => 4.50,
-                'currency' => 'INR',
-                'description' => '8-aminoquinoline for radical cure of P. vivax / gametocyte clearance (G6PD status applies).',
-            ],
-            [
-                'name' => 'Quinine dihydrochloride',
-                'dosage' => '300 mg/mL (2 mL)',
-                'dosage_form' => 'injection',
-                'unit' => 'ampoules',
-                'reorder_point' => 400,
-                'supplier' => "Dr. Reddy's Laboratories Ltd",
-                'unit_cost' => 32.00,
-                'currency' => 'INR',
-                'description' => 'Parenteral quinine for severe malaria when artesunate is unavailable.',
-            ],
-
-            // Maternal & reproductive health
-            [
-                'name' => 'Oxytocin',
-                'dosage' => '10 IU/mL (1 mL)',
-                'dosage_form' => 'injection',
-                'unit' => 'ampoules',
-                'reorder_point' => 1200,
-                'supplier' => 'Sinopharm International Corporation',
-                'unit_cost' => 2.40,
-                'currency' => 'CNY',
-                'description' => 'Cold-chain injectable uterotonic for labour induction/augmentation and postpartum haemorrhage.',
-            ],
-            [
-                'name' => 'Misoprostol',
-                'dosage' => '200 mcg',
-                'dosage_form' => 'tablet',
-                'unit' => 'tablets',
-                'reorder_point' => 800,
-                'supplier' => 'Cipla Ltd',
-                'unit_cost' => 12.00,
-                'currency' => 'INR',
-                'description' => 'Prostaglandin analogue tablets used for postpartum haemorrhage where oxytocin is not available.',
-            ],
-            [
-                'name' => 'Ferrous sulfate + folic acid',
-                'dosage' => '200 mg + 400 mcg',
+                'name' => 'Paracetamol',
+                'dosage' => '500 mg',
                 'dosage_form' => 'tablet',
                 'unit' => 'tablets',
                 'reorder_point' => 5000,
-                'supplier' => 'Lupin Ltd',
-                'unit_cost' => 0.95,
+                'supplier' => 'Cipla Ltd',
+                'unit_cost' => 0.85,
                 'currency' => 'INR',
-                'description' => 'Antenatal iron–folate supplementation for anaemia prevention in pregnancy.',
+                'description' => 'Antipyretic and analgesic for dengue fever (avoid NSAIDs in suspected dengue).',
+            ],
+            [
+                'name' => 'IV Fluids',
+                'dosage' => '0.9% 500 mL',
+                'dosage_form' => 'injection',
+                'unit' => 'bags',
+                'reorder_point' => 6000,
+                'supplier' => 'Shanghai Pharmaceuticals Holding Co., Ltd',
+                'unit_cost' => 4.25,
+                'currency' => 'CNY',
+                'description' => 'Normal saline IV infusion for dengue fluid resuscitation and maintenance.',
             ],
 
-            // NCDs
+            // 6. HIV
+            [
+                'name' => 'Tenofovir',
+                'dosage' => '300 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 2000,
+                'supplier' => "Dr. Reddy's Laboratories Ltd",
+                'unit_cost' => 8.50,
+                'currency' => 'INR',
+                'description' => 'NRTI backbone for first-line antiretroviral therapy (TDF component).',
+            ],
+            [
+                'name' => 'Lamivudine',
+                'dosage' => '150 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 2000,
+                'supplier' => 'Cipla Ltd',
+                'unit_cost' => 4.20,
+                'currency' => 'INR',
+                'description' => 'NRTI used in standard HIV combination antiretroviral regimens.',
+            ],
+            [
+                'name' => 'Efavirenz',
+                'dosage' => '600 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 1800,
+                'supplier' => 'Aurobindo Pharma Ltd',
+                'unit_cost' => 12.00,
+                'currency' => 'INR',
+                'description' => 'NNRTI for first-line HIV treatment in adults and adolescents.',
+            ],
+
+            // 7. Hypertension / diabetes
+            [
+                'name' => 'Amlodipine',
+                'dosage' => '5 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 1800,
+                'supplier' => 'Sun Pharmaceutical Industries Ltd',
+                'unit_cost' => 1.05,
+                'currency' => 'INR',
+                'description' => 'Calcium-channel blocker for hypertension and cardiovascular risk reduction.',
+            ],
+            [
+                'name' => 'Enalapril',
+                'dosage' => '5 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 1500,
+                'supplier' => 'Lupin Ltd',
+                'unit_cost' => 1.20,
+                'currency' => 'INR',
+                'description' => 'ACE inhibitor for hypertension and heart failure with reduced ejection fraction.',
+            ],
             [
                 'name' => 'Metformin',
                 'dosage' => '500 mg',
@@ -268,17 +263,6 @@ class MedicineSeeder extends Seeder
                 'description' => 'First-line oral antidiabetic for type 2 diabetes mellitus.',
             ],
             [
-                'name' => 'Amlodipine',
-                'dosage' => '5 mg',
-                'dosage_form' => 'tablet',
-                'unit' => 'tablets',
-                'reorder_point' => 1800,
-                'supplier' => 'Sun Pharmaceutical Industries Ltd',
-                'unit_cost' => 1.05,
-                'currency' => 'INR',
-                'description' => 'Calcium-channel blocker for hypertension and angina.',
-            ],
-            [
                 'name' => 'Glibenclamide',
                 'dosage' => '5 mg',
                 'dosage_form' => 'tablet',
@@ -287,78 +271,69 @@ class MedicineSeeder extends Seeder
                 'supplier' => "Dr. Reddy's Laboratories Ltd",
                 'unit_cost' => 0.90,
                 'currency' => 'INR',
-                'description' => 'Sulfonylurea for type 2 diabetes where metformin alone is insufficient.',
+                'description' => 'Sulfonylurea for type 2 diabetes when metformin alone is insufficient.',
             ],
 
-            // Fluids, ORS, emergency
+            // 8. Anaemia
             [
-                'name' => 'Oral rehydration salts (WHO low-osmolarity)',
-                'dosage' => '20.5 g sachet',
-                'dosage_form' => 'other',
-                'unit' => 'sachets',
-                'reorder_point' => 10000,
-                'supplier' => 'Sinopharm International Corporation',
-                'unit_cost' => 1.60,
-                'currency' => 'CNY',
-                'description' => 'WHO low-osmolarity ORS sachets for dehydration from diarrhoea (dissolve in 1 L clean water).',
+                'name' => 'Ferrous Sulfate',
+                'dosage' => '200 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 5000,
+                'supplier' => 'Lupin Ltd',
+                'unit_cost' => 0.75,
+                'currency' => 'INR',
+                'description' => 'Oral iron supplementation for iron-deficiency anaemia.',
             ],
             [
-                'name' => 'Zinc sulfate',
-                'dosage' => '20 mg',
+                'name' => 'Folic Acid',
+                'dosage' => '5 mg',
                 'dosage_form' => 'tablet',
                 'unit' => 'tablets',
                 'reorder_point' => 4000,
-                'supplier' => 'CSPC Pharmaceutical Group Ltd',
-                'unit_cost' => 0.70,
-                'currency' => 'CNY',
-                'description' => 'Dispersible zinc tablets given with ORS for childhood diarrhoea (10–14 day course).',
+                'supplier' => 'Lupin Ltd',
+                'unit_cost' => 0.55,
+                'currency' => 'INR',
+                'description' => 'Folate supplementation for megaloblastic anaemia and antenatal care.',
             ],
             [
-                'name' => 'Sodium chloride IV infusion',
-                'dosage' => '0.9% 500 mL',
-                'dosage_form' => 'injection',
-                'unit' => 'bags',
-                'reorder_point' => 6000,
-                'supplier' => 'Shanghai Pharmaceuticals Holding Co., Ltd',
-                'unit_cost' => 4.25,
-                'currency' => 'CNY',
-                'description' => 'Normal saline 0.9% IV infusion bag for fluid resuscitation and drug dilution.',
-            ],
-            [
-                'name' => 'Compound sodium lactate (Ringer\'s lactate)',
-                'dosage' => '500 mL',
-                'dosage_form' => 'injection',
-                'unit' => 'bags',
-                'reorder_point' => 3500,
-                'supplier' => 'Shanghai Pharmaceuticals Holding Co., Ltd',
-                'unit_cost' => 4.80,
-                'currency' => 'CNY',
-                'description' => 'Balanced crystalloid IV fluid for volume replacement and obstetric emergency care.',
-            ],
-            [
-                'name' => 'Glucose IV infusion',
-                'dosage' => '5% 500 mL',
-                'dosage_form' => 'injection',
-                'unit' => 'bags',
-                'reorder_point' => 3000,
-                'supplier' => 'Sinopharm International Corporation',
-                'unit_cost' => 4.10,
-                'currency' => 'CNY',
-                'description' => 'Dextrose 5% IV infusion for hypoglycaemia support and maintenance fluids.',
-            ],
-            [
-                'name' => 'Adrenaline (epinephrine)',
+                'name' => 'Vitamin B12',
                 'dosage' => '1 mg/mL (1 mL)',
                 'dosage_form' => 'injection',
                 'unit' => 'ampoules',
-                'reorder_point' => 500,
-                'supplier' => 'Zhejiang Huahai Pharmaceutical Co., Ltd',
-                'unit_cost' => 2.20,
+                'reorder_point' => 800,
+                'supplier' => 'CSPC Pharmaceutical Group Ltd',
+                'unit_cost' => 3.50,
                 'currency' => 'CNY',
-                'description' => 'Emergency catecholamine for anaphylaxis, cardiac arrest, and severe asthma pathways.',
+                'description' => 'Cyanocobalamin injection for B12-deficiency anaemia and malabsorption.',
             ],
 
-            // Neglected tropical / public health
+            // 9. Typhoid
+            [
+                'name' => 'Chloramphenicol',
+                'dosage' => '250 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'capsules',
+                'reorder_point' => 1200,
+                'supplier' => 'Lupin Ltd',
+                'unit_cost' => 3.80,
+                'currency' => 'INR',
+                'description' => 'Alternative typhoid treatment where fluoroquinolone resistance is documented.',
+            ],
+            [
+                'name' => 'Levofloxacin',
+                'dosage' => '500 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 1500,
+                'supplier' => "Dr. Reddy's Laboratories Ltd",
+                'unit_cost' => 4.50,
+                'currency' => 'INR',
+                'description' => 'Fluoroquinolone for uncomplicated typhoid fever and enteric fever.',
+            ],
+
+            // 10. Worms
             [
                 'name' => 'Albendazole',
                 'dosage' => '400 mg',
@@ -368,9 +343,94 @@ class MedicineSeeder extends Seeder
                 'supplier' => 'Cipla Ltd',
                 'unit_cost' => 2.80,
                 'currency' => 'INR',
-                'description' => 'Broad-spectrum anthelmintic for soil-transmitted helminth mass-drug administration and individual treatment.',
+                'description' => 'Broad-spectrum anthelmintic for soil-transmitted helminths and mass drug administration.',
+            ],
+            [
+                'name' => 'Mebendazole',
+                'dosage' => '500 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 4000,
+                'supplier' => 'Cipla Ltd',
+                'unit_cost' => 2.20,
+                'currency' => 'INR',
+                'description' => 'Anthelmintic for roundworm, whipworm, and hookworm infection.',
+            ],
+            [
+                'name' => 'Praziquantel',
+                'dosage' => '600 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 2000,
+                'supplier' => 'Cipla Ltd',
+                'unit_cost' => 6.00,
+                'currency' => 'INR',
+                'description' => 'Anthelmintic for schistosomiasis and tapeworm infection.',
+            ],
+
+            // 11. Leprosy
+            [
+                'name' => 'Rifampicin',
+                'dosage' => '600 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'capsules',
+                'reorder_point' => 800,
+                'supplier' => 'Aurobindo Pharma Ltd',
+                'unit_cost' => 5.50,
+                'currency' => 'INR',
+                'description' => 'Monthly supervised rifampicin dose for multibacillary leprosy (MDT blister packs).',
+            ],
+            [
+                'name' => 'Dapsone',
+                'dosage' => '100 mg',
+                'dosage_form' => 'tablet',
+                'unit' => 'tablets',
+                'reorder_point' => 1000,
+                'supplier' => 'Lupin Ltd',
+                'unit_cost' => 2.10,
+                'currency' => 'INR',
+                'description' => 'Daily dapsone for paucibacillary and multibacillary leprosy multidrug therapy.',
+            ],
+
+            // 12. Emergency
+            [
+                'name' => 'Epinephrine',
+                'dosage' => '1 mg/mL (1 mL)',
+                'dosage_form' => 'injection',
+                'unit' => 'ampoules',
+                'reorder_point' => 500,
+                'supplier' => 'Zhejiang Huahai Pharmaceutical Co., Ltd',
+                'unit_cost' => 2.20,
+                'currency' => 'CNY',
+                'description' => 'Emergency adrenaline for anaphylaxis, cardiac arrest, and severe asthma.',
+            ],
+            [
+                'name' => 'Glucose',
+                'dosage' => '50% 50 mL',
+                'dosage_form' => 'injection',
+                'unit' => 'ampoules',
+                'reorder_point' => 600,
+                'supplier' => 'Sinopharm International Corporation',
+                'unit_cost' => 3.80,
+                'currency' => 'CNY',
+                'description' => 'Hypertonic dextrose injection for emergency hypoglycaemia and altered consciousness.',
             ],
         ];
+
+        $catalogKeys = collect($catalog)->map(
+            fn (array $entry) => "{$entry['name']}|{$entry['dosage']}|{$entry['dosage_form']}"
+        );
+
+        Medicine::query()->each(function (Medicine $medicine) use ($catalogKeys, $user) {
+            $key = "{$medicine->name}|{$medicine->dosage}|{$medicine->dosage_form}";
+
+            if (! $catalogKeys->contains($key)) {
+                $medicine->update([
+                    'is_active' => false,
+                    'updated_by' => $user->id,
+                ]);
+            }
+        });
 
         foreach ($catalog as $entry) {
             $supplierId = $supplierIds[$entry['supplier']] ?? null;

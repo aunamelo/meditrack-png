@@ -162,10 +162,39 @@ class HospitalOrder extends Model
         $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
 
         if ($items->isNotEmpty()) {
-            return $items->every(fn (HospitalOrderItem $item) => $item->source_drug_id && $item->quantity_approved);
+            return $items->contains(fn (HospitalOrderItem $item) => $item->source_drug_id
+                && (int) $item->quantity_approved > 0);
         }
 
-        return (bool) $this->source_drug_id;
+        return (bool) $this->source_drug_id && (int) $this->quantity_approved > 0;
+    }
+
+    /**
+     * Lines that will be dispatched on the next road delivery.
+     *
+     * @return \Illuminate\Support\Collection<int, HospitalOrderItem>
+     */
+    public function shippableItems()
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+
+        return $items->filter(fn (HospitalOrderItem $item) => $item->source_drug_id
+            && (int) $item->quantity_approved > 0)
+            ->values();
+    }
+
+    /**
+     * Lines skipped at approval (out of stock / not fulfilled).
+     *
+     * @return \Illuminate\Support\Collection<int, HospitalOrderItem>
+     */
+    public function unfulfilledItems()
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+
+        return $items->filter(fn (HospitalOrderItem $item) => (int) ($item->quantity_approved ?? 0) <= 0
+            || ! $item->source_drug_id)
+            ->values();
     }
 
     public function canReceive(): bool

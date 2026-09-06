@@ -35,6 +35,19 @@ class StoreDispensingRecordRequest extends FormRequest
             'audit_drug_dose_checked' => ['accepted'],
             'audit_contraindications_checked' => ['accepted'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'diagnosis' => ['nullable', 'string', 'max:500'],
+            'dosage_form' => ['nullable', 'string', 'max:100'],
+            'strength' => ['nullable', 'string', 'max:100'],
+            'quantity_to_dispense' => ['nullable', 'integer', 'min:1', 'max:999999'],
+            'directions_for_use' => ['nullable', 'string', 'max:1000'],
+            'prescriber_designation' => ['nullable', 'string', 'max:255'],
+            'prescriber_signature' => ['nullable', 'string', 'max:255'],
+            'hospital_stamp' => ['nullable', 'boolean'],
+            'pharmacist_signature' => ['nullable', 'string', 'max:255'],
+            'dispensing_notes' => ['nullable', 'string', 'max:1000'],
+            'allergies_contraindications' => ['nullable', 'string', 'max:1000'],
+            'repeat_instructions' => ['nullable', 'string', 'max:1000'],
+            'follow_up_instructions' => ['nullable', 'string', 'max:1000'],
         ];
     }
 

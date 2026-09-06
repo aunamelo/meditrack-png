@@ -24,6 +24,7 @@ class UpdatePatientRequest extends FormRequest
             'gender' => ['required', Rule::in(['male', 'female', 'other', 'unspecified'])],
             'phone' => ['nullable', 'string', 'max:30'],
             'facility' => ['nullable', 'string', 'max:255'],
+            'ward_clinic' => ['nullable', 'string', 'max:255'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

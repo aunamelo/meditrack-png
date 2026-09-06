@@ -19,7 +19,7 @@
         </div>
         <div class="card">
             <div class="label">Lines</div>
-            <div class="value">{{ $hospitalOrder->items->count() }}</div>
+            <div class="value">{{ $hospitalOrder->shippableItems()->count() }}</div>
         </div>
         <div class="card">
             <div class="label">Total units to pick</div>
@@ -57,7 +57,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($hospitalOrder->items as $index => $item)
+            @foreach($hospitalOrder->shippableItems() as $index => $item)
                 @php $batch = $item->sourceDrug; @endphp
                 <tr>
                     <td>{{ $index + 1 }}</td>
@@ -66,7 +66,7 @@
                     </td>
                     <td>{{ $batch?->batch_number ?? '—' }}</td>
                     <td>{{ $batch?->expiry_date ? $batch->expiry_date->format('d M Y') : '—' }}</td>
-                    <td>{{ $item->quantity_approved !== null ? number_format($item->quantity_approved) : '—' }}</td>
+                    <td>{{ number_format((int) $item->quantity_approved) }}</td>
                     <td style="min-width:120px">&nbsp;</td>
                     <td style="min-width:72px">☐</td>
                 </tr>

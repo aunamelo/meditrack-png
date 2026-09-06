@@ -92,6 +92,26 @@ class Drug extends Model
         return $this->hasMany(StockAdjustment::class);
     }
 
+    public function wardStocks(): HasMany
+    {
+        return $this->hasMany(WardStock::class);
+    }
+
+    public function drugIssuances(): HasMany
+    {
+        return $this->hasMany(DrugIssuance::class);
+    }
+
+    public function drugUsages(): HasMany
+    {
+        return $this->hasMany(DrugUsage::class);
+    }
+
+    public function drugReturns(): HasMany
+    {
+        return $this->hasMany(DrugReturn::class);
+    }
+
     /**
      * Get procurement orders for this drug.
      */

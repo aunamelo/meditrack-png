@@ -105,6 +105,8 @@
                 <nav class="guest-portal-topnav" aria-label="Portal">
                     <a href="{{ route('home') }}" @class(['guest-portal-topnav-link', 'is-active' => request()->routeIs('home')])>Home</a>
 
+                    <x-theme-toggle compact />
+
                     <div class="guest-portal-lang" @click.outside="langOpen = false">
                         <button
                             type="button"
@@ -156,13 +158,13 @@
                                     </button>
                                 </li>
                                 <li role="option" aria-selected="false">
-                                    <button type="button" class="guest-portal-lang-option" @click="selectLang('tp')">
+                                    <button type="button" class="guest-portal-lang-option" @click="selectLang('tp')" @mouseenter="showToast('Coming soon')">
                                         <span class="guest-portal-lang-code">TP</span>
                                         Tok Pisin
                                     </button>
                                 </li>
                                 <li role="option" aria-selected="false">
-                                    <button type="button" class="guest-portal-lang-option" @click="selectLang('hm')">
+                                    <button type="button" class="guest-portal-lang-option" @click="selectLang('hm')" @mouseenter="showToast('Coming soon')">
                                         <span class="guest-portal-lang-code">HM</span>
                                         Hiri Motu
                                     </button>

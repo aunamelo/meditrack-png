@@ -51,6 +51,10 @@
                     <label for="facility" class="form-label">Facility</label>
                     <input type="text" name="facility" id="facility" value="{{ old('facility', $patient->facility) }}" class="input-field">
                 </div>
+                <div>
+                    <label for="ward_clinic" class="form-label">Ward / Clinic</label>
+                    <input type="text" name="ward_clinic" id="ward_clinic" value="{{ old('ward_clinic', $patient->ward_clinic) }}" placeholder="e.g., Outpatient, Medical Ward, Pediatric Ward" class="input-field">
+                </div>
                 <div class="md:col-span-2">
                     <label class="inline-flex items-center gap-2 text-sm text-ink">
                         <input type="hidden" name="is_active" value="0">

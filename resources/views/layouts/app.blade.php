@@ -16,7 +16,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-canvas font-sans antialiased text-ink dark:bg-night dark:text-zinc-100">
+    <body class="h-dvh min-h-dvh overflow-hidden bg-canvas font-sans antialiased text-ink dark:bg-night dark:text-zinc-100">
         <a href="#main-content" class="skip-link">Skip to main content</a>
 
         <div
@@ -31,13 +31,13 @@
                     localStorage.setItem('meditrack-sidebar-collapsed', this.sidebarCollapsed ? '1' : '0');
                 },
             }"
-            class="flex h-dvh min-h-dvh overflow-hidden bg-canvas dark:bg-night"
+            class="flex h-full min-h-0 overflow-hidden bg-canvas dark:bg-night"
         >
             @auth
                 @include('layouts.sidebar')
             @endauth
 
-            <div class="flex h-dvh min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas dark:bg-night">
+            <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-canvas dark:bg-night">
                 @auth
                     @include('layouts.topbar')
                 @else
@@ -49,7 +49,7 @@
                 </main>
 
                 @auth
-                    <footer class="app-portal-footer mt-auto shrink-0">
+                    <footer class="app-portal-footer shrink-0">
                         <div class="app-portal-footer-inner">
                             <p class="app-portal-footer-copy">
                                 Copyright &copy; {{ date('Y') }} National Department of Health of Papua New Guinea · MediTrack PNG

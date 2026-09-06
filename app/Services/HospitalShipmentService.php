@@ -28,9 +28,9 @@ class HospitalShipmentService
             throw new \InvalidArgumentException('This hospital order cannot be dispatched by road.');
         }
 
-        $items = $order->items;
+        $items = $order->shippableItems();
         if ($items->isEmpty()) {
-            throw new \InvalidArgumentException('This hospital order has no medicine lines to ship.');
+            throw new \InvalidArgumentException('This hospital order has no approved medicine lines to ship.');
         }
 
         $expectedArrivalAt ??= now()->addDays(2)->setTime(17, 0);

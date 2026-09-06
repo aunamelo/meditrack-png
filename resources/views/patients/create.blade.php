@@ -46,6 +46,10 @@
                     <label for="facility" class="form-label">Facility</label>
                     <input type="text" name="facility" id="facility" value="{{ old('facility', 'Modilon General Hospital, Madang') }}" class="input-field">
                 </div>
+                <div>
+                    <label for="ward_clinic" class="form-label">Ward / Clinic</label>
+                    <input type="text" name="ward_clinic" id="ward_clinic" value="{{ old('ward_clinic') }}" placeholder="e.g., Outpatient, Medical Ward, Pediatric Ward" class="input-field">
+                </div>
 
                 <div class="md:col-span-2 flex justify-end gap-3">
                     <a href="{{ getDashboardPatientRoute('index') }}" class="btn-module-secondary">Cancel</a>

@@ -26,6 +26,19 @@ class DispensingRecord extends Model
         'notes',
         'dispensed_by',
         'dispensed_at',
+        'diagnosis',
+        'dosage_form',
+        'strength',
+        'quantity_to_dispense',
+        'directions_for_use',
+        'prescriber_designation',
+        'prescriber_signature',
+        'hospital_stamp',
+        'pharmacist_signature',
+        'dispensing_notes',
+        'allergies_contraindications',
+        'repeat_instructions',
+        'follow_up_instructions',
     ];
 
     /**
@@ -38,6 +51,7 @@ class DispensingRecord extends Model
         'audit_prescriber_checked' => 'boolean',
         'audit_drug_dose_checked' => 'boolean',
         'audit_contraindications_checked' => 'boolean',
+        'hospital_stamp' => 'boolean',
     ];
 
     public static function generateRecordNumber(): string

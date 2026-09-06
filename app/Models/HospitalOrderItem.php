@@ -33,4 +33,9 @@ class HospitalOrderItem extends Model
     {
         return trim($this->drug_name.($this->dosage ? ' ('.$this->dosage.')' : ''));
     }
+
+    public function isFulfilled(): bool
+    {
+        return $this->source_drug_id && (int) $this->quantity_approved > 0;
+    }
 }

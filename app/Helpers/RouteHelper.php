@@ -453,3 +453,95 @@ if (! function_exists('getRoleDashboardRoute')) {
         return route('dashboard');
     }
 }
+
+if (! function_exists('getDashboardRoute')) {
+    /**
+     * Build a role-scoped route for the current user (general purpose).
+     */
+    function getDashboardRoute(string $routeName, mixed $params = null): string
+    {
+        $fullRouteName = getDashboardRoutePrefix().$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardWardRoute')) {
+    /**
+     * Build a role-scoped Ward route for the current user.
+     */
+    function getDashboardWardRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to ward management.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'wards.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardDrugIssuanceRoute')) {
+    /**
+     * Build a role-scoped Drug Issuance route for the current user.
+     */
+    function getDashboardDrugIssuanceRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to drug issuances.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'drug-issuances.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardDrugReturnRoute')) {
+    /**
+     * Build a role-scoped Drug Return route for the current user.
+     */
+    function getDashboardDrugReturnRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to drug returns.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'drug-returns.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardDrugUsageRoute')) {
+    /**
+     * Build a role-scoped Drug Usage route for the current user.
+     */
+    function getDashboardDrugUsageRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to drug usage records.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'drug-usages.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
+
+if (! function_exists('getDashboardWardStockRoute')) {
+    /**
+     * Build a role-scoped Ward Stock route for the current user.
+     */
+    function getDashboardWardStockRoute(string $routeName, mixed $params = null): string
+    {
+        if (! auth()->user()->hasAnyRole(['admin', 'pharmacy_manager'])) {
+            abort(403, 'You do not have access to ward stock.');
+        }
+
+        $fullRouteName = getDashboardRoutePrefix().'ward-stocks.'.$routeName;
+
+        return $params !== null ? route($fullRouteName, $params) : route($fullRouteName);
+    }
+}
