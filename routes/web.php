@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardChartController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DatabaseResetController;
 use App\Http\Controllers\DiscrepancyReportController;
 use App\Http\Controllers\DispensingRecordController;
 use App\Http\Controllers\DriverTrackController;
@@ -116,6 +117,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('reports/ndoh/export', [NdohReportController::class, 'export'])->name('reports.ndoh.export');
     Route::get('reports/stock-status', [StockStatusController::class, 'index'])->name('reports.stock-status.index');
     Route::get('reports/stock-movements', [StockMovementController::class, 'index'])->name('reports.stock-movements.index');
+    Route::get('database-reset', [DatabaseResetController::class, 'index'])->name('database-reset.index');
+    Route::post('database-reset', [DatabaseResetController::class, 'reset'])->name('database-reset.reset');
 });
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {
