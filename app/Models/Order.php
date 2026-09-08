@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
@@ -135,9 +136,15 @@ class Order extends Model
     {
         $firstItem = $this->items()->orderBy('id')->first();
 
+        $drugId = $firstItem?->drug_id;
+        // Only set drug_id if the drug exists in the drugs table
+        if ($drugId && !DB::table('drugs')->where('id', $drugId)->exists()) {
+            $drugId = null;
+        }
+
         $this->update([
             'medicine_id' => $firstItem?->medicine_id,
-            'drug_id' => $firstItem?->drug_id,
+            'drug_id' => $drugId,
             'quantity_ordered' => (int) $this->items()->sum('quantity_ordered'),
             'quantity_received' => (int) $this->items()->sum('quantity_received'),
         ]);
