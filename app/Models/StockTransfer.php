@@ -322,7 +322,13 @@ class StockTransfer extends Model
                 ]]);
 
             foreach ($lines as $line) {
-                $sourceDrug = Drug::query()->lockForUpdate()->findOrFail($line->drug_id);
+                // Look up drug by batch_number to ensure correct batch deduction
+                $sourceDrug = Drug::query()
+                    ->lockForUpdate()
+                    ->where('batch_number', $line->batch_number)
+                    ->where('id', $line->drug_id)
+                    ->firstOrFail();
+
                 $quantitySent = (int) $line->quantity_sent;
 
                 if ($sourceDrug->quantity_on_hand < $quantitySent) {
