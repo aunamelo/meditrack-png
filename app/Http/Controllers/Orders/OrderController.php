@@ -99,11 +99,6 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request): RedirectResponse
     {
         $order = DB::transaction(function () use ($request) {
-            // Clean up orphaned order items from failed attempts
-            \App\Models\OrderItem::whereNull('order_id')
-                ->where('created_at', '<', now()->subHours(24))
-                ->delete();
-
             $supplier = Supplier::query()->findOrFail($request->supplier_id);
 
             $order = Order::create([
@@ -126,12 +121,15 @@ class OrderController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
-            foreach ($request->validated('items') as $item) {
-                $order->items()->create([
+            // Create all items in a single operation for better transaction safety
+            $items = collect($request->validated('items'))->map(function ($item) {
+                return new \App\Models\OrderItem([
                     'medicine_id' => $item['medicine_id'],
                     'quantity_ordered' => $item['quantity_ordered'],
                 ]);
-            }
+            });
+
+            $order->items()->saveMany($items);
 
             $order->syncLegacyColumnsFromItems();
 

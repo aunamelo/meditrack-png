@@ -86,11 +86,6 @@ class StockTransferController extends Controller
     public function store(StoreStockTransferRequest $request): RedirectResponse
     {
         $transfer = DB::transaction(function () use ($request) {
-            // Clean up orphaned stock transfer items from failed attempts
-            \App\Models\StockTransferItem::whereNull('stock_transfer_id')
-                ->where('created_at', '<', now()->subHours(24))
-                ->delete();
-
             $lines = collect($request->input('items', []));
             $firstDrug = Drug::findOrFail($lines->first()['drug_id']);
             $totalSent = (int) $lines->sum(fn ($item) => (int) $item['quantity_sent']);
@@ -110,18 +105,17 @@ class StockTransferController extends Controller
                 'sent_by' => auth()->id(),
             ]);
 
-            foreach ($lines as $item) {
+            // Create all items in a single operation for better transaction safety
+            $items = collect($lines)->map(function ($item) {
                 $sourceDrug = Drug::findOrFail($item['drug_id']);
-
-                StockTransferItem::create([
-                    'stock_transfer_id' => $transfer->id,
-                    'hospital_order_item_id' => null,
+                return new \App\Models\StockTransferItem([
                     'drug_id' => $sourceDrug->id,
-                    'destination_drug_id' => null,
                     'batch_number' => $sourceDrug->batch_number,
                     'quantity_sent' => (int) $item['quantity_sent'],
                 ]);
-            }
+            });
+
+            $transfer->items()->saveMany($items);
 
             return $transfer->load(['drug', 'sender', 'items.drug']);
         });
