@@ -80,14 +80,16 @@ class HospitalOrderController extends Controller
                 'status' => 'pending',
             ]);
 
-            foreach ($items as $item) {
-                HospitalOrderItem::create([
-                    'hospital_order_id' => $order->id,
+            // Create all items in a single operation for better transaction safety
+            $orderItems = collect($items)->map(function ($item) {
+                return new \App\Models\HospitalOrderItem([
                     'drug_name' => $item['drug_name'],
                     'dosage' => $item['dosage'],
                     'quantity_requested' => $item['quantity_requested'],
                 ]);
-            }
+            });
+
+            $order->items()->saveMany($orderItems);
 
             return $order;
         });
