@@ -145,6 +145,17 @@ class StockTransfer extends Model
         return $count > 0 ? $count : 1;
     }
 
+    public function syncLegacyColumnsFromItems(): void
+    {
+        $firstItem = $this->items()->orderBy('id')->first();
+
+        $this->update([
+            'drug_id' => $firstItem?->drug_id,
+            'batch_number' => $firstItem?->batch_number,
+            'quantity_sent' => (int) $this->items()->sum('quantity_sent'),
+        ]);
+    }
+
     /**
      * Only the Lae AMS -> Modilon Hospital road leg carries a vehicle and
      * is GPS-tracked; the NDoH -> Lae AMS leg travels by air/sea freight.
