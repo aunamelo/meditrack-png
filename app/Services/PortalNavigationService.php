@@ -79,6 +79,7 @@ class PortalNavigationService
             canManageUsers()
                 ? self::item('Administration', 'User Management', 'Procurement, store & pharmacy managers', getDashboardUserRoute('index'), request()->routeIs('*.dashboard.users.*'), 'users')
                 : null,
+            self::item('Administration', 'Audit Logs', 'View system activity logs', route('admin.dashboard.audit-logs.index'), request()->routeIs('*.dashboard.audit-logs.*'), 'clipboard-list'),
             self::item('Administration', 'Database Reset', 'Reset all data except users, medicines & vehicles', route('admin.dashboard.database-reset.index'), request()->routeIs('*.dashboard.database-reset.*'), 'alert-triangle'),
         ]));
     }

@@ -99,6 +99,11 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request): RedirectResponse
     {
         $order = DB::transaction(function () use ($request) {
+            // Clean up orphaned order items from failed attempts
+            \App\Models\OrderItem::whereNull('order_id')
+                ->where('created_at', '<', now()->subHours(24))
+                ->delete();
+
             $supplier = Supplier::query()->findOrFail($request->supplier_id);
 
             $order = Order::create([

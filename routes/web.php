@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\DashboardChartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DatabaseResetController;
@@ -119,6 +120,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('reports/stock-movements', [StockMovementController::class, 'index'])->name('reports.stock-movements.index');
     Route::get('database-reset', [DatabaseResetController::class, 'index'])->name('database-reset.index');
     Route::post('database-reset', [DatabaseResetController::class, 'reset'])->name('database-reset.reset');
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 });
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {

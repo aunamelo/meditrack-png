@@ -86,6 +86,11 @@ class StockTransferController extends Controller
     public function store(StoreStockTransferRequest $request): RedirectResponse
     {
         $transfer = DB::transaction(function () use ($request) {
+            // Clean up orphaned stock transfer items from failed attempts
+            \App\Models\StockTransferItem::whereNull('stock_transfer_id')
+                ->where('created_at', '<', now()->subHours(24))
+                ->delete();
+
             $lines = collect($request->input('items', []));
             $firstDrug = Drug::findOrFail($lines->first()['drug_id']);
             $totalSent = (int) $lines->sum(fn ($item) => (int) $item['quantity_sent']);

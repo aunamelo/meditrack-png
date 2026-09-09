@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogUserLogin;
 use App\Models\Drug;
 use App\Models\User;
 use App\Policies\DrugPolicy;
 use App\Policies\UserPolicy;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -47,5 +49,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
+
+        Event::listen(Login::class, LogUserLogin::class);
     }
 }
