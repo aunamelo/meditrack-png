@@ -325,14 +325,14 @@ class StockTransfer extends Model
         DB::transaction(function () use ($userId) {
             $this->loadMissing('items');
 
-            $lines = $this->items->isNotEmpty()
-                ? $this->items
-                : collect([(object) [
-                    'drug_id' => $this->drug_id,
-                    'quantity_sent' => $this->quantity_sent,
-                ]]);
+            // Always use actual items from database - no fallback
+            if ($this->items->isEmpty()) {
+                throw ValidationException::withMessages([
+                    'items' => 'This shipment has no line items to approve.',
+                ]);
+            }
 
-            foreach ($lines as $line) {
+            foreach ($this->items as $line) {
                 // Look up drug by batch_number to ensure correct batch deduction
                 $sourceDrug = Drug::query()
                     ->lockForUpdate()
