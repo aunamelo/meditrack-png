@@ -121,6 +121,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('database-reset', [DatabaseResetController::class, 'index'])->name('database-reset.index');
     Route::post('database-reset', [DatabaseResetController::class, 'reset'])->name('database-reset.reset');
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('audit-logs/export', [AuditLogController::class, 'exportCsv'])->name('audit-logs.export');
+    Route::get('audit-logs/{id}', [AuditLogController::class, 'show'])->name('audit-logs.show');
+    Route::delete('audit-logs/{id}', [AuditLogController::class, 'destroy'])->name('audit-logs.destroy');
+    Route::post('audit-logs/batch-delete', [AuditLogController::class, 'destroyBatch'])->name('audit-logs.destroy-batch');
+    Route::post('audit-logs/delete-old', [AuditLogController::class, 'destroyOld'])->name('audit-logs.destroy-old');
 });
 
 Route::middleware(['auth', 'verified', 'role:procurement_officer'])->prefix('procurement-officer')->name('procurement-officer.dashboard.')->group(function () {

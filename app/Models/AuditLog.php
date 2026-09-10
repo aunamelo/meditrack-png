@@ -8,11 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class AuditLog extends Model
 {
     protected $fillable = [
+        'event_id',
         'user_id',
         'action',
         'description',
+        'severity',
         'ip_address',
         'user_agent',
+        'session_id',
+        'request_method',
+        'request_path',
         'old_values',
         'new_values',
     ];
