@@ -106,16 +106,6 @@
         </div>
 
         <x-module.detail-card title="Batches on this delivery" class="mt-6">
-            @php
-                $lines = $transfer->items->isNotEmpty()
-                    ? $transfer->items
-                    : collect([(object) [
-                        'drug' => $transfer->drug,
-                        'batch_number' => $transfer->batch_number,
-                        'quantity_sent' => $transfer->quantity_sent,
-                        'destinationDrug' => $transfer->destinationDrug,
-                    ]]);
-            @endphp
             <div class="module-table-wrap overflow-x-auto">
                 <table class="module-table">
                     <thead>
@@ -127,7 +117,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($lines as $line)
+                        @forelse($transfer->items as $line)
                             <tr>
                                 <td>
                                     {{ $line->drug->drug_name ?? 'N/A' }}
@@ -151,7 +141,13 @@
                                     @endif
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-6">
+                                    <p class="text-sm text-muted">No batches on this delivery.</p>
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
