@@ -126,6 +126,7 @@ class OrderController extends Controller
                 return new \App\Models\OrderItem([
                     'medicine_id' => $item['medicine_id'],
                     'quantity_ordered' => $item['quantity_ordered'],
+                    'quantity_received' => 0,
                 ]);
             });
 
@@ -213,6 +214,7 @@ class OrderController extends Controller
                 $order->items()->create([
                     'medicine_id' => $item['medicine_id'],
                     'quantity_ordered' => $item['quantity_ordered'],
+                    'quantity_received' => 0,
                 ]);
             }
 
