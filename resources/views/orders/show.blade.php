@@ -19,8 +19,8 @@
                 @if(canManageOrders() && $order->status === 'pending' && $order->created_by === auth()->id())
                     <a href="{{ getDashboardOrderRoute('edit', $order) }}" class="btn-module-secondary">Edit</a>
                     <details class="relative inline-block">
-                        <summary class="inline-flex cursor-pointer list-none items-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-rose-700 hover:bg-rose-100">Cancel</summary>
-                        <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+                        <summary class="inline-flex cursor-pointer list-none items-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-rose-600 hover:bg-rose-100">Cancel</summary>
+                        <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-700 dark:bg-zinc-900">
                             @csrf
                             <label for="cancel_reason" class="form-label">Cancellation Reason</label>
                             <textarea name="reason" id="cancel_reason" rows="3" required class="input-field"></textarea>
@@ -36,8 +36,8 @@
                 @endif
                 @if(canApproveOrders() && $order->status === 'pending')
                     <details class="relative inline-block">
-                        <summary class="inline-flex cursor-pointer list-none items-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-rose-700 hover:bg-rose-100">Cancel</summary>
-                        <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+                        <summary class="inline-flex cursor-pointer list-none items-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-rose-600 hover:bg-rose-100">Cancel</summary>
+                        <form action="{{ getDashboardOrderRoute('cancel', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-700 dark:bg-zinc-900">
                             @csrf
                             <label for="admin_cancel_reason" class="form-label">Cancellation Reason</label>
                             <textarea name="reason" id="admin_cancel_reason" rows="3" required class="input-field"></textarea>
@@ -51,7 +51,7 @@
                 @if($order->canAdvancePipeline() && (canApproveOrders() || (canManageOrders() && $order->created_by === auth()->id())))
                     <details class="relative inline-block">
                         <summary class="btn-brand inline-flex cursor-pointer list-none text-xs uppercase tracking-wider">{{ $order->nextPipelineActionLabel() }}</summary>
-                        <form action="{{ getDashboardOrderRoute('advance-pipeline', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-800 dark:bg-zinc-900">
+                        <form action="{{ getDashboardOrderRoute('advance-pipeline', $order) }}" method="POST" class="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-line bg-surface p-4 shadow-soft dark:border-zinc-700 dark:bg-zinc-900">
                             @csrf
                             <p class="mb-3 text-sm text-muted">Move this order to the next import pipeline stage.</p>
                             <label for="pipeline_notes" class="form-label">Notes (optional)</label>
@@ -143,7 +143,7 @@
 
         <x-module.detail-card title="Order Lines" class="mt-6">
             <div class="mb-4 flex items-center justify-between">
-                <p class="text-sm text-muted">{{ max($order->items->count(), 1) }} {{ Str::plural('item', max($order->items->count(), 1)) }} · {{ number_format($order->quantity_ordered) }} units total</p>
+                <p class="text-sm text-muted">{{ $order->items->count() }} {{ Str::plural('item', $order->items->count()) }} · {{ number_format($order->quantity_ordered) }} units total</p>
             </div>
             <div class="module-table-wrap overflow-x-auto">
                 <table class="module-table">
@@ -190,27 +190,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td>
-                                    @if($order->medicine)
-                                        <span class="font-medium">{{ $order->medicine->name }}</span>
-                                        <span class="block text-xs text-muted">{{ $order->medicine->dosage }}</span>
-                                    @elseif($order->drug)
-                                        <a href="{{ getDashboardDrugRoute('show', $order->drug) }}" class="module-table-link">{{ $order->drug->drug_name }}</a>
-                                        <span class="block text-xs text-muted">{{ $order->drug->dosage }}</span>
-                                    @else
-                                        N/A
-                                    @endif
-                                </td>
-                                <td class="text-right font-medium">{{ number_format($order->quantity_ordered) }}</td>
-                                <td class="text-right font-medium">{{ number_format($order->quantity_received ?? 0) }}</td>
-                                <td class="text-right font-medium">{{ number_format(max(0, $order->quantity_ordered - ($order->quantity_received ?? 0))) }}</td>
-                                <td>
-                                    <div class="flex items-center gap-2">
-                                        <div class="module-progress-track w-20">
-                                            <div class="module-progress-bar" style="width: {{ $order->getProgressPercentage() }}%"></div>
-                                        </div>
-                                        <span class="text-xs text-muted">{{ $order->getProgressPercentage() }}%</span>
-                                    </div>
+                                <td colspan="5" class="text-center py-6">
+                                    <p class="text-sm text-muted">No line items in this order.</p>
                                 </td>
                             </tr>
                         @endforelse
